@@ -32,6 +32,14 @@ const ColStyleStart : React.CSSProperties = {
     textAlign : 'start',
 }
 
+interface ImiDromDownProps {
+    hukumuData : HukumuData | null;
+    selectedBun : string;
+    dropDownImi : imiData[] | null;
+    iId : string | null;
+    fetch : () => void;
+}
+
 const ImiComp = () => {
 
     //i18n
@@ -42,15 +50,11 @@ const ImiComp = () => {
 
     //State
     const [value, setValue] = useState<string>('');
-    const [iId, setIId] = useState<string | null>(null);
-    const [imi, setImi] = useState<string | null>('');
-
-    const [dropDownImi, setDropDownImi] = useState<Array<imiData> | null>(null);
+    const [imiData, setImiData] = useState<RES_GET_IMI | null>(null)
 
     const { response, setParams, fetch } = useAxiosGet<RES_GET_IMI, REQ_GET_IMI>('/db/imi', true, null);
 
     const { response : resPostImi, setParams : setParamsPostImi } = useAxiosPost<null, REQ_POST_IMI>('/db/imi', true, null);
-    const { response : resSetImiHukumu, setParams : setParamsIH } = useAxiosPut<null, REQ_PUT_IMI>('/db/imi', true, null);
     const { response : resDeleteImi, setParams : setParamsDelete } = useAxiosDelete<null, REQ_DELETE_IMI>('/db/imi', true, null);
 
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
@@ -67,16 +71,6 @@ const ImiComp = () => {
         })
     }
 
-    const setIIdHukumu = ( _iId : string ) => {
-        if( !hukumuData ){ return } 
-
-        setParamsIH({
-            jaBId : selectedBun,
-            startOffset : hukumuData.startOffset, endOffset : hukumuData.endOffset,
-            iId : _iId
-        })
-    }
-
     const deleteImi = ( _iId : string ) => {
         if( !hukumuData ){ return } 
 
@@ -89,18 +83,18 @@ const ImiComp = () => {
 
     useEffect( () => {
         let res = response;
-        if(res !== null){
-            setImi(res.data.imi);
-            setIId(res.data.iId);
-            setDropDownImi(res.data.iIds);
+        if(res !== null && res.message !== 'empty'){
+            setImiData(res.data);
         }
     }, [response])
 
     useEffect( () => {
-        if( resPostImi || resSetImiHukumu || resDeleteImi ){
+        if( resPostImi !== null || resDeleteImi !== null ){
             fetch();
+            setValue('');
+            setImiData(null)
         }
-    }, [resPostImi, resSetImiHukumu, resDeleteImi, fetch])
+    }, [resPostImi, resDeleteImi, fetch])
 
     useEffect( () => {
         if(hukumuData !== null){
@@ -109,10 +103,8 @@ const ImiComp = () => {
                 startOffset : hukumuData.startOffset,
                 endOffset : hukumuData.endOffset
             });
-            setIId(null);
-            setImi('');
             setValue('');
-            setDropDownImi(null);
+            setImiData(null)
         }
     }, [hukumuData, selectedBun, setParams])
 
@@ -144,23 +136,14 @@ const ImiComp = () => {
                     <Row gutter={[8, 8]}>
                         <Col offset={8} flex="auto" style={ColStyle}>
                         {
-                            dropDownImi !== null &&
-                            <Select
-                                defaultValue={imi}
-                                style={{ width: '100%' }}
-                                onChange={setIIdHukumu}
-                                options={
-                                    dropDownImi?.map( (v) => {
-                                        return { value : v.iId, label : v.koText }
-                                    })
-                                }
-                            />
+                            imiData !== null &&
+                            <ImiDromDown hukumuData={hukumuData} selectedBun={selectedBun} dropDownImi={imiData.iIds} iId={imiData.iId} fetch={fetch}/>
                         }
                         </Col>
                         {
-                            iId !== null &&
+                            imiData !== null && imiData.iId !== null && 
                             <Col push="100px" style={ColStyleStart}>
-                                <Button onClick={() => deleteImi(iId)}>{t('BUTTON.DELETE')}</Button>
+                                <Button onClick={() => deleteImi(imiData.iId)}>{t('BUTTON.DELETE')}</Button>
                             </Col>
                         }
                     </Row>
@@ -178,6 +161,45 @@ const ImiComp = () => {
                 </>
             }
             </div>
+        </>
+    )
+}
+
+const ImiDromDown = ({ hukumuData, selectedBun, dropDownImi, iId, fetch } : ImiDromDownProps ) => {
+
+    const { response : resSetImiHukumu, setParams : setParamsIH } = useAxiosPut<null, REQ_PUT_IMI>('/db/imi', true, null);
+    
+    const setIIdHukumu = ( value : string ) => {
+        if( !hukumuData ){ return } 
+
+        setParamsIH({
+            jaBId : selectedBun,
+            startOffset : hukumuData.startOffset, endOffset : hukumuData.endOffset,
+            iId : value
+        })
+    }
+
+    useEffect( () => {
+        if( resSetImiHukumu !== null ){
+            fetch();
+        }
+    }, [resSetImiHukumu, fetch])
+
+    return(
+        <>
+        {
+            dropDownImi !== null &&
+            <Select
+                defaultValue={iId}
+                style={{ width: '100%' }}
+                onChange={setIIdHukumu}
+                options={
+                    dropDownImi?.map( ( v : imiData ) => {
+                        return { value : v.iId, label : v.koText }
+                    })
+                }
+            />
+        }
         </>
     )
 }

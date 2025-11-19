@@ -33,7 +33,7 @@ async function getImi(req, res){
 
         let ret = {
             iId : iId,
-            imi : imi == null ? null : imi.koText,
+            imi : imi == undefined ? null : imi.koText,
             iIds : iIds
         }
 
@@ -64,7 +64,7 @@ async function postImi(req, res){
         logger.info( db_module.logHukumuUpdateIId(_hukumu, _IID) );
         _hukumu.iId = _IID;
 
-        db.write();
+        await db.write();
 
         res.send({
             message : 'success',
@@ -77,7 +77,7 @@ async function setImi(req, res){
     await db_connection(req, res, async(db) => {
         let { jaBId, startOffset, endOffset, iId } = req.body;
 
-       let _hukumu = db.data.hukumu.find( (v) => 
+        let _hukumu = db.data.hukumu.find( (v) => 
             v.jaBId == jaBId &&
             v.startOffset == startOffset &&
             v.endOffset == endOffset
@@ -85,7 +85,7 @@ async function setImi(req, res){
         logger.info( db_module.logHukumuUpdateIId(_hukumu, iId) );
         _hukumu.iId = iId;
 
-        db.write();
+        await db.write();
 
         res.send({
             message : 'success',
@@ -116,7 +116,7 @@ async function deleteImi(req, res){
             )
         }
 
-        db.write();
+        await db.write();
 
         res.send({
             message : 'success',

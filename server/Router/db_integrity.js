@@ -109,11 +109,11 @@ async function checkIntegrity(req, res){
                 logger.error(`HUKUMU에 존재하지 않는 단어 ${v.tId}`);
             }
         })
-        db.data.imi.map( (v) => {
-            if( _iIds.includes(v.iId) == false ){
-                logger.error(`HUKUMU에 존재하지 않는 뜻 ${v.iId}`);
-            }
-        })
+        // db.data.imi.map( (v) => {
+        //     if( _iIds.includes(v.iId) == false ){
+        //         logger.error(`HUKUMU에 존재하지 않는 뜻 ${v.iId}`);
+        //     }
+        // })
 
         let _hy_hyIds = db.data.hyouki.map( (v) => v.hyId );
         db.data.komu.map( (v) => {

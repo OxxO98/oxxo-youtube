@@ -61,7 +61,7 @@
     "server": "tsc ./server/Router/core/db_module.ts && nodemon ./server/server.js",
     "client": "react-scripts start",
     "start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
-    "serve": "concurrently --kill-others-on-fail \"npm run server\" \"serve -s build\"",
+    "serve": "concurrently --kill-others-on-fail \"npm run server\" \"serve -s build\" \"start http://localhost:3000\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

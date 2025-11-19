@@ -124,6 +124,7 @@ declare global {
   export interface imiData {
     iId : string;
     koText : string;
+    tId : string;
   }
 
   export interface ComplexText {
