@@ -12,48 +12,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function getAudioStreamLegacy (req, res) {
-  let assetPath = path.join(__dirname, '../Asset');
-  let transcriptPath = path.join(assetPath, 'transcript');
-
-  let { videoId } = req.query;
-
-  let videoPath = `${transcriptPath}/${videoId}.wav`;
-
-  //  == 'Japanese original' || format.audioTarck.id == 'ja.4' id는 못찾는 상황
-  /*
-    { console.log(format) }
-    !format.hasVideo && format.hasAudio &&
-        ( format.audioTrack != undefined ? format.audioTrack.displayName.includes('Japanese') : true) 
-  */
-  if( !fs.existsSync(videoPath) ){
-    await ytdl(`http://www.youtube.com/watch?v=${videoId}`, { 
-      filter : format => !format.hasVideo && format.hasAudio &&
-        ( format.audioTrack != undefined ? format.audioTrack.displayName.includes('Japanese') : true) 
-    }).pipe(fs.createWriteStream( videoPath ).on(
-      'finish', async function(){
-        
-        const stream = fs.createReadStream(videoPath);
-
-        for await(const chunk of stream){
-          res.write(chunk);
-        }
-
-        res.end();
-      }
-    ))
-  } 
-  else{
-    const stream = fs.createReadStream(videoPath);
-
-    for await(const chunk of stream){
-      res.write(chunk);
-    }
-
-    res.end();
-  }  
-}
-
 async function getAudioStreamYoutubeJS (req, res) {
   let assetPath = path.join(__dirname, '../Asset');
   let transcriptPath = path.join(assetPath, 'transcript');
@@ -61,6 +19,10 @@ async function getAudioStreamYoutubeJS (req, res) {
   let { videoId } = req.query;
 
   let videoPath = `${transcriptPath}/${videoId}.wav`;
+
+  if( !fs.existsSync(transcriptPath) ){
+    await fs.mkdirSync(transcriptPath);
+  }
 
   if( !fs.existsSync(videoPath) ){
     Platform.shim.eval = async (data, env) => {
@@ -116,6 +78,10 @@ async function getAudioCaption (req, res) {
   let { videoId } = req.query;
 
   let videoPath = `${transcriptPath}/${videoId}`;
+
+  if( !fs.existsSync(transcriptPath) ){
+    await fs.mkdirSync(transcriptPath);
+  }
 
   if( !fs.existsSync(`${videoPath}_caption.json`) ){
     const innertube = await Innertube.create({ generate_session_locally: true });

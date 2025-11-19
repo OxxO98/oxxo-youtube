@@ -34,6 +34,7 @@
     "ollama": "^0.5.17",
     "openai": "^5.19.1",
     "pako": "^2.1.0",
+    "patch-package": "^8.0.1",
     "rc-virtual-list": "^3.19.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -63,7 +64,8 @@
     "serve": "concurrently --kill-others-on-fail \"npm run server\" \"serve -s build\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "patch-package"
   },
   "eslintConfig": {
     "extends": [

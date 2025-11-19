@@ -1,0 +1,24 @@
+diff --git a/node_modules/nodejs-whisper/cpp/whisper.cpp/examples/bench/bench.cpp b/node_modules/nodejs-whisper/cpp/whisper.cpp/examples/bench/bench.cpp
+index 54f7311..7c1ad21 100644
+--- a/node_modules/nodejs-whisper/cpp/whisper.cpp/examples/bench/bench.cpp
++++ b/node_modules/nodejs-whisper/cpp/whisper.cpp/examples/bench/bench.cpp
+@@ -4,6 +4,7 @@
+ #include <cstring>
+ #include <string>
+ #include <thread>
++#include <algorithm>
+ 
+ // command-line parameters
+ struct whisper_params {
+diff --git a/node_modules/nodejs-whisper/cpp/whisper.cpp/ggml/src/ggml-cpu/ops.cpp b/node_modules/nodejs-whisper/cpp/whisper.cpp/ggml/src/ggml-cpu/ops.cpp
+index 955fec5..b5e1b58 100644
+--- a/node_modules/nodejs-whisper/cpp/whisper.cpp/ggml/src/ggml-cpu/ops.cpp
++++ b/node_modules/nodejs-whisper/cpp/whisper.cpp/ggml/src/ggml-cpu/ops.cpp
+@@ -7,6 +7,7 @@
+ #include "vec.h"
+ 
+ #include <float.h>
++#include <algorithm>
+ 
+ // ggml_compute_forward_dup
+ 
