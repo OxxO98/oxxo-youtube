@@ -106,6 +106,8 @@ const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
     const contentStyle: React.CSSProperties = {
         lineHeight: '120px',
         textAlign: 'center',
+        justifyContent : 'center',
+        width : '100%',
         color: token.colorTextTertiary,
         backgroundColor: token.colorFillAlter,
         borderRadius: token.borderRadiusLG,
@@ -177,6 +179,7 @@ const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
             <Button type="primary" onClick={showModal}>
                 {t('TITLE')}<PlusSquareOutlined/>
             </Button>
+
             <Modal
                 title={t('TITLE')}
                 closable={{ 'aria-label': 'Custom Close Button' }}
@@ -186,7 +189,7 @@ const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                 footer={[ ]}
             >
                 <Steps current={current} items={items} />
-                <div style={contentStyle}>
+                <Flex style={contentStyle} vertical align='center' gap={16}>
                     {current === 0 && (
                         <Space align='baseline'>
                             <Form
@@ -205,7 +208,7 @@ const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                         <>
                             <ReactPlayer
                                 src={`https://youtu.be/${inputs.youtubeSrc}`}
-                                style={{ width: '100%', height: 'auto', aspectRatio: '16/9' }}
+                                style={{ width: '80%', height: 'auto', aspectRatio: '16/9' }}
                             />
                             <Space align='baseline'>
                                 <Form>
@@ -216,7 +219,7 @@ const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                             </Space>
                         </>
                     )}
-                </div>
+                </Flex>
                 <div style={{ marginTop: 24 }}>
                     <Flex justify='flex-end'>
                         {current > 0 && (
