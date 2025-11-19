@@ -94,6 +94,7 @@ async function getTranscipt(req, res){
             if( option.lang !== 'auto' ){ _langObj.language = option.lang } 
             const transcription = await nodewhisper(videoPath, {
                 modelName : 'small',
+                autoDownloadModelName : 'small',
                 withCuda : false,
                 whisperOptions : {
                     outputInJson : true,
@@ -149,6 +150,7 @@ async function getRangeTranscript(req, res){
                 if( option.lang !== 'auto' ){ _langObj.language = option.lang } 
                 nodewhisper(outFilePath, {
                     modelName : 'small',
+                    autoDownloadModelName : 'small',
                     withCuda : false,
                     whisperOptions : {
                         translateToEnglish : false,
