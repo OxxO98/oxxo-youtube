@@ -29,6 +29,7 @@ async function db_connection(req, res, func){
         db = new Low(adapter, defaultData);
         
         await db.read();
+        await db.write();
 
         await func(db);
 
