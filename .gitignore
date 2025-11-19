@@ -9,7 +9,6 @@
 /coverage
 
 # production
-/build
 
 # misc
 .DS_Store
@@ -21,3 +20,14 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+#Asset
+server/Asset/Logs/*
+!server/Asset/Logs/error
+server/Asset/Logs/error/*
+
+server/Asset/transcript/*
+
+server/Asset/db/*
+!server/Asset/db/backup
+server/Asset/db/backup/*
