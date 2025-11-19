@@ -132,6 +132,9 @@ async function checkIntegrity(req, res){
         let _originalFilePath = path.join(__dirname, '../Asset/db/db.json');
         let _backupFilename = `${_today.getFullYear()}${(_today.getMonth()+1).toString().padStart(2, '0')}${_today.getDate().toString().padStart(2, '0')}_db.json`
         let _backupFolder = path.join(__dirname, '../Asset/db/backup');
+        if( !fs.existsSync(_backupFolder) ){
+            await fs.mkdirSync(_backupFolder);
+        }
         let _backupPath = path.join(_backupFolder, `./${_backupFilename}`);
 
         if( fs.existsSync(_backupPath) == false ){
