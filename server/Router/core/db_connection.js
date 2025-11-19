@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Low, JSONFile } from 'lowdb';
-import lodash from 'lodash';
+import fs from 'fs'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,11 +25,13 @@ async function db_connection(req, res, func){
     let db;
     try{
         const file = path.join(assetPath, 'db', 'db.json');
+        if( fs.existSync(file) == false ){
+          await fs.writeFileSync(file, JSON.stringify(defaultData, null, 2) );
+        }
         const adapter = new JSONFile(file);
-        db = new Low(adapter, defaultData);
+        db = new Low(adapter);
         
         await db.read();
-        await db.write();
 
         await func(db);
 
