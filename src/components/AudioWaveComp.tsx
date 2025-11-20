@@ -54,95 +54,71 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
   const { width : waveAreaWidth, height : waveAreaHeight } = waveAreaSize;
   const frameArea = 10;
 
-  const [zoom, setZoom] = useState(8); // zoom은 배율 최대 filteredData.length/frameRate보다 작은 2배수
-  //MAX_ZOOM을 설정해야할 지도 모름. -> Slider에서 dragTrack이 가능해서 그런데 바꿀 생각있으면 잘 바꿔보기
-  //바꾼다면 setRangeCrit, ZoomIn, zoomOut, changeRange 바꾸기.
-  const [range, setRange] = useState(0); //offset, zoom이 올라갈 수록 최대 range가 작아짐.
-
-  /*
-    zoom은 정수로 1이 가장 작은 줌 == 1초, zoomOut시에 커짐
-    range는 오프셋으로 보이는 위치에서 가장 빠른 시간 offset
-    
-    setRangeCrit : time과 zoom을 기준으로 range설정, time을 기준으로 zoom값으로 구한 max와 min이 기준이 된다. 이 기준이 전체 범위에 넘었을 때 예외 처리
-    zoomIn은 zoom값도 변경하지만 return을 통해 다음 zoom값을 반환, zoomOut도 마찬가지
-    onWheelfunction에서 zoomOut, In을 통해 다음 zoom값을 가져온뒤, 그 기준으로 setRangeCrit
-
-    zoom 필터 filteredData
-    Math.round( range*frameRate ) < index && index <= Math.round( range*frameRate + zoom*frameRate ) + 1
-    range*frameRate ~ index ~ (range+zoom) * frameRate의 사이 값
-    zoom이 5보다 작은 값일 때, (보이는 화면이 5초 이하) frame그림 표시
-
-    [filteredData, startDraw, zoom, range, videoTime, startTime, endTime, selectMarker, canvasWidth]
-    의 값이 변경시 새로 그림
-
-    [zoom, videoTime, setRangeCrit]
-    의 값이 변경시 setRangeCrit으로 range재설정
-  */
+  const [range, setRange] = useState<number[] | null>(null); //Index
 
   //Hook
   const { floorFrame, frameTime, timeToFrameStamp, getFrame } = useTimeStamp();
 
   //Handle
-  const setRangeCrit = useCallback( (time : number, zoom : number) => {
+  const setRangeCrit = useCallback( (time : number) => {
     if(!filteredData) return;
     if( playing === false ){ return } 
 
-    if(zoom >= filteredData.length/frameRate){
-      setRange(0);
+    if(range === null) return;
+
+    let [ _start, _end ] = range;
+    let _zoom = _end - _start;
+
+    if(_zoom >= filteredData.length){
+      setRange([0, filteredData.length]);
     }
     else{
-      let max = time + zoom/2;
-      let min = time - zoom/2;
+      let _time = Math.floor(time*frameRate);
 
-      if( range <= time && time <= range+zoom){
+      if( _start <= _time && _time <= _end ){
         return;
       }
 
-      if( max > filteredData.length/frameRate ){
-        setRange(filteredData.length/frameRate - zoom);
+      if( _time + _zoom > filteredData.length-1 ){
+        setRange([filteredData.length-1-_zoom, filteredData.length-1]);
       }
-      else if(min < 0){
-        setRange(0);
+      else if( _time - _zoom < 0){
+        setRange([0, _zoom]);
       }
       else{
-        setRange(time);
+        setRange([_time, _time+_zoom]);
       }
     }
   }, [playing, range, filteredData, frameRate])
 
   const zoomIn = () => {
-    if(filteredData !== null){
-      if(zoom > 1){
-        if(zoom < 10){
-          setZoom(zoom-1);
-          return zoom-1;
-        }
-        else{
-          setZoom(zoom/2);
-          return zoom/2;
-        }
-      }
-      else{
-        setZoom(1);
-        return null;
+    if(filteredData !== null && range !== null){
+      let [start, end] = range;
+      let _time = Math.floor(videoTime*frameRate);
+
+      let _start = start + ((_time - start)/2);
+      let _end = end - ((end - _time)/2);
+      
+      let _nextZoom = (end-start)/2;
+      if(_nextZoom > frameRate ){
+        setRange([ _start, _end ]);
       }
     }
   }
 
   const zoomOut = () => {
-    if(filteredData !== null){
-      if(filteredData.length/frameRate > zoom*2){
-        if(zoom < 10){
-          setZoom(zoom+1);
-          return zoom+1;
-        }
-        else{
-          setZoom(zoom*2);
-          return zoom*2;
-        }
+    if(filteredData !== null && range !== null){
+      let [start, end] = range;
+      let _start = start - ((end - start)/2);
+      let _end = end + ((end - start)/2);
+      let _nextZoom = (end-start)*2;
+      if( _nextZoom < filteredData.length ){
+        _end = Math.min( _end, filteredData.length-1 );
+        _start = Math.max( _start, 0 );
+        setRange([ _start, _end ]);
       }
       else{
-        return null;
+        setRange([0, filteredData.length-1])
       }
     }
   }
@@ -153,34 +129,29 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     if(canvas.current === null){
       return;
     }
-    
-    let rect = canvas.current.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let seekTimeFrame = floorFrame(range + zoom*x/rect.width, frameRate);
+
+    if( range === null ) return;
+
+    let [ _start, _end ] = range;
+    let _zoom = _start - _end;
 
     if(e.shiftKey === false){
       if(e.deltaY > 0){
-        let afterZoom = zoomOut();
-        if(afterZoom !== undefined && afterZoom !== null){
-          setRangeCrit(seekTimeFrame - afterZoom*x/rect.width + afterZoom/2, afterZoom);
-        }
+        zoomOut();
       }
       else{
-        let afterZoom = zoomIn();
-        if(afterZoom !== undefined && afterZoom !== null){
-          setRangeCrit(seekTimeFrame - afterZoom*x/rect.width + afterZoom/2, afterZoom);
-        }
+        zoomIn();
       }
     }
     else{
       if(e.deltaY > 0){
-        if( range-1 >= 0 ){
-          setRange(range - 1);
+        if( _start-frameRate >= 0 ){
+          setRange([range[0] - frameRate, range[1] - frameRate]);
         }
       }
       else{
-        if( range + 1 <= filteredData.length/frameRate - zoom ){
-          setRange(range + 1);
+        if( _end + 1 <= filteredData.length - _zoom ){
+          setRange([range[0] + frameRate, range[1] + frameRate]);
         }
       }
     }
@@ -191,11 +162,16 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
       return;
     }
 
+    if(range === null) return;
+
+    let [ _start, _end ] = range;
+    let _zoom = _end - _start;
+
     let rect = canvas.current.getBoundingClientRect();
     let x = e.clientX - rect.left;
 
     if(filteredData !== null){
-      mouseDownStartTime.current = floorFrame( Number(range) + Number(zoom*x/rect.width), frameRate );
+      mouseDownStartTime.current = floorFrame( Number(_start/frameRate) + Number(_zoom/frameRate*x/rect.width), frameRate );
     }
   }
 
@@ -203,12 +179,18 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     if(canvas.current === null){
       return;
     }
+    
+    if(range === null) return;
+
+    let [ _start, _end ] = range;
+    let _zoom = _end - _start;
 
     let rect = canvas.current.getBoundingClientRect();
     let x = e.clientX - rect.left;
 
     if(filteredData !== null && mouseDownStartTime.current !== null){
-      let mouseUpEndTime = Number(range) + Number(zoom*x/rect.width);
+      let mouseUpEndTime = Number(_start/frameRate) + Number(_zoom/frameRate*x/rect.width);
+
       if( Math.abs( mouseUpEndTime - mouseDownStartTime.current ) > 10/frameRate ){
         if( mouseDownStartTime.current < mouseUpEndTime ){
           store.dispatch(setStartTime( mouseDownStartTime.current ));
@@ -232,16 +214,21 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
       return;
     }
     
+    if(range === null) return;
+
+    let [ _start, _end ] = range;
+    let _zoom = _end - _start;
+    
     let rect = canvas.current.getBoundingClientRect();
     let x = e.clientX - rect.left;
 
     if(filteredData !== null){
-      let seekTime = floorFrame(range + zoom*x/rect.width, frameRate);
+      let seekTime = floorFrame(_start/frameRate + _zoom/frameRate*x/rect.width, frameRate);
       gotoTime(seekTime, null);
     }
   }
 
-  const changeRange = ( value : number ) => {
+  const changeRange = ( value : number[] ) => {
     let a = value;
     setRange(a);
     
@@ -262,6 +249,11 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     if(ctx === null){
       return;
     }
+    
+    if(range === null) return;
+
+    let [ _start, _end ] = range;
+    let _zoom = _end - _start;
 
     const dpr = window.devicePixelRatio || 1;
 
@@ -272,32 +264,32 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // 샘플 1개가 차지할 넓이
-    const sampleWidth = waveAreaWidth / (zoom*frameRate);
+    const sampleWidth = waveAreaWidth / (_zoom);
 
     //startTime, endTime 그리기
     if(startTime !== null && endTime !== null ){
       //startTime - endTime의 흰배경.
-      ctx.moveTo( (startTime-range)*frameRate*sampleWidth, frameArea );
+      ctx.moveTo( (startTime*frameRate-_start)*sampleWidth, frameArea );
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(
-        (startTime-range)*frameRate*sampleWidth, frameArea,
+        (startTime*frameRate-_start)*sampleWidth, frameArea,
         (endTime-startTime)*frameRate*sampleWidth, canvasHeight
       );
     }
     else{
       if(startTime !== null){
-        ctx.moveTo( (startTime-range)*frameRate*sampleWidth, frameArea );
+        ctx.moveTo( (startTime*frameRate-_start)*sampleWidth, frameArea );
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(
-          (startTime-range)*frameRate*sampleWidth, frameArea,
+          (startTime*frameRate-_start)*sampleWidth, frameArea,
           sampleWidth, canvasHeight
         );
       }
       else if(endTime !== null){
-        ctx.moveTo( (endTime-range)*frameRate*sampleWidth, frameArea );
+        ctx.moveTo( (endTime*frameRate-_start)*sampleWidth, frameArea );
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(
-          (endTime-range)*frameRate*sampleWidth, frameArea,
+          (endTime*frameRate-_start)*sampleWidth, frameArea,
           sampleWidth, canvasHeight
         );
       }
@@ -305,10 +297,10 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
 
     //zoom된 범위 필터
     const rangeFilteredDataR = filteredData.right.filter( (arr, index) => (
-      Math.round( range*frameRate ) < index && index <= Math.round( range*frameRate + zoom*frameRate ) + 1
+      Math.round( _start ) < index && index <= Math.round( _end) + 1
     ) );
     const rangeFilteredDataL = filteredData.left.filter( (arr, index) => (
-      Math.round( range*frameRate ) < index && index <= Math.round( range*frameRate + zoom*frameRate ) + 1
+      Math.round( _start ) < index && index <= Math.round( _end ) + 1
     ) );
 
     let lastXR = 0; // x축 좌표
@@ -361,11 +353,11 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     ctx.closePath();
 
     //frame 표시 부분 그리기.
-    if(zoom < 5){
-      let xOffset = 1 - (range - floorFrame(range, frameRate))*frameRate;
+    if( _zoom < 5*frameRate ){
+      let xOffset = 1 - (_start/frameRate - floorFrame(_start/frameRate, frameRate))*frameRate;
 
-      let rangeFrame = frameTime(range, frameRate).frame;
-      let zoomLength = Math.floor(zoom*frameRate);
+      let rangeFrame = frameTime(_start/frameRate, frameRate).frame;
+      let zoomLength = Math.floor(_zoom);
       let lastFrameX = 0;
 
       if(xOffset > 0){
@@ -416,9 +408,9 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
 
     //현재 시간 그리기
     ctx.beginPath();
-    ctx.moveTo( (videoTime-range)*frameRate*sampleWidth, 0 );
+    ctx.moveTo( (videoTime*frameRate-_start)*sampleWidth, 0 );
     ctx.strokeStyle = '#BF4040';
-    ctx.lineTo( (videoTime-range)*frameRate*sampleWidth, canvasHeight );
+    ctx.lineTo( (videoTime*frameRate-_start)*sampleWidth, canvasHeight );
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.closePath();
@@ -427,25 +419,25 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     if(startTime !== null && endTime !== null && endTime > startTime){
       if(selectMarker === 'startTime'){
         ctx.beginPath();
-        ctx.moveTo( (startTime-range)*frameRate*sampleWidth, 0 );
+        ctx.moveTo( (startTime*frameRate-_start)*sampleWidth, 0 );
         ctx.strokeStyle = 'yellow';
-        ctx.lineTo( (startTime-range)*frameRate*sampleWidth, canvasHeight );
+        ctx.lineTo( (startTime*frameRate-_start)*sampleWidth, canvasHeight );
         ctx.stroke();
         ctx.closePath();
       }
 
       if(selectMarker === 'endTime'){
         ctx.beginPath();
-        ctx.moveTo( (endTime-range)*frameRate*sampleWidth, 0 );
+        ctx.moveTo( (endTime*frameRate-_start)*sampleWidth, 0 );
         ctx.strokeStyle = 'yellow';
-        ctx.lineTo( (endTime-range)*frameRate*sampleWidth, canvasHeight );
+        ctx.lineTo( (endTime*frameRate-_start)*sampleWidth, canvasHeight );
         ctx.stroke();
         ctx.closePath();
       }
     }
 
     stopDraw();
-  }, [filteredData, canvasWidth, canvasHeight, frameRate, zoom, range, videoTime, startTime, endTime, selectMarker, waveAreaHeight, waveAreaWidth, floorFrame, frameTime, getFrame])
+  }, [filteredData, canvasWidth, canvasHeight, frameRate, range, videoTime, startTime, endTime, selectMarker, waveAreaHeight, waveAreaWidth, floorFrame, frameTime, getFrame])
 
 	const stopDraw = () => {
 	  cancelAnimationFrame(refId.current);
@@ -455,12 +447,11 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     if(filteredData !== null){
       startDraw();
     }
-  }, [filteredData, startDraw, zoom, range, videoTime, startTime, endTime, selectMarker, canvasWidth])
+  }, [filteredData, startDraw, range, videoTime, startTime, endTime, selectMarker, canvasWidth])
 
   useEffect( () => {
-    // videoTime 이 zoom 된 범위 안에 있으면 range변경 없음, 범위 밖이면 range를 videoTime으로 변경
-    setRangeCrit(videoTime, zoom);
-  }, [zoom, videoTime, setRangeCrit])
+    setRangeCrit(videoTime);
+  }, [videoTime, setRangeCrit])
 
   useEffect( () => {
     if(divBox.current !== null){
@@ -477,6 +468,12 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
       return () => observer.disconnect();
     }
   }, [])
+
+  useEffect( () => {
+    if(filteredData !== null && range == null){
+      setRange([0, filteredData.length-1]) //초기 Range 설정
+    }
+  }, [filteredData, range])
 
   return (
     <div ref={divBox}>
@@ -502,8 +499,8 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
             onDoubleClick={(e) => onDoubleClickFunction(e)}></canvas>
           <div>
             {
-              zoom < filteredData.length/frameRate &&
-              <Slider value={range} min={0} max={ Math.floor(filteredData.length/frameRate - zoom) } tooltip={{ formatter: null }} onChange={changeRange}/>
+              range !== null &&
+              <Slider range={{ draggableTrack: true }} defaultValue={[0, filteredData.length-1]} value={range} min={0} max={filteredData.length-1} onChange={changeRange}/>
             }
           </div>
         </>
