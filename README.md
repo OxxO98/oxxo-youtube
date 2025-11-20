@@ -13,3 +13,5 @@
 # Legacy repository
 
 [OxxO](https://github.com/OxxO98/OxxO)
+
+유튜브 기능만 분리 한 것으로, 디자인과 일부 개선사항이 적용되었습니다.
