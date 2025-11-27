@@ -23,10 +23,14 @@ const SharedModalComp : Locale["SharedModalComp"] = {
         TITLE : 'シェアする',
         CANCLE : 'キャンセル',
         COPY : 'コピーする',
+        COPY_RANGE : '範囲を選んでコピーする',
+        COPY_LIGHT : 'テキストだけコピーする',
         SAVE : 'JSON形式で保存',
         SAVE_CAPTION_JA : '日本語字幕で保存',
         SAVE_CAPTION_KO : '韓国語字幕で保存'
-    }
+    },
+    RANGE_OPTIONS : ['選択範囲', '最大範囲'],
+    LIGHT_OPTIONS : ['全部', '日本語だけ', '韓国語だけ']
 }
 
 const NewVideoComp : Locale["NewVideoComp"] = {
@@ -381,6 +385,9 @@ const SharedBunSettingModalComp : Locale['SharedBunSettingModalComp'] = {
     },
     CONTENTS : [
         '表示順序', 'フォントプレセット', '日本語設定', '韓国語設定', '背景設定', '縁取り設定'
+    ],
+    FONTS_PRESETS : [
+        'ゴシック１', 'ゴシック２', '丸ゴシック', '手書き１', '手書き２', 'ドット１', 'ドット２'
     ]
 }
 

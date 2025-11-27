@@ -824,10 +824,14 @@ declare global {
       TITLE : string;
       CANCLE : string;
       COPY : string;
+      COPY_RANGE : string;
+      COPY_LIGHT : string;
       SAVE : string;
       SAVE_CAPTION_JA : string;
       SAVE_CAPTION_KO : string;
     }
+    RANGE_OPTIONS : string[];
+    LIGHT_OPTIONS : string[];
   }
 
   export interface NewVideoComp {
@@ -1143,6 +1147,7 @@ declare global {
       DONE : string;
     }
     CONTENTS : string[];
+    FONTS_PRESETS : string[];
   }
 
   export interface SharedDictionaryComp {

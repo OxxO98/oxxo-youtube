@@ -22,10 +22,14 @@ const SharedModalComp : Locale["SharedModalComp"] = {
         TITLE : '공유하기',
         CANCLE : '취소',
         COPY : '복사하기',
+        COPY_RANGE : '선택 범위로 복사하기',
+        COPY_LIGHT : '텍스트로만 복사하기',
         SAVE : 'JSON 파일로 저장',
         SAVE_CAPTION_JA : '일본어 자막으로 저장',
         SAVE_CAPTION_KO : '한국어 자막으로 저장'
-    }
+    },
+    RANGE_OPTIONS : ['선택된 범위', '최대 범위'],
+    LIGHT_OPTIONS : ['전부', '일본어만', '한국어만']
 
 }
 
@@ -381,6 +385,9 @@ const SharedBunSettingModalComp : Locale['SharedBunSettingModalComp'] = {
     },
     CONTENTS : [
         '한국어 일본어 순서', '폰트 프리셋', '일본어 설정', '한국어 설정', '배경 설정', '테두리 설정'
+    ],
+    FONTS_PRESETS : [
+        '각진 고딕1', '각진 고딕2', '둥근 고딕', '손글씨1', '손글씨2', '도트1', '도트2'
     ]
 }
 

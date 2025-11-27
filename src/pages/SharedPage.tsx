@@ -185,8 +185,10 @@ const SharedComp = ({ sharedData } : SharedCompProps ) => {
 
     return (
         <>
-            <Splitter style={{ height: '100%', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-                <Splitter.Panel collapsible defaultSize="0%" min="25%" max="25%" resizable={false}>
+            <Splitter 
+                style={{ height: '100%', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}
+            >
+                <Splitter.Panel collapsible={{ start : true, end : true, showCollapsibleIcon : true }} defaultSize="0%" min="25%" max="25%" resizable={false}>
                     <SharedDictionaryComp />
                 </Splitter.Panel>
                 <Splitter.Panel defaultSize="100%" min="50%" max="100%">
@@ -195,7 +197,7 @@ const SharedComp = ({ sharedData } : SharedCompProps ) => {
                         <SharedTimelineCarouselComp timeline={sharedData.timeline} playerRef={playerRef} state={state} playerHandles={playerHandles}/>
                     </Flex>
                 </Splitter.Panel>
-                <Splitter.Panel collapsible defaultSize="0%" min="30%" max="50%">
+                <Splitter.Panel collapsible={{ start : true, end : true, showCollapsibleIcon : true }} defaultSize="0%" min="30%" max="50%">
                     <SharedTimelineComp timeline={sharedData.timeline} playerRef={playerRef} state={state} playerHandles={playerHandles}/>
                 </Splitter.Panel>
             </Splitter>
@@ -280,9 +282,6 @@ const SharedBun = ({ textData } : SharedBunProps ) => {
 const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles } : SharedTimelineCarouselCompProps ) => {
 
     const { t } = useTranslation('SharedTimelineCarouselComp');
-            
-    const substitudeBox = useRef<HTMLDivElement>(null); //자막 박스
-    const [boxHeight, setBoxHeight] = useState<number>(800);
 
     //Redux
     const { backgroundColor, jaTextColor, koTextColor,  jaTextFontSize, koTextFontSize, jaFontFamily, koFontFamily, sortFont, fontShadow, jaFontWeight, koFontWeight } = useSelector( (_state : RootState) => _state.shared );
@@ -290,10 +289,15 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
     const TimelineBunStyle : CSSProperties = {
         width : '100%',
         textAlign : 'center',
-        position : 'absolute',
         margin : 'auto',
         backgroundColor : backgroundColor,
-        transform : `translate(-50%, 0)`
+    }
+
+    const BoxStyle : CSSProperties = {
+        position : 'absolute',
+        transform : `translate(-50%, 0%)`,
+        bottom : `70px`,
+        left : `50%`
     }
 
     const textShadow = fontShadow ? '-1px 0px black, 0px 1px black, 1px 0px black, 0px -1px black' : '';
@@ -319,13 +323,6 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
 
     const { playing, playedSeconds } = state;
     const { handlePausePlay, handleSeek } = playerHandles;
-
-    const boxStyle = useMemo( () => {
-        return {
-            bottom : `${boxHeight}px`,
-            left : `50%`
-        }
-    }, [boxHeight])
     
     const [bunSelect, setBunSelect] = useState({ ja : true, ko : true });
 
@@ -428,21 +425,7 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
 
     useEffect( () => {
         moveCurrentTimeLine();
-    }, [moveCurrentTimeLine])
-
-    useEffect( () => {
-        if(substitudeBox.current !== null){
-            const observer = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    const { height } = entry.contentRect;
-                    setBoxHeight(height);
-                }
-            });
-
-            observer.observe(substitudeBox.current);
-        }
-    }, [])
-    
+    }, [moveCurrentTimeLine])    
 
     return(
         <>
@@ -462,7 +445,7 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
                                     { value: 'both', label: t('SELECT.BOTH') },
                             ]}/>
                             <SharedBunSettingModalComp>
-                                <Flex vertical justify='center' style={TimelineBunStyle}>
+                                <Flex vertical justify='center' style={{ ...TimelineBunStyle, marginBottom : '16px' }}>
                                 {
                                     sortFont ? 
                                     <>
@@ -499,7 +482,7 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
                             </SharedBunSettingModalComp>
                         </Flex>
                     </div>
-                    <Flex vertical justify='center' style={{ ...TimelineBunStyle, ...boxStyle }} ref={substitudeBox}>
+                    <Flex vertical justify='center' style={{ ...TimelineBunStyle, ...BoxStyle }}>
                     {
                     timeline !== null && timeline.length !== 0 &&
                     <>

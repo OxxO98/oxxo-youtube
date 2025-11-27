@@ -304,15 +304,15 @@ const ShareModalComp = () => {
 
     const lightItems: MenuProps['items'] = [
         {
-            label: '전체 복사',
+            label: t('LIGHT_OPTIONS.0'),
             key: '1'
         },
         {
-            label: '일본어만 복사',
+            label: t('LIGHT_OPTIONS.1'),
             key: '2'
         },
         {
-            label: '한국어만 복사',
+            label: t('LIGHT_OPTIONS.2'),
             key: '3'
         }
     ];
@@ -328,11 +328,11 @@ const ShareModalComp = () => {
 
     const rangeItems: MenuProps['items'] = [
         {
-            label: '범위 복사',
+            label: t('RANGE_OPTIONS.0'),
             key: '1'
         },
         {
-            label: '범위 최대 복사',
+            label: t('RANGE_OPTIONS.1'),
             key: '2'
         }
     ];
@@ -398,10 +398,10 @@ const ShareModalComp = () => {
                     <Button onClick={() => handleSaveByCaption('ko')}>{t('BUTTON.SAVE_CAPTION_KO')}</Button>,
                     <Button onClick={handleSave}>{t('BUTTON.SAVE')}</Button>,
                     <Dropdown menu={{ items : rangeItems, onClick : handleRangeMenuClick }}>
-                        <Button type='primary'>범위 {t('BUTTON.COPY')}<DownOutlined /></Button>
+                        <Button type='primary'>{t('BUTTON.COPY_RANGE')}<DownOutlined /></Button>
                     </Dropdown>,
                     <Dropdown menu={{ items : lightItems, onClick : handleLightMenuClick }}>
-                        <Button type='primary'>가벼운 {t('BUTTON.COPY')}<DownOutlined /></Button>
+                        <Button type='primary'>{t('BUTTON.COPY_LIGHT')}<DownOutlined /></Button>
                     </Dropdown>,
                     <Button type='primary' onClick={() => handleCopy()} disabled={url.length > COPY_MAX}>{t('BUTTON.COPY')}</Button>,
                     <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>, 
