@@ -229,6 +229,11 @@ declare global {
   export type RES_GET_VIDEO = RES_VIDEO[];
   export type REQ_GET_VIDEO = null;
 
+  export type RES_GET_VIDEO_SEARCH = RES_VIDEO[];
+  export type REQ_GET_VIDEO_SEARCH = {
+    keyword : string;
+  }
+
   export type RES_GET_TIMELINE = RES_TIMELINE[];
   export type REQ_GET_TIMELINE = {
     videoId : string;
@@ -243,6 +248,11 @@ declare global {
   export type REQ_GET_JSON = {
     videoId : string;
   }
+
+  export type RES_GET_USERID = {
+    userId : string;
+  }
+  export type REQ_GET_USERID = null;
 
   export type RES_GET_CAPTION = RES_CAPTION[];
   export type REQ_GET_CAPTION = {
@@ -492,12 +502,26 @@ declare global {
     title : string;
   }
 
+  export type REQ_PUT_VIDEO = {
+    videoId : string;
+    newTitle : string;
+    newTagsQuery : string;
+  }
+
+  export type REQ_DELETE_VIDEO = {
+    videoId : string;
+  }
+
   export type REQ_POST_TRANSCRIPT_TO_BUNS = {
     videoId : string;
   }
 
   export type REQ_POST_CAPTION_TO_BUNS = {
     videoId : string;
+  }
+
+  export type REQ_POST_USERID = {
+    userId : string;
   }
 
   //Response legacy
@@ -517,6 +541,7 @@ declare global {
   export interface RES_VIDEO {
     title : string;
     src : string;
+    tags? : string[];
   }
 
   export interface RES_TIMELINE {
@@ -748,6 +773,8 @@ declare global {
 
     SharedModalComp : SharedModalComp;
     NewVideoComp : NewVideoComp;
+    ModalEditVideo : ModalEditVideo;
+    ModalDeleteVideo : ModalDeleteVideo;
 
     TimelineComp : TimelineComp;
     TimelineBun : TimelineBun;
@@ -826,6 +853,7 @@ declare global {
       COPY : string;
       COPY_RANGE : string;
       COPY_LIGHT : string;
+      COPY_UPLOAD : string;
       SAVE : string;
       SAVE_CAPTION_JA : string;
       SAVE_CAPTION_KO : string;
@@ -844,6 +872,24 @@ declare global {
       DONE : string;
     }
     LABEL : string[];
+  }
+
+  export interface ModalEditVideo {
+    TITLE : string;
+    BUTTON : {
+      MODIFY : string;
+      CANCLE : string;
+    }
+    ALERT : string;
+  }
+
+  export interface ModalDeleteVideo {
+    TITLE : string;
+    BUTTON : {
+      TITLE : string;
+      DELETE : string;
+      CANCLE : string;
+    }
   }
 
   export interface TimelineComp {

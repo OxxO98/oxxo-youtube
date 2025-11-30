@@ -44,4 +44,6 @@ app.use("/db/integrity", db_integrity);
 
 const port = 5000;
 
-app.listen(port, () => console.log(`${port}`));
+app.listen(port, () => {
+    console.log(`${port}`)
+});

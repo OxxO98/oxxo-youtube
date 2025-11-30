@@ -864,66 +864,6 @@ function useJaText(){
     return { trace : ret, del : del, add : add };
   }, [matchOkuriExec])
 
-  const isBun = (bunText : string) => {
-    let ret = false;
-
-    let indexKagiDepth = 0;
-
-    let length = bunText.length;
-    let index = 0;
-    while(index < length){
-      if(bunText.charAt(index) === '\n'){
-        break;
-      }
-      else if(bunText.charAt(index) === '。'){
-        break;
-      }
-      else if(bunText.charAt(index) === '「'){
-        indexKagiDepth++;
-      }
-      else if(bunText.charAt(index) === '」'){
-        indexKagiDepth--;
-      }
-    }
-
-    if( index !== length-1 ){
-      ret = false;
-    }
-    else{
-      if(indexKagiDepth === 0){
-        ret = true;
-      }
-      else{
-        ret = false;
-      }
-    }
-
-    return ret;
-  }
-
-  const replaceSpecial = (bunText : string) => {
-    let repBun = bunText.replaceAll('\'', '\'\'');
-
-    return repBun;
-  }
-
-  const autoPeriod = (bunText : string) => {
-    let isPeriodRegex = new RegExp(
-      `^.+。$`
-    );
-    let isKagiRegex = new RegExp(
-      `^.+[」|』]$`
-    );
-    //일단 예상치 못한 곳에도 들어가는 문제가 있음.
-
-    if(isPeriodRegex.test(bunText) === false){
-      if(isKagiRegex.test(bunText) === false){
-        bunText = bunText.concat('。');
-      }
-    }
-    return bunText;
-  }
-
   const getHyoukiQuery = (multiInputData : MultiInput[]) : string => {
     return multiInputData.map( (v) => v.data ).join('_');
   }
@@ -945,8 +885,6 @@ function useJaText(){
     koNFCToHira, 
     isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
     matchOkuri, matchOkuriExec, matchAllOkuri, traceHukumu, 
-    isBun, 
-    replaceSpecial, autoPeriod,
     getHyoukiQuery, getYomiQuery, convertObjKey
   }
 }

@@ -161,17 +161,14 @@ const HonyakuController = ({ ytBId, translates, value, clearEdit, fetch, ...prop
         
     //Context
     const { videoId } = useContext(VideoContext);
-    
-    const { replaceSpecial } = useJaText();
 
     const { response : resInsert, setParams : setParamsInsert, loading : loadingInsert } = useAxiosPost<null, REQ_POST_TRANSLATE>('/db/translate', true, null );
     const { response : resDelete, setParams : setParamsDelete} = useAxiosDelete<null, REQ_DELETE_TRANSLATE>('/db/translate', true, null );
     const { response : resUpdate, setParams : setParamsUpdate, loading : loadingUpdate } = useAxiosPut<null, REQ_PUT_TRANSLATE>('/db/translate', true, null );
 
     const postHonyaku = () => {
-        let regValue = replaceSpecial(value);
-
-        setParamsInsert({ videoId : videoId, ytBId : ytBId, value : regValue });
+        
+        setParamsInsert({ videoId : videoId, ytBId : ytBId, value : value });
     }
 
     const deleteHonyaku = () => {
@@ -183,9 +180,8 @@ const HonyakuController = ({ ytBId, translates, value, clearEdit, fetch, ...prop
     }
 
     const modifyHonyaku = () => {
-        let regValue = replaceSpecial(value);
 
-        setParamsUpdate({ videoId : videoId, ytBId : ytBId, value : regValue });
+        setParamsUpdate({ videoId : videoId, ytBId : ytBId, value : value });
     }
     
     useHotkeys('ctrl+enter', () => {

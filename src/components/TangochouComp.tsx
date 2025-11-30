@@ -471,7 +471,6 @@ const SearchTangoComp = () => {
     }
 
     return (
-        
         <Flex align='center' style={{ width : '100%'}}>
             <Input.Search allowClear name="search" value={kirikaeValue ?? ''} onChange={handleKrikae} autoComplete='off' onKeyDown={handleKeyDown} onSearch={onSearch}/>
         </Flex>

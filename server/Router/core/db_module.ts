@@ -272,9 +272,9 @@ async function getMoreExistHyId( db : db, hyId : string ) : Promise<boolean>{
 }
 
 async function getMoreExistTId( db : db, tId : string ) : Promise<boolean>{
-    let hyouki = db.data.hyouki.filter( (v) => v.tId == tId );
+    let hukumu = db.data.hukumu.filter( (v) => v.tId == tId );
 
-    return hyouki.length > 1;
+    return hukumu.length > 1;
 }
 
 //Kanji & Komu
@@ -342,6 +342,14 @@ function _logTime( time : number ){
 //Video
 function logVideoInsert( title : string, src : string ){
     return `VIDEO 추가 TITLE ${_logText(title)} SRC ${_logText(src)}`;
+}
+
+function logVideoUpdate( src : string, newTitle : string, newTags : string ){
+    return `VIDEO VIDEOID ${_logId(src)} 수정 TITLE ${_logText(newTitle)} TAG ${newTags.replace(/@/g, ', ')}`
+}
+
+function logVideoDelete( src : string ){
+    return `VIDEO VIDEOID ${_logId(src)} 삭제`
 }
 
 //koBun
@@ -508,6 +516,8 @@ export {
     deleteKomu,
 
     logVideoInsert,
+    logVideoUpdate,
+    logVideoDelete,
     logKoBunInsert,
     logKoBunUpdateKoText,
     logKoBunUpdateYtBId,

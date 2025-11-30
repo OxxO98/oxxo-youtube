@@ -47,8 +47,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.logImiDelete = exports.logImiInsert = exports.logHyoukiDelete = exports.logHyoukiUpdateHyoukiYomi = exports.logHyoukiInsert = exports.logHukumuDelete = exports.logHukumuUpdateHyId = exports.logHukumuUpdateOffsets = exports.logHukumuUpdateJaBIdOffsets = exports.logHukumuUpdateIId = exports.logHukumuInsert = exports.logYTBDelete = exports.logYTBUpdateTime = exports.logYTBUpdateKoBId = exports.logYTBInsert = exports.logJaBunDeleteYtBId = exports.logJaBunDelete = exports.logJaBunUpdateJaText = exports.logJaBunInsert = exports.logKoBunDeleteYtBId = exports.logKoBunDelete = exports.logKoBunUpdateYtBId = exports.logKoBunUpdateKoText = exports.logKoBunInsert = exports.logVideoInsert = exports.deleteKomu = exports.deleteKanji = exports.getMoreExistKanji = exports.getExistKId = exports.getKIds = exports.getKanjiArr = exports.getMoreExistTId = exports.getMoreExistHyId = exports.getExistHukumu = exports.deleteHukumu = exports.updateHukumHyouki = exports.getHukumu = exports.deleteHyouki = exports.updateHyouki = exports.makeTextData = exports.getExistHyouki = exports.deleteYTBun = exports.getYTBun = exports.deleteKoBun = exports.getKoBun = exports.deleteJaBun = exports.getJaBun = exports.getKoBuns = exports.getJaBuns = exports.getTimeline = void 0;
-exports.logKanjiDelete = exports.logKanjiInsert = exports.logKomuDelete = exports.logKomuInsert = exports.logTangoDelete = exports.logTangoInsert = void 0;
+exports.logHyoukiDelete = exports.logHyoukiUpdateHyoukiYomi = exports.logHyoukiInsert = exports.logHukumuDelete = exports.logHukumuUpdateHyId = exports.logHukumuUpdateOffsets = exports.logHukumuUpdateJaBIdOffsets = exports.logHukumuUpdateIId = exports.logHukumuInsert = exports.logYTBDelete = exports.logYTBUpdateTime = exports.logYTBUpdateKoBId = exports.logYTBInsert = exports.logJaBunDeleteYtBId = exports.logJaBunDelete = exports.logJaBunUpdateJaText = exports.logJaBunInsert = exports.logKoBunDeleteYtBId = exports.logKoBunDelete = exports.logKoBunUpdateYtBId = exports.logKoBunUpdateKoText = exports.logKoBunInsert = exports.logVideoDelete = exports.logVideoUpdate = exports.logVideoInsert = exports.deleteKomu = exports.deleteKanji = exports.getMoreExistKanji = exports.getExistKId = exports.getKIds = exports.getKanjiArr = exports.getMoreExistTId = exports.getMoreExistHyId = exports.getExistHukumu = exports.deleteHukumu = exports.updateHukumHyouki = exports.getHukumu = exports.deleteHyouki = exports.updateHyouki = exports.makeTextData = exports.getExistHyouki = exports.deleteYTBun = exports.getYTBun = exports.deleteKoBun = exports.getKoBun = exports.deleteJaBun = exports.getJaBun = exports.getKoBuns = exports.getJaBuns = exports.getTimeline = void 0;
+exports.logKanjiDelete = exports.logKanjiInsert = exports.logKomuDelete = exports.logKomuInsert = exports.logTangoDelete = exports.logTangoInsert = exports.logImiDelete = exports.logImiInsert = void 0;
 /*
     delete의 경우 Id(primary key)로만 제거하는 방식
 */
@@ -316,10 +316,10 @@ function getMoreExistHyId(db, hyId) {
 exports.getMoreExistHyId = getMoreExistHyId;
 function getMoreExistTId(db, tId) {
     return __awaiter(this, void 0, void 0, function () {
-        var hyouki;
+        var hukumu;
         return __generator(this, function (_a) {
-            hyouki = db.data.hyouki.filter(function (v) { return v.tId == tId; });
-            return [2 /*return*/, hyouki.length > 1];
+            hukumu = db.data.hukumu.filter(function (v) { return v.tId == tId; });
+            return [2 /*return*/, hukumu.length > 1];
         });
     });
 }
@@ -413,6 +413,14 @@ function logVideoInsert(title, src) {
     return "VIDEO \uCD94\uAC00 TITLE ".concat(_logText(title), " SRC ").concat(_logText(src));
 }
 exports.logVideoInsert = logVideoInsert;
+function logVideoUpdate(src, newTitle, newTags) {
+    return "VIDEO VIDEOID ".concat(_logId(src), " \uC218\uC815 TITLE ").concat(_logText(newTitle), " TAG ").concat(newTags.replace(/@/g, ', '));
+}
+exports.logVideoUpdate = logVideoUpdate;
+function logVideoDelete(src) {
+    return "VIDEO VIDEOID ".concat(_logId(src), " \uC0AD\uC81C");
+}
+exports.logVideoDelete = logVideoDelete;
 //koBun
 function logKoBunInsert(koBId, koText, ytBId) {
     return "KOBUN \uCD94\uAC00 KOBID ".concat(_logId(koBId), " KOTEXT ").concat(_logText(koText), " YTBID ").concat(_logId(ytBId));

@@ -1,16 +1,34 @@
 import React, {useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import ReactPlayer from 'react-player';
 
 //Hook
-import { useAxiosGet, useAxiosPost } from 'hooks/AxiosHook';
+import { useAxiosGet, useAxiosPost, useAxiosPut, useAxiosDelete } from 'hooks/AxiosHook';
 
 //CSS@AntD
-import { Card, Row, Col, Button, Modal, Steps, theme, Input, Space, Form, Flex, Image, notification } from "antd";
-import { PlusSquareOutlined } from '@ant-design/icons'
+import { Card, Row, Col, Button, Modal, Steps, theme, Input, Space, Form, Flex, Image, Select, Tag, notification, Empty, Alert, Divider } from "antd";
+import { PlusSquareOutlined, EllipsisOutlined, WarningOutlined } from '@ant-design/icons'
+import type { SelectProps, GetProps } from 'antd'
+
+type SearchProps = GetProps<typeof Input.Search>;
 
 interface ModalNewVideoProps {
+    refetch : () => void;
+}
+
+interface ModalEditVideoProps {
+    data : RES_VIDEO;
+    refetch : () => void;
+}
+
+interface VideoCardListCompProps {
+    list : RES_VIDEO[];
+    refetch : () => void;
+}
+
+interface ModalDeleteVideoProps {
+    videoId : string;
     refetch : () => void;
 }
 
@@ -18,19 +36,48 @@ const YoutubeGridComp = () => {
 
     //State
     const [videos, setVideos] = useState<RES_GET_VIDEO | null>(null);
+    const [list, setList] = useState<RES_GET_VIDEO_SEARCH | null>(null);
+    const [value, setValue] = useState<string>('');
     
     const [messageApi, contextHolder] = notification.useNotification();
 
     //Hook
     const { response, fetch : refetch } = useAxiosGet<RES_GET_VIDEO, REQ_GET_VIDEO>('/db/video', false, null);
+    const { response : resSearch, setParams : setParamsSearch } = useAxiosGet<RES_GET_VIDEO_SEARCH, REQ_GET_VIDEO_SEARCH>('/db/video/search', true, null);
 
     const { response : resIntegrity, fetch  } = useAxiosGet<RES_GET_INTEGRITY, REQ_GET_INTEGRITY>('/db/integrity', true, null);
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     //Handle
-    const handleCardClick = (videoId : string) => {
-        navigate(`/video/${videoId}`);
+    const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
+        setValue( e.target.value );
+    }
+
+    const handleKeyDown = (e : React.KeyboardEvent) => {
+        if(e.key === 'Enter'){
+            submitSearch();
+        }
+    }
+
+    const onSearch : SearchProps['onSearch'] = (value, _e, info) => {
+        if(info?.source === 'input'){ submitSearch(); }
+        if(info?.source === 'clear'){ deleteSearch(); }
+    }
+
+    const submitSearch = () => {
+        if(value === ''){
+            deleteSearch();
+            return;
+        }
+        navigate(`/?keyword=${value}`);
+    }
+
+    const deleteSearch = () => {
+        setValue('');
+        navigate(`/`);
+        setList(null);
     }
 
     useEffect( () => {
@@ -54,26 +101,90 @@ const YoutubeGridComp = () => {
             }
         }
     }, [resIntegrity, messageApi])
+    
+    useEffect( () => {
+        let search = location.search;
+        let params = new URLSearchParams(search);
+        let keyword = params.get('keyword');
+
+        if(keyword === null){ return }
+
+        setParamsSearch({ keyword : keyword });
+    }, [location, setParamsSearch])
+
+    useEffect( () => {
+        let res = resSearch;
+        if(res !== null){
+            setList(res.data)
+        }
+    }, [resSearch])
 
     return(
         <>
             {contextHolder}
-            <Flex justify='right' style={{ margin : '8px 0'}}>
+            <Flex justify='right' style={{ margin : '8px 0'}} gap={16}>
                 <NewVideoComp refetch={refetch}/>
+                <Flex align='center' style={{ width : '100%'}}>
+                    <Input.Search allowClear name="search" value={value} onChange={handleChange} autoComplete='off' onKeyDown={handleKeyDown} onSearch={onSearch}/>
+                </Flex>
             </Flex>
-            <Row gutter={[16, 16]}>
-                {
-                    videos && videos.map( (v) => 
-                        <Col span={6} xxl={4} xl={6} lg={6} md={8} sm={12} xs={24} key={v.src}>
-                            <Card title={v.title} onClick={() => handleCardClick(v.src)}>
-                                <Image width="100%" src={`https://i.ytimg.com/vi/${v.src}/hqdefault.jpg`} preview={false}/>
-                            </Card>
-                        </Col>
-                    )
-                }
-            </Row>
-            
+            {
+                list !== null ?
+                    list.length !== 0 ?
+                        <VideoCardListComp list={list} refetch={refetch}/>
+                    :
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                :
+                videos !== null ?
+                    videos.length !== 0 ?
+                        <VideoCardListComp list={videos} refetch={refetch}/>
+                    :
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                :
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            }
         </>
+    )
+}
+
+const VideoCardListComp = ({ list, refetch } : VideoCardListCompProps ) => {
+
+    //Hook
+    const navigate = useNavigate();
+    
+    //Handle
+    const handleCardClick = (videoId : string) => {
+        navigate(`/video/${videoId}`);
+    }
+
+    return(
+        <Row gutter={[16, 16]}>
+        {
+            list.map( (v) => 
+                <Col span={6} xxl={4} xl={6} lg={6} md={8} sm={12} xs={24} key={v.src}>
+                    <Card 
+                        title={v.title}
+                        extra={
+                            <ModalEditVideo data={v} refetch={refetch}/>
+                        }
+                        style={{ height : '100%'}}
+                    >
+                        <Image width="100%" src={`https://i.ytimg.com/vi/${v.src}/hqdefault.jpg`} preview={false} onClick={() => handleCardClick(v.src)}/>
+                        {
+                            v.tags !== undefined &&
+                            <Flex gap="small" align="center" wrap style={{ margin : '8px 0'}}>
+                            {
+                                
+                                v.tags.map( (t) => <Tag>{t}</Tag>)
+                            }
+                            </Flex>
+                        }   
+                    </Card>
+                </Col>
+            )
+        }
+        </Row>
+        
     )
 }
 
@@ -239,6 +350,143 @@ const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                         )}
                     </Flex>
                 </div>
+            </Modal>
+        </>
+    )
+}
+
+const ModalEditVideo = ({ data, refetch } : ModalEditVideoProps ) => {
+    
+    //i18n
+    const { t } = useTranslation('ModalEditVideo');
+
+    //State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [options, ] = useState<SelectProps['options']>([]);
+    const [tags, setTags] = useState<string[]>(data.tags ?? []);
+
+    const [input, setInput] = useState<string>(data.title);
+
+    //Hook
+    const { response, setParams } = useAxiosPut<null, REQ_PUT_VIDEO>('/db/video', true, null);
+
+    //Handle
+    const showModal = () => {
+        setIsModalOpen(true);
+
+        setInput(data.title);
+        setTags(data.tags ?? []);
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+    
+    const handleSelectChange = (value: string[]) => {
+        setTags(value);
+    };
+
+    const handleInputChange = (e : React.ChangeEvent<HTMLInputElement>) => {
+        setInput(e.target.value);
+    }
+
+    const handleSubmit = () => {
+        if(input === '') return;
+
+        setParams({ videoId : data.src, newTitle : input, newTagsQuery : tags.join('@') });
+    }
+
+    useEffect( () => {
+        let res = response
+        if( res !== null){
+            refetch();
+            setIsModalOpen(false);
+        }
+    }, [response, refetch])
+
+    return (
+        <>
+            <EllipsisOutlined onClick={showModal}/>
+            
+            <Modal
+                title={t('TITLE')}
+                closable={{ 'aria-label': 'Custom Close Button' }}
+                open={isModalOpen}
+                onCancel={handleCancel}
+                width={'80%'}
+                footer={[
+                    <Button onClick={handleSubmit} type='primary'>{t('BUTTON.MODIFY')}</Button>,
+                    <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                ]}
+            >
+                <Input defaultValue={data.title} value={input} onChange={handleInputChange}/>
+                <Divider />
+                <Select
+                    mode="tags"
+                    style={{ width: '100%' }}
+                    placeholder="Tags Mode"
+                    onChange={handleSelectChange}
+                    options={options}
+                    defaultValue={data.tags}
+                />
+                <Divider />
+                <Alert message={t('ALERT')} description={
+                    <ModalDeleteVideo videoId={data.src} refetch={refetch}/>
+                } type="error" showIcon icon={<WarningOutlined />}/>
+            </Modal>
+        </>
+    )
+}
+
+const ModalDeleteVideo = ({ videoId, refetch } : ModalDeleteVideoProps ) => {
+    
+    //i18n
+    const { t } = useTranslation('ModalDeleteVideo');
+
+    //State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    //Hook
+    const { response : resDelete, setParams : setParamsDelete } = useAxiosDelete<null, REQ_DELETE_VIDEO>('/db/video', true, null);
+
+    //Handle
+    const showModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleDelete = () => {
+        setParamsDelete({ videoId : videoId });
+    }
+
+    useEffect( () => {
+        let res = resDelete;
+        if( res !== null ){
+            refetch();
+            setIsModalOpen(false);
+        }
+    }, [resDelete, refetch])
+
+
+    return (
+        <>
+            <Button variant="outlined" color="primary" onClick={showModal}>{t('BUTTON.TITLE')}</Button>
+
+            <Modal
+                title={t('TITLE')}
+                closable={{ 'aria-label': 'Custom Close Button' }}
+                open={isModalOpen}
+                onCancel={handleCancel}
+                width={'50%'}
+                footer={[
+                    <Button type='primary' onClick={handleDelete}>{t('BUTTON.DELETE')}</Button>,
+                    <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                ]}
+            >
             </Modal>
         </>
     )

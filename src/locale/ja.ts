@@ -25,6 +25,7 @@ const SharedModalComp : Locale["SharedModalComp"] = {
         COPY : 'コピーする',
         COPY_RANGE : '範囲を選んでコピーする',
         COPY_LIGHT : 'テキストだけコピーする',
+        COPY_UPLOAD : 'アップロードしてシェアする',
         SAVE : 'JSON形式で保存',
         SAVE_CAPTION_JA : '日本語字幕で保存',
         SAVE_CAPTION_KO : '韓国語字幕で保存'
@@ -43,6 +44,24 @@ const NewVideoComp : Locale["NewVideoComp"] = {
         DONE : '登録'
     },
     LABEL : [ 'Youtube URL', 'タイトル' ]
+}
+
+const ModalEditVideo : Locale["ModalEditVideo"] = {
+    TITLE : '動画情報を編集しますか',
+    BUTTON : {
+        MODIFY : '修正',
+        CANCLE : '取り消し'
+    },
+    ALERT : '警告 : この行動は後戻りできません。'
+}
+    
+const ModalDeleteVideo : Locale["ModalDeleteVideo"] = {
+    TITLE : '本当に削除しますか',
+    BUTTON : {
+        TITLE : '動画削除',
+        DELETE : '削除',
+        CANCLE : '取り消し'
+    }
 }
 
 const TimelineComp : Locale["TimelineComp"] = {
@@ -401,6 +420,8 @@ export default {
     
     SharedModalComp,
     NewVideoComp,
+    ModalEditVideo,
+    ModalDeleteVideo,
 
     TimelineComp,
     TimelineBun,

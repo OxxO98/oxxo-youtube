@@ -4,21 +4,22 @@ import LZstring from 'lz-string'
 import { useTranslation } from 'react-i18next';
 import { saveAs } from 'file-saver';
 
+import axios from 'axios';
+
 //Contexts
 import { VideoContext } from 'contexts/VideoContext';
 
 //Hook
-import { useAxiosGet } from 'hooks/AxiosHook';
+import { useAxiosGet, useAxiosPost } from 'hooks/AxiosHook';
 import { useDebounceEffect } from 'hooks/OptimizationHook';
 
 //CSS@Antd
 import { Modal, Input, Button, message, Slider, Flex, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
-import { ShareAltOutlined, DownOutlined } from '@ant-design/icons'
+import { ShareAltOutlined, DownOutlined, CloudUploadOutlined } from '@ant-design/icons'
 import { useTimeStamp } from 'hooks/VideoPlayHook';
 
-const COPY_MAX = 8192; //nginx 8k, 브라우저의 경우 10000까지 가능
-// const BASE_URL = 'http://localhost:3000/shared';
+const COPY_MAX = 8192;
 const BASE_URL = 'http://oxxo.ddns.net'
 
 interface SharedRangeBunProps {
@@ -43,6 +44,8 @@ const ShareModalComp = () => {
 
     const [range, setRange] = useState<number[] | null>(null);
 
+    const [userId, setUserId] = useState<string | null>(null);
+
     const [messageApi, contextHolder] = message.useMessage();
 
     //Hook
@@ -50,6 +53,9 @@ const ShareModalComp = () => {
 
     const { response : resGetTimeLine, setParams } = useAxiosGet<RES_GET_SHARE, REQ_GET_SHARE>('/db/share', true, null);
     const { response : resGetJson, setParams : setParamsJson } = useAxiosGet<RES_GET_JSON, REQ_GET_JSON>('/db/json', true, null);
+
+    const { response : resGetUserId, fetch : fetchUserId } = useAxiosGet<RES_GET_USERID, REQ_GET_USERID>('/db/userId', false, null);
+    const { response : resPostUserId, setParams : setParamsUserId } = useAxiosPost<null, REQ_POST_USERID>('/db/userId', true, null);
 
     const showModal = () => {
         setParams({ videoId : videoId });
@@ -289,6 +295,57 @@ const ShareModalComp = () => {
         saveAs(blob, `${filename}.srt`);
     }
 
+    const handlePostLong = async () => {
+        try {
+            let opt = userId === null ? {} : { userId : userId }
+            
+            axios.post(
+                'http://oxxo.ddns.net/api/longUrl',
+                { videoId : videoId, string : url, ...opt }
+            ).then( 
+                ( res ) => {
+                    if( res.data.message === 'error'){ return }
+                    setParamsUserId({ userId : res.data.data.userId })
+
+                    navigator.clipboard.writeText(`${BASE_URL}?l=${res.data.data.shortURL}`);
+                    success();
+                    handleOk();
+                }
+            ).catch(
+                (error) => {
+                    console.log('error', error);
+                }
+            )
+        } catch (e) {
+            error();
+        }
+    };
+
+    const handleGetShort = async () => {
+        if( userId == null ) return;
+
+        try {
+            axios.get(
+                'http://oxxo.ddns.net/api/shortUrl',
+                { params : { userId : userId, videoId : videoId } }
+            ).then( 
+                ( res ) => {
+                    if( res.data.message === 'error'){ return }
+
+                    navigator.clipboard.writeText(`${BASE_URL}?l=${res.data.data.shortURL}`);
+                    success();
+                    handleOk();
+                }
+            ).catch(
+                (error) => {
+                    console.log('error', error);
+                }
+            )
+        } catch (e) {
+            error();
+        }
+    }
+
     //드롭다운 버튼
     const handleLightMenuClick: MenuProps['onClick'] = (e) => {
         if( e.key === '1' ){
@@ -336,6 +393,20 @@ const ShareModalComp = () => {
             key: '2'
         }
     ];
+
+    useEffect( () => {
+        let res = resGetUserId;
+        if(res !== null && res.message === 'success'){
+            setUserId(res.data.userId);
+        }
+    }, [resGetUserId])
+
+    useEffect( () => {
+        let res = resPostUserId;
+        if(res !== null){
+            fetchUserId();
+        }
+    }, [resPostUserId, fetchUserId])
 
     useEffect( () => {
         if(bunIds !== null){
@@ -403,7 +474,13 @@ const ShareModalComp = () => {
                     <Dropdown menu={{ items : lightItems, onClick : handleLightMenuClick }}>
                         <Button type='primary'>{t('BUTTON.COPY_LIGHT')}<DownOutlined /></Button>
                     </Dropdown>,
-                    <Button type='primary' onClick={() => handleCopy()} disabled={url.length > COPY_MAX}>{t('BUTTON.COPY')}</Button>,
+                    <Button type='primary' onClick={() => handlePostLong()} disabled={url.length < COPY_MAX}>{t('BUTTON.COPY_UPLOAD')}<CloudUploadOutlined /></Button>,
+                    <>{
+                        url.length >= COPY_MAX ?
+                        <Button type='primary' onClick={() => handleGetShort()}>{t('BUTTON.COPY')}</Button>
+                        :
+                        <Button type='primary' onClick={() => handleCopy()}>{t('BUTTON.COPY')}</Button>
+                    }</>,
                     <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>, 
                 ]}
             >

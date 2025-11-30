@@ -24,6 +24,7 @@ const SharedModalComp : Locale["SharedModalComp"] = {
         COPY : '복사하기',
         COPY_RANGE : '선택 범위로 복사하기',
         COPY_LIGHT : '텍스트로만 복사하기',
+        COPY_UPLOAD : '업로드해서 공유하기',
         SAVE : 'JSON 파일로 저장',
         SAVE_CAPTION_JA : '일본어 자막으로 저장',
         SAVE_CAPTION_KO : '한국어 자막으로 저장'
@@ -43,6 +44,24 @@ const NewVideoComp : Locale["NewVideoComp"] = {
         DONE : '확인'
     },
     LABEL : [ 'Youtube URL', '제목' ]
+}
+
+const ModalEditVideo : Locale["ModalEditVideo"] = {
+    TITLE : '영상을 편집하겠습니까?',
+    BUTTON : {
+        MODIFY : '수정',
+        CANCLE : '취소'
+    },
+    ALERT : '경고 : 이 행동을 되돌릴 수 없습니다.'
+}
+    
+const ModalDeleteVideo : Locale["ModalDeleteVideo"] = {
+    TITLE : '정말 삭제하시겠습니까?',
+    BUTTON : {
+        TITLE : '영상 삭제',
+        DELETE : '삭제',
+        CANCLE : '취소'
+    }
 }
 
 const TimelineComp : Locale["TimelineComp"] = {
@@ -401,6 +420,8 @@ export default {
     
     SharedModalComp,
     NewVideoComp,
+    ModalEditVideo,
+    ModalDeleteVideo,
 
     TimelineComp,
     TimelineBun,

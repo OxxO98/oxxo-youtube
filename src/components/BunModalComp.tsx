@@ -65,7 +65,7 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     const [deletedList, setDeletedList] = useState<Array<tracedHukumu> | null>(null);
 
     //Hook
-    const { traceHukumu, replaceSpecial, convertObjKey, getHyoukiQuery, getYomiQuery } = useJaText();
+    const { traceHukumu, convertObjKey, getHyoukiQuery, getYomiQuery } = useJaText();
 
     const { complexArr } = useHuri();
 
@@ -100,13 +100,10 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
         if( newJaText === '' ){ return }
         if( modifiedList === null || deletedList === null ){ 
             if( hukumuData === null ){
-                let jaText = replaceSpecial(newJaText);
-                setParamsUpdateJaText({ videoId : videoId, ytBId : ytb.ytBId, jaText : jaText })
+                setParamsUpdateJaText({ videoId : videoId, ytBId : ytb.ytBId, jaText : newJaText })
             }
             return;
         }
-
-        let jaText = replaceSpecial(newJaText);
 
         let _modifiedList = modifiedList
             .map( (v) => {
@@ -134,7 +131,7 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
         let modifiedObj = convertObjKey(_modifiedList);
         let deletedObj = convertObjKey(deletedList);
 
-        setParamsUpdate({ jaBId : ytb.jaBId, jaText : jaText, modifiedObj : modifiedObj, deletedObj : deletedObj })
+        setParamsUpdate({ jaBId : ytb.jaBId, jaText : newJaText, modifiedObj : modifiedObj, deletedObj : deletedObj })
     }
 
     const getList = useCallback( () => {

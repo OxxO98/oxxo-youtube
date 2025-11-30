@@ -42,6 +42,11 @@ async function searchTangoList(req, res){
     await db_connection(req, res, async(db) => {
         let { hyouki, yomi } = req.query;
 
+        let condition = ( _joined, hyouki ) => {
+            let _core = _joined.textData[0].ruby != null ? _joined.textData[0].data : _joined.textData[1].data;
+            return hyouki.includes(_core);
+        }
+
         let hyoukis = db.data.hyouki;
         let joinHukumu = db.data.hukumu.map( (v) => {
             return {
@@ -49,7 +54,8 @@ async function searchTangoList(req, res){
                 ...hyoukis.find( (hy) => v.hyId == hy.hyId )
             }
         }).filter( (v) => 
-            v.hyouki.includes(hyouki) || v.yomi.includes(yomi)
+            v.hyouki.includes(hyouki) || v.yomi.includes(yomi) ||
+            condition( v, hyouki)
         ).filter(
             (v, i, arr) => arr.indexOf(v) == i
         ).map( (v) => {

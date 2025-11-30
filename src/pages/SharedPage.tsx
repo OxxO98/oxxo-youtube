@@ -63,7 +63,6 @@ const TimelineControlstyle : CSSProperties = {
     alignContent : 'center'
 }
 
-
 const SharedPage = () => {
     const { t } = useTranslation('SharedPage');
 
