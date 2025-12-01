@@ -26,9 +26,7 @@
 
 # Demo
 
-[demo1](http://oxxo.ddns.net/?l=S4RfEYAlZAnZSWZI)
-
-[demo2](http://oxxo.ddns.net/?l=dOkCBlotfP2bpTIb)
+[demo](http://oxxo.ddns.net/?l=S4RfEYAlZAnZSWZI)
 
 # OxxO_YOUTUBE
 
