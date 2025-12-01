@@ -14,4 +14,14 @@
 
 [OxxO](https://github.com/OxxO98/OxxO)
 
+# Demo repository
+
+[oxxo-youtube-share](https://github.com/OxxO98/oxxo-youtube-share)
+
+# Demo
+
+[demo1](http://oxxo.ddns.net/?l=S4RfEYAlZAnZSWZI)
+
+[demo2](http://oxxo.ddns.net/?l=dOkCBlotfP2bpTIb)
+
 유튜브 기능만 분리 한 것으로, 디자인과 일부 개선사항이 적용되었습니다.
