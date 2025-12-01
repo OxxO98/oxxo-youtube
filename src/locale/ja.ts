@@ -197,6 +197,10 @@ const HonyakuController : Locale['HonyakuController'] = {
         SAVE_NEW : '新しく保存',
         MODIFY : '修正',
         CANCLE : '取り消し'
+    },
+    TOOLTIP : {
+        SHIFT_ENTER : 'ショートカット : shift + enter',
+        CTRL_ENTER : 'ショートカット : ctrl + enter'
     }
 }
 
@@ -206,6 +210,9 @@ const HonyakuRepresentive : Locale['HonyakuRepresentive'] = {
     },
     MESSAGE : {
         EMPTY : '翻訳なし'
+    },
+    TOOLTIP : {
+        ENTER : 'ショートカット : enter'
     }
 }
 

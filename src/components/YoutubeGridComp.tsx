@@ -175,7 +175,7 @@ const VideoCardListComp = ({ list, refetch } : VideoCardListCompProps ) => {
                             <Flex gap="small" align="center" wrap style={{ margin : '8px 0'}}>
                             {
                                 
-                                v.tags.map( (t) => <Tag>{t}</Tag>)
+                                v.tags.map( (t) => <Tag key={t}>{t}</Tag>)
                             }
                             </Flex>
                         }   

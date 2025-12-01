@@ -185,14 +185,8 @@ const TangochouRepresentive = ({ tId, hyouki, yomi } : TangochouRepresentiveProp
 
     return(
         <>
-            <Card actions={[
-                <Button onClick={handleClick}>{t('BUTTON.MOVE')}</Button>
-            ]}>
-                <div key={tId}>
-                    <Text ellipsis={ { tooltip: hyouki } }>
-                        <ComplexText bId={null} data={hyouki} ruby={yomi} offset={0} key={tId}/>
-                    </Text>
-                </div>
+            <Card onClick={handleClick} style={{ height : '100%' }} styles={{ body : { padding : '24px 8px' } }} hoverable>
+                <ComplexText bId={tId} data={hyouki} ruby={yomi} offset={0} key={tId}/>
             </Card>
         </>
     );
@@ -407,14 +401,12 @@ const KanjiInfo = () => {
                 <div className="largeTango">
                     {kanji?.jaText}
                 </div>
-                <Row gutter={[16, 16]} style={{ marginTop : '20px'}}>
+                <Row gutter={[16, 16]} style={{ marginTop : '20px', textAlign : 'center'}}>
                 {
                     list !== null &&
                     list.map( (v, i) => 
                         <Col span={6} xxl={4} xl={6} lg={8} md={12} sm={24} xs={24} key={v.tId}>
-                            <Card actions={[
-                                <Button onClick={() => handleClick(i)}>{t('BUTTON.MOVE')}</Button>
-                            ]}>
+                            <Card  onClick={() => handleClick(i)} style={{ height : '100%' }} styles={{ body : { padding : '24px 8px' } }} hoverable>
                                 <ComplexText bId={null} data={v.hyouki} ruby={v.yomi} offset={0}/>
                             </Card>
                         </Col>

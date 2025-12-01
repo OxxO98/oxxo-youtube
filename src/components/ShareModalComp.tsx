@@ -6,6 +6,8 @@ import { saveAs } from 'file-saver';
 
 import axios from 'axios';
 
+import { isHotkeyPressed } from 'react-hotkeys-hook'
+
 //Contexts
 import { VideoContext } from 'contexts/VideoContext';
 
@@ -19,8 +21,8 @@ import type { MenuProps } from 'antd';
 import { ShareAltOutlined, DownOutlined, CloudUploadOutlined } from '@ant-design/icons'
 import { useTimeStamp } from 'hooks/VideoPlayHook';
 
-const COPY_MAX = 8192;
 const BASE_URL = 'http://oxxo.ddns.net'
+const COPY_MAX = 8192 - BASE_URL.length - 3;
 
 interface SharedRangeBunProps {
     data : RES_SHARE
@@ -474,7 +476,7 @@ const ShareModalComp = () => {
                     <Dropdown menu={{ items : lightItems, onClick : handleLightMenuClick }}>
                         <Button type='primary'>{t('BUTTON.COPY_LIGHT')}<DownOutlined /></Button>
                     </Dropdown>,
-                    <Button type='primary' onClick={() => handlePostLong()} disabled={url.length < COPY_MAX}>{t('BUTTON.COPY_UPLOAD')}<CloudUploadOutlined /></Button>,
+                    <Button type='primary' onClick={() => handlePostLong()} disabled={ isHotkeyPressed('shift') ? false : url.length < COPY_MAX } icon={<CloudUploadOutlined />} iconPosition='end'>{t('BUTTON.COPY_UPLOAD')}</Button>,
                     <>{
                         url.length >= COPY_MAX ?
                         <Button type='primary' onClick={() => handleGetShort()}>{t('BUTTON.COPY')}</Button>

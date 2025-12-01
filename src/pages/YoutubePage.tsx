@@ -57,7 +57,7 @@ const YoutubePage = () => {
     const { videoPlayerHandles } = useVideoPlayHook( playing, handlePausePlay, state, handleSeek );
     
     useHandleSelection( document, "activeRange" );
-    const { fetchInHR } = useHukumu();
+    const { fetchInHR, loading : hukumuCheckLoading } = useHukumu();
 
     const { bIdRef, refetchHandles } = useBunRefetch( fetchInHR );
 
@@ -90,7 +90,7 @@ const YoutubePage = () => {
                                         <Route path="/timeline" element={
                                             <Splitter layout="vertical" style={SplitterStyle}>
                                                 <Splitter.Panel defaultSize="16%" min="16%" max="30%">
-                                                    <TangoComp refetchHandles={refetchHandles} refetchTangoList={refetchTangoList}/>
+                                                    <TangoComp refetchHandles={refetchHandles} refetchTangoList={refetchTangoList} hukumuCheckLoading={hukumuCheckLoading}/>
                                                 </Splitter.Panel>
                                                 <Splitter.Panel>
                                                     <Splitter style={SplitterStyle}>

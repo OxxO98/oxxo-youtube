@@ -20,7 +20,7 @@ function useHukumu(){
     const { selectedBun, textOffset } = useSelector( (_state : RootState) => _state.selection );
 
     //Hook
-    const { response, setParams } = useAxiosGet<RES_GET_HUKUMU_CHECK, REQ_GET_HUKUMU_CHECK>('/db/hukumu/check', true, null);
+    const { response, loading, setParams } = useAxiosGet<RES_GET_HUKUMU_CHECK, REQ_GET_HUKUMU_CHECK>('/db/hukumu/check', true, null);
 
     const fetchInHR = useCallback( () => {
         if(selectedBun !== null && selectedBun !== undefined && selectedBun !== '' ){
@@ -72,7 +72,7 @@ function useHukumu(){
         }
     }, FETCH_HUKUMU_CHECK_DELAY, [textOffset.startOffset, textOffset.endOffset, setParams, selectedBun]);
 
-    return { fetchInHR }
+    return { fetchInHR, loading }
 }
 
 export { useHukumu }

@@ -28,6 +28,7 @@ const { setStyled } = selectionActions;
 interface TangoCompProps {
     refetchHandles : RefetchHandles;
     refetchTangoList : () => void;
+    hukumuCheckLoading : boolean;
 }
 
 interface DynamicInputCompProps {
@@ -88,7 +89,7 @@ const ButtonContainerStyle : CSSProperties = {
     margin : '0 16px'
 }
 
-const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
+const TangoComp = ({ refetchHandles, refetchTangoList, hukumuCheckLoading } : TangoCompProps ) => {
     
     //i18n
     const { t } = useTranslation('TangoComp');
@@ -135,7 +136,7 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
             <div style={TangoCompStyle}>
                 <Row gutter={[8, 8]}>
                     {
-                        edit === false ?
+                        edit === false || hukumuCheckLoading == true ?
                         <>
                             <Col span={8} style={ColStyle}>
                                 {t('CONTENTS.YOMI')}

@@ -986,10 +986,14 @@ declare global {
 
   export interface HonyakuController {
     BUTTON : {
-        DELETE : string;
-        SAVE_NEW : string;
-        MODIFY : string;
-        CANCLE : string;
+      DELETE : string;
+      SAVE_NEW : string;
+      MODIFY : string;
+      CANCLE : string;
+    }
+    TOOLTIP : {
+      SHIFT_ENTER : string;
+      CTRL_ENTER : string;
     }
   }
 
@@ -999,6 +1003,9 @@ declare global {
     },
     MESSAGE : {
       EMPTY : string;
+    },
+    TOOLTIP : {
+      ENTER : string;
     }
   }
 

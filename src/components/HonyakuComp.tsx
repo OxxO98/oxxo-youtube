@@ -6,9 +6,8 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { VideoContext } from 'contexts/VideoContext';
 
 import { useAxiosGet, useAxiosPost, useAxiosPut, useAxiosDelete } from 'hooks/AxiosHook';
-import { useJaText } from 'hooks/JaTextHook'
 
-import { Select, Button, Input, Flex } from 'antd'
+import { Select, Button, Input, Flex, Tooltip } from 'antd'
 const { TextArea } = Input;
 
 interface HonyakuCompProps {
@@ -212,13 +211,26 @@ const HonyakuController = ({ ytBId, translates, value, clearEdit, fetch, ...prop
                 }
                 {
                     value !== '' &&
-                    <Button onClick={()=>{postHonyaku()}}>{t('BUTTON.SAVE_NEW')}</Button>
+                    <>
+                    {
+                        translates.koBun !== null && translates.koBun.koText !== value ?
+                        <Button onClick={()=>{postHonyaku()}}>{t('BUTTON.SAVE_NEW')}</Button>
+                        :
+                        <Tooltip title={t('TOOLTIP.CTRL_ENTER')}>
+                            <Button onClick={()=>{postHonyaku()}}>{t('BUTTON.SAVE_NEW')}</Button>
+                        </Tooltip>
+                    }
+                    </>
                 }
                 {
                     translates.koBun !== null && translates.koBun.koText !== value &&
-                    <Button onClick={modifyHonyaku}>{t('BUTTON.MODIFY')}</Button>
+                    <Tooltip title={t('TOOLTIP.CTRL_ENTER')}>
+                        <Button onClick={modifyHonyaku}>{t('BUTTON.MODIFY')}</Button>
+                    </Tooltip>
                 }
-                <Button type="primary" onClick={clearEdit}>{t('BUTTON.CANCLE')}</Button>
+                <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>
+                    <Button type="primary" onClick={clearEdit}>{t('BUTTON.CANCLE')}</Button>
+                </Tooltip>
             </Flex>
         </>
     )
@@ -273,7 +285,9 @@ const HonyakuRepresentive = ({ ytBId, handleSelect, bIdRef } : HonyakuRepresenti
                 <span>{loading ? "　" : t('MESSAGE.EMPTY')}</span>
             }
             <Flex justify='right'>
-                <Button onClick={() => handleSelect(ytBun?.jaBId!)}>{t('BUTTON.MODIFY')}</Button>
+                <Tooltip title={t('TOOLTIP.ENTER')}>
+                    <Button onClick={() => handleSelect(ytBun?.jaBId!)}>{t('BUTTON.MODIFY')}</Button>
+                </Tooltip>
             </Flex>
         </div>
     )

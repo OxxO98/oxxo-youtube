@@ -52,7 +52,7 @@ const ModalEditVideo : Locale["ModalEditVideo"] = {
         MODIFY : '수정',
         CANCLE : '취소'
     },
-    ALERT : '경고 : 이 행동을 되돌릴 수 없습니다.'
+    ALERT : '경고 : 이 행동은 되돌릴 수 없습니다.'
 }
     
 const ModalDeleteVideo : Locale["ModalDeleteVideo"] = {
@@ -197,6 +197,10 @@ const HonyakuController : Locale['HonyakuController'] = {
         SAVE_NEW : '새로 저장',
         MODIFY : '수정',
         CANCLE : '취소'
+    },
+    TOOLTIP : {
+        SHIFT_ENTER : '단축키 : shift + enter',
+        CTRL_ENTER : '단축키 : ctrl + enter'
     }
 }
 
@@ -206,6 +210,9 @@ const HonyakuRepresentive : Locale['HonyakuRepresentive'] = {
     },
     MESSAGE : {
         EMPTY : '번역 없음'
+    },
+    TOOLTIP : {
+        ENTER : '단축키 : enter'
     }
 }
 

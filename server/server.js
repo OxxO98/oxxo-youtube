@@ -9,6 +9,8 @@ const __dirname = path.dirname(__filename);
 import cors from 'cors';
 import bodyParser from 'body-parser';
 
+import api from './Router/api_test.js'
+
 import api_ai from './Router/api_ai.js';
 import api_yts from './Router/api_youtube_stream.js';
 
@@ -27,6 +29,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended : false }));
 app.use('/Asset', express.static( path.join(__dirname, 'Asset') ));
+
+app.use('/api', api);
 
 app.use("/ai", api_ai);
 app.use("/yts", api_yts);
