@@ -61,105 +61,6 @@ function useHuri(){
     return arrHuri;
   }, [hiraganaRegex, kanjiEndRegex, kanjiStartRegex])
 
-  //삭제 예정..
-  const yomiToHuriLegacy = (hyouki : string, yomi : string) => {
-    if(hyouki === null || hyouki === undefined || yomi === null || yomi === undefined){
-      return;
-    }
-
-    let startBool = hyouki.match(kanjiStartRegex) !== null ? true : false; //true면 한자 시작
-
-    let arrKanji : RegExpMatchArray | null = hyouki.match(kanjiRegex);
-    let arrOkuri : RegExpMatchArray | null = hyouki.match(hiraganaRegex);
-    let arrHuri : string[] = [];
-
-    let endIndex = 0;
-    if(startBool === false){
-      if(arrOkuri !== null && arrOkuri !== undefined){
-        let shiftOkuri = arrOkuri.shift();
-        if(shiftOkuri !== undefined ){
-          endIndex = shiftOkuri.length;
-        }
-
-        if(arrOkuri.length === 0){
-          arrHuri.push( yomi.substring(endIndex) );
-          return arrHuri;
-        }
-      }
-    }
-
-    if(arrOkuri !== null){
-      for(let idx = 0; idx < arrOkuri.length; idx++){
-        let revise = endIndex + 1;
-        let matchedYomi = yomi.indexOf(arrOkuri[idx], revise);
-        arrHuri.push( yomi.substring(endIndex, matchedYomi) );
-  
-        endIndex = matchedYomi + arrOkuri[idx].length;
-      }
-    }
-
-    //후작업.
-    if(yomi.substring(endIndex) !== ''){
-      //한자로 끝나서 okuri가 없는 경우에는 추가가 맞음
-      //히라가나로 끝나는 경우는 잘못 된 검색이 이루어진 것.
-      if( arrOkuri !== null){
-        let lastOkuri = arrOkuri[arrOkuri.length-1];
-        if( yomi.lastIndexOf(lastOkuri) === yomi.length - lastOkuri.length ){
-          arrHuri[arrHuri.length-1] = yomi.substring(endIndex-lastOkuri.length, yomi.length - lastOkuri.length);
-        }
-        else{
-          //okrui가 있지만 한자로 끝난 경우
-          arrHuri.push(yomi.substring(endIndex));
-        }
-      }
-      else{
-        //okuri가 아예 없던 경우 (한자만 존재)
-        arrHuri.push(yomi.substring(endIndex));
-      }
-    }
-    //arr의 형태로 반환
-    return arrHuri;
-  }
-
-  const hysToHuri = (bunText : string, hys : string, huri : string) => {
-    //HYS는 표기를 전각 공백으로 연결 한 것
-    let hurigana = "";
-    if(huri !== null && hys !== null){
-      let kanjiBunArr : ObjKey | null = bunText.match(kanjiRegex);
-      let hyoukiArr = hys.split('　');
-      let huriArr = huri.split('　');
-
-      let hyoukiKanjiArr = [];
-
-      for(let i in hyoukiArr){
-        let sel = hyoukiArr[i];
-        let a : RegExpMatchArray | null = sel.match(kanjiRegex);
-        if(a !== null){
-          for( let key in a){
-            hyoukiKanjiArr.push(a[key]);
-          }
-        }
-      }
-
-      let tmp : Array<string> = [];
-      for(let i in huriArr){
-        let sel = yomiToHuri(hyoukiArr[i], huriArr[i]);
-        if(sel !== null && sel !== undefined){
-          for( let key in sel ){
-            tmp.push( sel[key] );
-          }
-        }
-      }
-
-      hurigana = kanjiBunArr !== null ? kanjiBunArr.join('　') : "";
-      hyoukiKanjiArr.map( (arr, index) => {
-        hurigana = hurigana.replace( arr, tmp[index]);
-      })
-    }
-
-    return hurigana;
-  }
-
   //ComplexText에서 표기, 읽기를 Text 형식으로 분해.
   const complexArr = (hyouki : string, yomi : string | null, offset : number) => {
     if(yomi === null){
@@ -235,7 +136,7 @@ function useHuri(){
     }
   }, [okuriRegex])
 
-  return { yomiToHuri, hysToHuri, complexArr, getOkuri }
+  return { yomiToHuri, complexArr, getOkuri }
 }
 
 export { useHuri }

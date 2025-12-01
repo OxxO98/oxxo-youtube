@@ -87,7 +87,11 @@ const UpdateBunJaTextModalComp : Locale["UpdateBunJaTextModalComp"] = {
         CANCLE : '取り消し',
         DONE : '確認'
     },
-    CONTENTS : [ '修正される単語', '削除される単語']
+    CONTENTS : [ '修正される単語', '削除される単語'],
+    TOOLTIP : {
+        ENTER : 'ショートカット : enter',
+        CTRL_ENTER : 'ショートカット : ctrl + enter'
+    }
 }
 
 const DeleteBunModalComp : Locale["DeleteBunModalComp"] = {

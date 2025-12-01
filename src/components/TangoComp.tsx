@@ -136,7 +136,7 @@ const TangoComp = ({ refetchHandles, refetchTangoList, hukumuCheckLoading } : Ta
             <div style={TangoCompStyle}>
                 <Row gutter={[8, 8]}>
                     {
-                        edit === false || hukumuCheckLoading == true ?
+                        edit === false || hukumuCheckLoading === true ?
                         <>
                             <Col span={8} style={ColStyle}>
                                 {t('CONTENTS.YOMI')}

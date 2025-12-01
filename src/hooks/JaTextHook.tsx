@@ -586,15 +586,6 @@ function useJaText(){
     }
   }, [matchOkuri])
 
-  const matchAllOkuri = ( hyouki : string, yomi : string, bunText : string ) => {
-    let match = matchOkuriExec(hyouki, yomi, bunText);
-
-    let arr;
-    while( (arr = match.exec()) !== null ){
-      // 사용되지 않는 것으로 보임.
-    }
-  }
-
   const getMED = (bunText : string, newText : string) => {
     let medArr = Array.from( Array(bunText.length+1), () => new Array(newText.length+1));
 
@@ -619,11 +610,6 @@ function useJaText(){
       }
     }
 
-    let ret = {
-      del : new Array(),
-      add : new Array()
-    }
-
     let retRevise : tracedMed = {
       del : new Array(bunText.length).fill(0),
       add : new Array(newText.length).fill(0)
@@ -633,20 +619,12 @@ function useJaText(){
     let j = medArr[0].length-1;
     while( !(i === 0 && j === 0) ){
       if( i === 0){
-
-        ret.add.push({
-          text : newText[j-1], offset : j-1
-        });
         retRevise.add[j-1] = 1;
         j -= 1;
 
         continue;
       }
       if( j === 0){
-
-        ret.del.push({
-          text : bunText[i-1], offset : i-1
-        });
         retRevise.del[i-1] = 1;
         i -= 1;
 
@@ -661,29 +639,14 @@ function useJaText(){
       }
       else{
         if( min === medArr[i][j-1]){
-          
-          ret.add.push({
-            text : newText[j-1], offset : j-1
-          });
           retRevise.add[j-1] = 1;
           j -= 1;
         }
         else if( min === medArr[i-1][j]){
-          
-          ret.del.push({
-            text : bunText[i-1], offset : i-1
-          });
           retRevise.del[i-1] = 1;
           i -= 1;
         }
         else{
-
-          ret.del.push({
-            text : bunText[i-1], offset : i-1
-          });
-          ret.add.push({
-            text : newText[j-1], offset : j-1
-          });
           retRevise.del[i-1] = 1;
           retRevise.add[j-1] = 1;
           i -= 1;
@@ -884,7 +847,7 @@ function useJaText(){
   return { 
     koNFCToHira, 
     isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
-    matchOkuri, matchOkuriExec, matchAllOkuri, traceHukumu, 
+    matchOkuri, matchOkuriExec, traceHukumu, 
     getHyoukiQuery, getYomiQuery, convertObjKey
   }
 }

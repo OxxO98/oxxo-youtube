@@ -15,10 +15,8 @@ import { useAxiosGet } from 'hooks/AxiosHook';
 import { useKirikae } from 'hooks/KirikaeHook';
 
 //CSS@antd
-import { Pagination, Row, Col, Button, Card, Tabs, Input, Flex, Typography, Empty  } from 'antd'
+import { Pagination, Row, Col, Button, Card, Tabs, Input, Flex, Empty  } from 'antd'
 import type { GetProps, PaginationProps } from 'antd';
-
-const { Text } = Typography;
 
 type SearchProps = GetProps<typeof Input.Search>;
 
@@ -170,8 +168,6 @@ const TangochouTableComp = ({ list, pageSize } : TangochouTableCompProps ) => {
 }
 
 const TangochouRepresentive = ({ tId, hyouki, yomi } : TangochouRepresentiveProps ) => {
-
-    const { t } = useTranslation('TangochouRepresentive');
 
     //Context
     const { videoId } = useContext(VideoContext);

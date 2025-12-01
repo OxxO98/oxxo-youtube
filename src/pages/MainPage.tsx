@@ -30,7 +30,7 @@ const MainPage = () => {
             }, 3000);
             return () => clearTimeout(timeout);
         }
-    }, [error])
+    }, [error, fetch])
     
     return(
         <LayoutComp>     

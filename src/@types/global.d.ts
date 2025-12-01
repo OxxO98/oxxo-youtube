@@ -916,6 +916,10 @@ declare global {
       DONE : string;
     }
     CONTENTS : string[];
+    TOOLTIP : {
+      ENTER : string;
+      CTRL_ENTER : string;
+    }
   }
 
   export interface DeleteBunModalComp {

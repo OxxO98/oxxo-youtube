@@ -265,11 +265,7 @@ const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHand
     const { videoId } = useContext(VideoContext);
 
     //State
-    const [editYtbId, setEditYtbId] = useState<string | null>(null); //사용하지 않는 것으로 보임
-    const [value, setValue] = useState<string>(''); //입력 Input, 사용하지 않는 것으로 보임
-
     const [bunIds, setBunIds] = useState<RES_GET_TIMELINE | null>(null);
-    const currentTimelineBun = useRef<Array<HTMLDivElement | null>>([]); //사용하지 않는 것으로 보임
 
     const [currentBunId, setCurrentBunId] = useState(0);
 
@@ -303,8 +299,6 @@ const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHand
     const cancelEdit = useCallback( () => {
         store.dispatch( setStartTime(0) );
         store.dispatch( setEndTime(0) );
-        setValue('');
-        setEditYtbId(null);
 
         honyakuClearEdit();
     }, [honyakuClearEdit])
@@ -389,7 +383,6 @@ const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHand
     
     useEffect( () => {
         if( bunIds && bunIds.length !== 0 ){
-            setEditYtbId(null);
             cancelEdit();
 
             let curr = bunIds[currentBunId];

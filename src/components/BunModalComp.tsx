@@ -12,7 +12,7 @@ import { useDebounceEffect } from 'hooks/OptimizationHook';
 import { useHuri } from 'hooks/HuriHook';
 
 //CSS@antD
-import { Input, Button, Flex, Modal, Card } from 'antd';
+import { Input, Button, Flex, Modal, Card, Tooltip } from 'antd';
 import { SplitCellsOutlined, MergeCellsOutlined } from '@ant-design/icons'
 import { VideoContext } from 'contexts/VideoContext';
 
@@ -177,9 +177,11 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
 
     return(
         <div>
-            <Button onClick={showModal}>
-                {t('BUTTON.TITLE')}
-            </Button>
+            <Tooltip title={t('TOOLTIP.CTRL_ENTER')}>
+                <Button onClick={showModal}>
+                    {t('BUTTON.TITLE')}
+                </Button>
+            </Tooltip>
 
             <Modal
                 title={t('TITLE')}
@@ -189,7 +191,9 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
                 width={'80%'}
                 footer={[
                     <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>,
-                    <Button type="primary" onClick={handleOk}>{t('BUTTON.DONE')}</Button>
+                    <Tooltip title={t('TOOLTIP.ENTER')}>
+                        <Button type="primary" onClick={handleOk}>{t('BUTTON.DONE')}</Button>
+                    </Tooltip>
                 ]}
                 panelRef={ref}
             >

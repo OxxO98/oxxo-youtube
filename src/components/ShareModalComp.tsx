@@ -478,7 +478,7 @@ const ShareModalComp = () => {
                     </Dropdown>,
                     <Button type='primary' onClick={() => handlePostLong()} disabled={ isHotkeyPressed('shift') ? false : url.length < COPY_MAX } icon={<CloudUploadOutlined />} iconPosition='end'>{t('BUTTON.COPY_UPLOAD')}</Button>,
                     <>{
-                        url.length >= COPY_MAX ?
+                        url.length >= COPY_MAX || isHotkeyPressed('shift') ?
                         <Button type='primary' onClick={() => handleGetShort()}>{t('BUTTON.COPY')}</Button>
                         :
                         <Button type='primary' onClick={() => handleCopy()}>{t('BUTTON.COPY')}</Button>
