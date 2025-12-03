@@ -202,13 +202,39 @@ declare global {
     theOther : Array<RES_SEARCH_TANGO>;
   }
 
+  //Transcription & chatgpt
+  export interface TranscriptOption {
+      reset? : 'true' | 'false';
+      lang? : lang;
+      offset? : OffsetObj;
+  }
+
+  export interface ChatHistory {
+      user : string;
+      response : string;
+  }
+
+  export interface RES_CAPTION {
+      startTime : number;
+      endTime : number;
+      text : string;
+      tag : string;
+  }
+
+  export interface RES_TRANSCRIPT {
+      startTime : number;
+      endTime : number;
+      text : string;
+      tag : string;
+  }
+
   //Response@axios
   export interface ApiResponse<T> {
     data : T;
     message? : 'empty' | 'success' | 'error' | 'done';
   }
 
-  export type RES_GET_TRANSCRIPT = string;
+  export type RES_GET_TRANSCRIPT = RES_CAPTION[];
   export type REQ_GET_TRANSCRIPT = {
     videoId : string;
     reset? : 'true' | 'false';
@@ -956,6 +982,7 @@ declare global {
     TITLE : string;
     BUTTON : {
       TITLE : string;
+      TRANSCRIPT : string;
       RE_TRANSCRIPT : string;
       DONE_TRANSCRIPT : string;
       DONE_CAPTION : string;

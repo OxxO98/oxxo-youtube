@@ -435,7 +435,9 @@ const ShareModalComp = () => {
     useEffect( () => {
         let res = resGetTimeLine;
         if(res !== null){
-            setBunIds(res.data)
+            if(res.data.length !== 0){
+                setBunIds(res.data)
+            }
             setRange([0, res.data.length-1])
         }
     }, [resGetTimeLine])

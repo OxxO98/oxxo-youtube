@@ -23,7 +23,7 @@ import { store, RootState } from 'reducers/store';
 import { reactPlayerActions } from 'reducers/reactPlayerReducer';
 
 //CSS@antD
-import { Input, Button, List, Flex, Modal, Spin, theme, Tabs, Empty } from 'antd';
+import { Input, Button, List, Flex, Modal, Spin, theme, Tabs, Empty, Tag } from 'antd';
 import { LoadingOutlined, AudioOutlined } from '@ant-design/icons'
 const { useToken } = theme; 
 
@@ -52,6 +52,7 @@ interface TimelineControlCompProps {
 
 interface MakeDraftCompProps {
     refetch : () => void;
+    gotoTime : (time: number, playBool: boolean | null) => void;
     loading : boolean;
 }
 
@@ -200,7 +201,7 @@ const TimelineComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles } : Ti
                         </VirtualList>
                     </List>
                     :
-                    <MakeDrftComp refetch={refetchTimeline} loading={loading}/>
+                    <MakeDrftComp refetch={refetchTimeline} gotoTime={gotoTime} loading={loading}/>
                 }
                 </div>
             </Flex>
@@ -483,7 +484,7 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
     )
 }
 
-const MakeDrftComp = ({ refetch, loading } : MakeDraftCompProps ) => {
+const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps ) => {
     
     //i18n
     const { t } = useTranslation('MakeDrftComp');
@@ -496,12 +497,43 @@ const MakeDrftComp = ({ refetch, loading } : MakeDraftCompProps ) => {
     //Hook
     const { timeToTS } = useTimeStamp();
 
-    const { transcriptText, handleTranscript, postTranscript, state } = useTranscript();
+    const { transcriptData, handleTranscript, postTranscript, state } = useTranscript();
     const { captionData, handleCaption, postCaption, state : captionState } = useCaptionData();
+
+    const { token } = useToken();
+
+    const compareData = useMemo( () => {
+        if(transcriptData === null || captionData === null ){ return [] }
+        let _dataArr = [...transcriptData, ...captionData].sort( (a, b) => a.startTime-b.startTime );
+
+        let _ret : any[] = [];
+        for( let key in _dataArr ){
+            let _data = _dataArr[key];
+            if( _ret.length === 0 ){
+                _ret.push({
+                    ..._data
+                });
+                continue;
+            }
+
+            let _last = _ret[ _ret.length - 1 ];
+            if(_last.tag === _data.tag){
+                _last.text = _last.text.concat( ' / ', _data.text )
+                _last.endTime = _data.endTime
+                _last.merged = true;
+            }
+            else{
+                _ret.push({
+                    ..._data
+                });
+            }
+        }
+
+        return _ret;
+    }, [transcriptData, captionData])
 
     const showModal = () => {
         setIsModalOpen(true);
-        handleTranscript(videoId);
         handleCaption(videoId);
     }
 
@@ -529,6 +561,12 @@ const MakeDrftComp = ({ refetch, loading } : MakeDraftCompProps ) => {
         }
     }, [state.post.done, refetch])
 
+    useEffect( () => {
+        if(captionState.post.done === true){
+            refetch();
+        }
+    }, [captionState.post.done, refetch])
+
     return (
         <>
             <Flex style={{ width : '100%', height : '100%' }} vertical justify='center' align='center' gap={16}>
@@ -550,10 +588,11 @@ const MakeDrftComp = ({ refetch, loading } : MakeDraftCompProps ) => {
             
             <Modal
                 title={t('TITLE')}
-                closable={{ 'aria-label' : 'Custom Close Button'}}
+                closable={false}
                 open={isModalOpen}
                 onCancel={handleCancel}
                 width={'80%'}
+                maskClosable={false}
                 footer={[
                     <>{
                         state.transcript.done === true && 
@@ -562,17 +601,18 @@ const MakeDrftComp = ({ refetch, loading } : MakeDraftCompProps ) => {
                             loading={state.transcript.loading}
                             onClick={reHandleTranscript}
                             iconPosition="end"
+                            disabled={state.transcript.loading}
                         >{t('BUTTON.RE_TRANSCRIPT')}</Button>
-                    }</>,
-                    <>{
-                        state.transcript.done === true && 
-                        <Button type="primary" onClick={handlePostTranscript}>{t('BUTTON.DONE_TRANSCRIPT')}</Button>
                     }</>,
                     <>{
                         captionState.caption.done === true && captionData !== null &&
                         <Button type="primary" disabled={captionData.length === 0} onClick={handlePostCaption}>{t('BUTTON.DONE_CAPTION')}</Button>
                     }</>,
-                    <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                    <>{
+                        state.transcript.done === true && 
+                        <Button type="primary" onClick={handlePostTranscript} disabled={state.transcript.loading}>{t('BUTTON.DONE_TRANSCRIPT')}</Button>
+                    }</>,
+                    <Button onClick={handleCancel} disabled={state.transcript.loading}>{t('BUTTON.CANCLE')}</Button>
                 ]}
             >
                 <Tabs defaultActiveKey="1" items={
@@ -587,6 +627,7 @@ const MakeDrftComp = ({ refetch, loading } : MakeDraftCompProps ) => {
                                 <List style={{ maxHeight : '60vh', overflow : 'scroll' }}
                                     bordered
                                     dataSource={ captionData }
+                                    key={'startTime'}
                                     renderItem={
                                         (data) => (
                                             <List.Item>
@@ -621,20 +662,83 @@ const MakeDrftComp = ({ refetch, loading } : MakeDraftCompProps ) => {
                                         <Spin indicator={<LoadingOutlined spin />} size="large"/>
                                     </>
                                 )}
-                                {state.transcript.done === true && transcriptText !== '' && (
+                                {state.transcript.done === false &&
+                                    <>
+                                        <Button 
+                                            onClick={() => handleTranscript(videoId)}
+                                            loading={state.transcript.loading}
+                                            iconPosition="end"
+                                            disabled={state.transcript.loading}
+                                        >
+                                            {t('BUTTON.TRANSCRIPT')}
+                                        </Button>
+                                    </>
+                                }
+                                {state.transcript.done === true &&  state.transcript.loading === false && transcriptData !== null && (
                                     <List style={{ maxHeight : '60vh', overflow : 'scroll' }}
                                         bordered
-                                        dataSource={ transcriptText.split('\n') }
+                                        dataSource={ transcriptData }
+                                        key={'startTime'}
                                         renderItem={
-                                            (text) => (
-                                                <List.Item>
-                                                    <div>{text}</div>
+                                            (data) => (
+                                                <List.Item style={{ backgroundColor : token.colorBgBase }}>
+                                                    <Flex gap={16}>
+                                                        <div>{ timeToTS(data.startTime) }</div>
+                                                        <div>{ timeToTS(data.endTime) }</div>
+                                                        <div>{data.text}</div>
+                                                    </Flex>
                                                 </List.Item>
                                             )
                                         }
                                     />
                                 )}
-                                {state.transcript.done === true && transcriptText === '' && (
+                                {state.transcript.done === true && transcriptData === null && (
+                                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                )}
+                            </>
+                        },
+                        {
+                            key : "3",
+                            label : t('CONTENTS.2'),
+                            disabled : state.transcript.done === false,
+                            children : 
+                            <>
+                                {state.transcript.loading === true && (
+                                    <>
+                                        <Spin indicator={<LoadingOutlined spin />} size="large"/>
+                                    </>
+                                )}
+                                {state.transcript.done === true && state.transcript.loading === false && transcriptData !== null && captionData !== null && (
+                                    <List style={{ maxHeight : '60vh', overflow : 'scroll' }}
+                                        bordered
+                                        dataSource={compareData}
+                                        renderItem={
+                                            (data) => (
+                                                <List.Item style={{ backgroundColor : data.tag === 'transcript' ? token.colorBgBase : ''}}>
+                                                    <Flex 
+                                                        gap={16} 
+                                                        style={{ 
+                                                            width : data.tag === 'transcript' ? '100%' : '', 
+                                                        }}
+                                                    >
+                                                        <div>{ timeToTS(data.startTime) }</div>
+                                                        <div>{ timeToTS(data.endTime) }</div>
+                                                        <div style={{
+                                                            width : '100%',
+                                                            textAlign : data.tag === 'transcript' ? 'right' : 'left'
+                                                        }}>{data.text}</div>
+                                                        <>{
+                                                            data.merged !== undefined && 
+                                                            <Tag color='warning'>병합됨</Tag>
+                                                        }</>
+                                                        <Tag color='default'>{data.tag}</Tag>
+                                                    </Flex>
+                                                </List.Item>
+                                            )
+                                        }
+                                    />
+                                )}
+                                {state.transcript.done === true && transcriptData === null && (
                                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                                 )}
                             </>

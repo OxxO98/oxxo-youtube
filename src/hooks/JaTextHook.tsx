@@ -847,7 +847,7 @@ function useJaText(){
   return { 
     koNFCToHira, 
     isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
-    matchOkuri, matchOkuriExec, traceHukumu, 
+    matchOkuri, matchOkuriExec, getMED, traceHukumu, 
     getHyoukiQuery, getYomiQuery, convertObjKey
   }
 }

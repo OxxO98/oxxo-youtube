@@ -1,6 +1,6 @@
 {
   "name": "oxxo_youtube",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "proxy": "http://localhost:3000",
   "dependencies": {

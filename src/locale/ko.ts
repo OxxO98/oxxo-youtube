@@ -128,12 +128,13 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
     TITLE : '초안을 작성합니다',
     BUTTON : {
         TITLE : '초안 작성',
+        TRANSCRIPT : '음성인식 실행',
         RE_TRANSCRIPT : '음성인식 재작성',
         DONE_TRANSCRIPT : '음성인식으로 작성',
         DONE_CAPTION : '자막으로 작성',
         CANCLE : '닫기'
     },
-    CONTENTS : ['자막', '음성인식']
+    CONTENTS : ['자막', '음성인식', '비교']
 }
 
 const AudioWaveComp : Locale["AudioWaveComp"] = {

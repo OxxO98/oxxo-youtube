@@ -3,28 +3,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useAxiosGet, useAxiosPost } from './AxiosHook';
 import { useJaText } from './JaTextHook';
 
-interface TranscriptOption {
-    reset? : 'true' | 'false';
-    lang? : lang;
-    offset? : OffsetObj;
-}
-
-interface ChatHistory {
-    user : string;
-    response : string;
-}
-
-interface RES_CAPTION {
-    startTime : number;
-    endTime : number;
-    text : string;
-}
-
 function useTranscript(){
-    const [transcriptText, setTranscriptText] = useState<string>('');
+    // const [transcriptText, setTranscriptText] = useState<any>('');
+    const [transcriptData, setTranscriptData] = useState<RES_TRANSCRIPT[] | null>(null);
 
     const { response, loading, setParams } = useAxiosGet<RES_GET_TRANSCRIPT, REQ_GET_TRANSCRIPT>('/ai/transcript', true, null);
     const { response : resPost, loading : loadingPost, setParams : setParamsPost } = useAxiosPost<null, REQ_POST_TRANSCRIPT_TO_BUNS>('/db/transcriptToBuns', true, null);
+    const { fetch : cancelTranscript } = useAxiosGet('/ai/transcript/cancel', true, {});
     
     const handleTranscript = ( _videoId : string, _reset? : boolean, _lang? : lang, _offset? : OffsetObj ) => {
         let option : TranscriptOption = {};
@@ -42,10 +27,9 @@ function useTranscript(){
     }
 
     useEffect( () => {
-        if(response !== null){
-            let res = response;
-
-            setTranscriptText(res.data);
+        let res = response;
+        if(res !== null){
+            setTranscriptData(res.data.map( (v) => { return {...v, tag : 'transcript'} }));
         }
     }, [response])
 
@@ -55,7 +39,7 @@ function useTranscript(){
         post : { loading : loadingPost, done : resPost !== null }
     }
 
-    return { transcriptText, handleTranscript, postTranscript, state }
+    return { transcriptData, handleTranscript, postTranscript, cancelTranscript, state }
 }
 
 function useChat(){
@@ -168,12 +152,13 @@ function useCaptionData(){
         let res = response;
         if(res !== null){
             if( res.message === 'empty' ){ setCaptionData([]); return; }
-            setCaptionData(res.data);
+            setCaptionData(res.data.map( (v) => { return {...v, tag : 'caption'} }) );
         }
     }, [response])
 
     const state = {
-        caption : { loading : loading, done : response !== null }
+        caption : { loading : loading, done : response !== null },
+        post : { loading : loadingPost, done : resPost !== null }
     }
 
     return { captionData, handleCaption, postCaption, state }

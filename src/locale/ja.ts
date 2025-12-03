@@ -128,12 +128,13 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
     TITLE : '下書きを作成します',
     BUTTON : {
         TITLE : '下書きを作成する',
+        TRANSCRIPT : '音声認識を実行',
         RE_TRANSCRIPT : '音声認識をやり直す',
         DONE_TRANSCRIPT : '音声認識で作成',
         DONE_CAPTION : '字幕で作成',
         CANCLE : '取り消し'
     },
-    CONTENTS : ['字幕', '音声認識']
+    CONTENTS : ['字幕', '音声認識', '比較']
 }
 
 const AudioWaveComp : Locale["AudioWaveComp"] = {
