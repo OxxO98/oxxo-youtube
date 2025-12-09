@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useContext, useMemo, CSSProperties, useCallback } from 'react';
 import VirtualList, { ListRef } from 'rc-virtual-list';
 import { useTranslation } from 'react-i18next'
+import { useHotkeys } from 'react-hotkeys-hook';
 
 //Components
 import { TimelineBun } from 'components/TimelineBun'
@@ -23,7 +24,7 @@ import { store, RootState } from 'reducers/store';
 import { reactPlayerActions } from 'reducers/reactPlayerReducer';
 
 //CSS@antD
-import { Input, Button, List, Flex, Modal, Spin, theme, Tabs, Empty, Tag } from 'antd';
+import { Input, Button, List, Flex, Modal, Spin, theme, Tabs, Empty, Tag, Tooltip, InputRef } from 'antd';
 import { LoadingOutlined, AudioOutlined } from '@ant-design/icons'
 const { useToken } = theme; 
 
@@ -67,14 +68,8 @@ const TimelineComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles } : Ti
 
     //State
     const [editYtbId, setEditYtbId] = useState<string | null>(null);
-    // const setEditYtbIdCallback = useCallback( (editYtbId : string | null) => {
-    //     setEditYtbId(editYtbId)
-    // }, [])
 
     const [value, setValue] = useState<string>(''); //입력 Input
-    // const setValueCallback = useCallback( (value : string) => {
-    //     setValue(value)
-    // }, []);
 
     const [bunIds, setBunIds] = useState<RES_GET_TIMELINE | null>(null);
     const currentTimelineBun = useRef<Array<HTMLDivElement | null>>([]);
@@ -125,6 +120,17 @@ const TimelineComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles } : Ti
 
     //Memo
     const currentBunId = useMemo( () => { return getCurrentTimeLine() }, [getCurrentTimeLine]) // number : index인듯
+
+    const handleEditCurrent = () => {
+        if( currentBunId === null || bunIds === null ){ return }
+        store.dispatch( setStartTime(bunIds[currentBunId].startTime) );
+        store.dispatch( setEndTime(bunIds[currentBunId].endTime) );
+        setInputText(bunIds[currentBunId].jaText);
+        selectEditYtBId(bunIds[currentBunId].ytBId);
+        gotoTime(bunIds[currentBunId].startTime, false);
+    }
+    
+    useHotkeys('enter', () => handleEditCurrent() )
 
     useEffect( () => {
         let res = resGetTimeLine;
@@ -212,10 +218,12 @@ const TimelineComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles } : Ti
 const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, currentBunId, editYtbId, selectEditYtBId, state, videoPlayerHandles, refetchHandles } : TimelineControlCompProps ) => {
 
     //i18n
-    const { t } = useTranslation('TimelineComp');
+    const { t } = useTranslation('TimelineControlComp');
 
     //Context
     const { videoId, frameRate } = useContext(VideoContext);
+
+    const inputRef = useRef<InputRef>(null);
 
     //Hook
     const { timeToFrameStamp } = useTimeStamp();
@@ -243,6 +251,10 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
     //Handle
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
         setInputText(e.target.value);
+    }
+
+    const handleFocus = (e : React.FocusEvent<HTMLInputElement>) => {
+        e.target.selectionStart = e.target.value.length;
     }
 
     const cancelEdit = useCallback( () => {
@@ -395,6 +407,7 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
         }
     }, [editYtbId, bunIds])
 
+    useHotkeys('shift+enter', () => { cancelEdit(); inputRef.current?.blur() }, { enableOnFormTags : true } )
     
     useEffect( () => {
         let res = resInsert;
@@ -420,6 +433,12 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
         setInputText(res.data);
       }
     }, [resTransRange, setInputText])
+
+    useEffect( () => {
+        if(inputRef.current !== null && editYtbId !== null){
+            inputRef.current.focus();
+        }
+    }, [editYtbId])
 
     return(
         <div>
@@ -461,7 +480,7 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
                     </>
                     :
                     <>
-                        <Input type="text" value={value} onChange={handleChange}/>
+                        <Input type="text" value={value} onChange={handleChange} ref={inputRef} onFocus={handleFocus}/>
                         {
                             currentYTB !== null && ( startTime !== null && endTime !== null ) && ( currentYTB.startTime !== startTime || currentYTB.endTime !== endTime ) &&
                             <Button onClick={updateYTBunTime}>{t('BUTTON.MODIFY_TIME')}</Button>
@@ -476,7 +495,9 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
                                 <DeleteBunModalComp ytb={currentYTB} refetchTimeline={refetchTimeline} cancelEdit={cancelEdit}/>
                             </>
                         }
-                        <Button type="primary" onClick={cancelEdit}>{t('BUTTON.CANCLE')}</Button>
+                        <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>
+                            <Button type="primary" onClick={cancelEdit}>{t('BUTTON.CANCLE')}</Button>
+                        </Tooltip>
                     </>
                 }
             </Flex>

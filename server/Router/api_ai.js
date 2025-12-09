@@ -1,7 +1,6 @@
 import express from "express";
 const router = express.Router();
 
-//import { Ollama } from 'ollama/browser';
 import OpenAI from 'openai';
 import { nodewhisper } from "nodejs-whisper";
 import fs from 'fs';

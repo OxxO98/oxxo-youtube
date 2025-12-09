@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, CSSProperties, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 //Components
 import Bun from 'components/Bun';
@@ -20,7 +21,7 @@ import { reactPlayerActions } from 'reducers/reactPlayerReducer';
 import { selectionActions } from 'reducers/selectionReducer';
 
 //CSS@antD
-import { Input, Button, Flex } from 'antd';
+import { Input, Button, Flex, Tooltip, InputRef } from 'antd';
 import { StepBackwardOutlined, StepForwardOutlined, RollbackOutlined } from '@ant-design/icons'
 
 //Redux
@@ -60,6 +61,8 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
 
     //Context
     const { videoId } = useContext(VideoContext);
+    
+    const inputRef = useRef<InputRef>(null);
 
     //State
     const [editYtbId, setEditYtbId] = useState<string | null>(null);
@@ -90,11 +93,18 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
     }
     useHandleKeyboard({ ...filteredKeyboard, custom : customKeyboard }); //autoKeyboard는 나중에 추가 바람.
     
+    useHotkeys('enter', () => handleEdit() )
+    useHotkeys('shift+enter', () => cancelEdit(), { enableOnFormTags : true } )
+    
     const { response : resGetTimeLine, fetch : refetchTimeline } = useAxiosGet<RES_GET_TIMELINE, REQ_GET_TIMELINE>('/db/timeline', false, { videoId : videoId });
 
 
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
         setValue(e.target.value);
+    }
+
+    const handleFocus = (e : React.FocusEvent<HTMLInputElement>) => {
+        e.target.selectionStart = e.target.value.length;
     }
 
     //Handle
@@ -104,6 +114,13 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
         setValue('');
         setEditYtbId(null);
     }, [])
+
+    const handleEdit = useCallback( () => {
+        if( bunIds === null ){ return }
+
+        setEditYtbId(bunIds[currentBunId].ytBId);
+        setValue(bunIds[currentBunId].jaText);
+    }, [ bunIds, currentBunId ])
 
     //Handle @timeline
     const prevTimeLine = () => {
@@ -115,7 +132,6 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
 
         if(currentBunId > 0){
             let curr = bunIds[currentBunId-1];
-            //setScratch(true, curr.startTime, curr.endTime, false);
             gotoTime(curr.startTime, null);
 
             setCurrentBunId(currentBunId-1);
@@ -131,7 +147,6 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
         
         if(currentBunId+1 < bunIds.length){
             let curr = bunIds[currentBunId+1];
-            //setScratch(true, curr.startTime, curr.endTime, false);
             gotoTime(curr.startTime, null);
 
             setCurrentBunId(currentBunId+1);
@@ -205,7 +220,12 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
         }
     }, [bunIds, currentBunId, cancelEdit])
     
-    
+    useEffect( () => {
+        if(inputRef.current !== null && editYtbId !== null){
+            inputRef.current.focus();
+        }
+    }, [editYtbId])
+
     return(
         <>
             <div>
@@ -230,24 +250,23 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
                                 <Bun key={bunIds[currentBunId].jaBId} bId={bunIds[currentBunId].jaBId} bIdRef={bIdRef}/>
                             </div>
                             <Flex justify='flex-end' align='center' gap={8} style={{ padding : '8px' }}>
-                                <Button onClick={
-                                    () => {
-                                        setEditYtbId(bunIds[currentBunId].ytBId);
-                                        setValue(bunIds[currentBunId].jaText);
-                                    }
-                                }>{t('BUTTON.MODIFY')}</Button>
+                                <Tooltip title={t('TOOLTIP.ENTER')}>
+                                    <Button onClick={handleEdit}>{t('BUTTON.MODIFY')}</Button>
+                                </Tooltip>
                             </Flex>
                         </>
                         :
                         <>
-                            <Input type="text" value={value} onChange={handleChange} style={{ ...TimelineBunStyle, marginLeft : 'auto', width : 'calc(100% - 16px)' }}/>
+                            <Input type="text" value={value} onChange={handleChange} style={{ ...TimelineBunStyle, marginLeft : 'auto', width : 'calc(100% - 16px)' }} ref={inputRef} onFocus={handleFocus}/>
                             <Flex justify='flex-end' align='center' gap={8} style={{ padding : '8px' }}>
                                 {
                                     bunIds[currentBunId].jaText !== value &&
                                     <UpdateBunJaTextModalComp ytb={bunIds[currentBunId]} defaultValue={value} refetchHandles={refetchHandles} refetchTimeline={refetchTimeline} cancelEdit={cancelEdit}/>
                                 }
                                 <DeleteBunModalComp ytb={bunIds[currentBunId]} refetchTimeline={refetchTimeline} cancelEdit={cancelEdit}/>
-                                <Button type="primary" onClick={cancelEdit}>{t('BUTTON.CANCLE')}</Button>
+                                <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>
+                                    <Button type="primary" onClick={cancelEdit}>{t('BUTTON.CANCLE')}</Button>
+                                </Tooltip>
                             </Flex>
                         </>
                         }

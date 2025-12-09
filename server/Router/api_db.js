@@ -103,7 +103,9 @@ async function editVideo(req, res){
 
 async function deleteVideo(req, res){
     await db_connection(req, res, async (db) => {
-        let { videoId } = req.query;
+        let { videoId, option } = req.query;
+
+        let _option = option ?? 'true'; // true일 경우 audio및 기타 파일 삭제
 
         let video = db.data.videos.find( (v) => v.src == videoId );
         
@@ -154,6 +156,20 @@ async function deleteVideo(req, res){
         db.data.videos = db.data.videos.filter( (v) => v.src != videoId );
         
         await db.write();
+
+        if( _option == 'true' ){
+            let _transcriptPath = path.join(assetPath, '/transcript'); 
+
+            let _dir = fs.readdirSync(_transcriptPath);
+            let filtered = _dir.filter( (v) => v.includes(videoId) );
+
+            for await(let file of filtered){
+                let _deleteFile = path.join(_transcriptPath, file);
+                if( fs.existsSync(_deleteFile) == true){
+                    fs.unlinkSync(_deleteFile);
+                }
+            }
+        }
 
         res.send({
             message : 'success',

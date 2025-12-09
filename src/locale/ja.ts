@@ -64,12 +64,15 @@ const ModalDeleteVideo : Locale["ModalDeleteVideo"] = {
     }
 }
 
-const TimelineComp : Locale["TimelineComp"] = {
+const TimelineControlComp : Locale["TimelineControlComp"] = {
     BUTTON : {
         PART_TRANSCRIPT : 'この部分を音声認識する',
         SAVE_NEW : '作成',
         CANCLE : '取り消し',
         MODIFY_TIME : '時間修正'
+    },
+    TOOLTIP : {
+        SHIFT_ENTER : 'ショートカット : shift + enter',
     }
 }
 
@@ -77,6 +80,9 @@ const TimelineBun : Locale["TimelineBun"] = {
     BUTTON : {
         MODIFY : '修正する',
         MOVE : '移動'
+    },
+    TOOLTIP : {
+        ENTER : 'ショートカット : enter',
     }
 }
 
@@ -89,7 +95,7 @@ const UpdateBunJaTextModalComp : Locale["UpdateBunJaTextModalComp"] = {
     },
     CONTENTS : [ '修正される単語', '削除される単語'],
     TOOLTIP : {
-        ENTER : 'ショートカット : enter',
+        SHIFT_ENTER : 'ショートカット : shift + enter',
         CTRL_ENTER : 'ショートカット : ctrl + enter'
     }
 }
@@ -358,6 +364,10 @@ const TimelineCarouselComp : Locale['TimelineCarouselComp'] = {
         NEXT : '次へ',
         MODIFY : '修正',
         CANCLE : '取り消し'
+    },
+    TOOLTIP : {
+        ENTER : 'ショートカット : enter',
+        SHIFT_ENTER : 'ショートカット : shift + enter',
     }
 }
 
@@ -435,7 +445,7 @@ export default {
     ModalEditVideo,
     ModalDeleteVideo,
 
-    TimelineComp,
+    TimelineControlComp,
     TimelineBun,
 
     UpdateBunJaTextModalComp,

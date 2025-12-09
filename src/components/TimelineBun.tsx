@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import Bun from 'components/Bun';
 
 //CSS@antd
-import { Button, Flex } from 'antd';
+import { Button, Flex, Tooltip } from 'antd';
 import { FormOutlined, PlayCircleOutlined } from '@ant-design/icons'
 
 //Redux
@@ -66,7 +66,9 @@ const TimelineBun = ({ bId, ytbId, jaText, startTimestamp, endTimestamp, startTi
                 </div>
             }
             <Flex gap={8}>
-                <Button onClick={modifyEditInput}>{t('BUTTON.MODIFY')}<FormOutlined /></Button>
+                <Tooltip title={t('TOOLTIP.ENTER')}>
+                    <Button onClick={modifyEditInput}>{t('BUTTON.MODIFY')}<FormOutlined /></Button>
+                </Tooltip>
                 <Button type="primary" onClick={onTimelineClick}>{t('BUTTON.MOVE')}<PlayCircleOutlined /></Button>
             </Flex>
         </Flex>

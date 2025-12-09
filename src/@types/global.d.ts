@@ -802,7 +802,7 @@ declare global {
     ModalEditVideo : ModalEditVideo;
     ModalDeleteVideo : ModalDeleteVideo;
 
-    TimelineComp : TimelineComp;
+    TimelineControlComp : TimelineControlComp;
     TimelineBun : TimelineBun;
 
     UpdateBunJaTextModalComp : UpdateBunJaTextModalComp;
@@ -918,12 +918,15 @@ declare global {
     }
   }
 
-  export interface TimelineComp {
+  export interface TimelineControlComp {
     BUTTON : {
         PART_TRANSCRIPT : string;
         SAVE_NEW : string;
         CANCLE : string;
         MODIFY_TIME : string;
+    },
+    TOOLTIP : {
+      SHIFT_ENTER : string;
     }
   }
 
@@ -931,6 +934,9 @@ declare global {
     BUTTON : {
       MODIFY : string;
       MOVE : string;
+    },
+    TOOLTIP : {
+      ENTER : string;
     }
   }
 
@@ -943,8 +949,8 @@ declare global {
     }
     CONTENTS : string[];
     TOOLTIP : {
-      ENTER : string;
       CTRL_ENTER : string;
+      SHIFT_ENTER : string;
     }
   }
 
@@ -1174,6 +1180,10 @@ declare global {
       NEXT : string;
       MODIFY : string;
       CANCLE : string;
+    },
+    TOOLTIP : {
+      ENTER : string;
+      SHIFT_ENTER : string;
     }
   }
 

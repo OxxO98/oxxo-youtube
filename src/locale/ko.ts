@@ -64,12 +64,15 @@ const ModalDeleteVideo : Locale["ModalDeleteVideo"] = {
     }
 }
 
-const TimelineComp : Locale["TimelineComp"] = {
+const TimelineControlComp : Locale["TimelineControlComp"] = {
     BUTTON : {
         PART_TRANSCRIPT : '부분 음성인식',
         SAVE_NEW : '작성',
         CANCLE : '취소',
         MODIFY_TIME : '시간 수정'
+    },
+    TOOLTIP : {
+        SHIFT_ENTER : '단축키 : shift + enter'
     }
 }
 
@@ -77,6 +80,9 @@ const TimelineBun : Locale["TimelineBun"] = {
     BUTTON : {
         MODIFY : '수정',
         MOVE : '이동'
+    },
+    TOOLTIP : {
+        ENTER : '단축키 : enter',
     }
 }
 
@@ -89,7 +95,7 @@ const UpdateBunJaTextModalComp : Locale["UpdateBunJaTextModalComp"] = {
     },
     CONTENTS : [ '수정된 단어', '삭제된 단어'],
     TOOLTIP : {
-        ENTER : '단축키 : enter',
+        SHIFT_ENTER : '단축키 : shift + enter',
         CTRL_ENTER : '단축키 : ctrl + enter'
     }
 }
@@ -358,6 +364,10 @@ const TimelineCarouselComp : Locale['TimelineCarouselComp'] = {
         NEXT : '다음',
         MODIFY : '수정',
         CANCLE : '취소'
+    },
+    TOOLTIP : {
+        ENTER : '단축키 : enter',
+        SHIFT_ENTER : '단축키 : shift + enter'
     }
 }
 
@@ -435,7 +445,7 @@ export default {
     ModalEditVideo,
     ModalDeleteVideo,
 
-    TimelineComp,
+    TimelineControlComp,
     TimelineBun,
 
     UpdateBunJaTextModalComp,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useContext, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next'
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -12,7 +12,7 @@ import { useDebounceEffect } from 'hooks/OptimizationHook';
 import { useHuri } from 'hooks/HuriHook';
 
 //CSS@antD
-import { Input, Button, Flex, Modal, Card, Tooltip } from 'antd';
+import { Input, Button, Flex, Modal, Card, Tooltip, InputRef } from 'antd';
 import { SplitCellsOutlined, MergeCellsOutlined } from '@ant-design/icons'
 import { VideoContext } from 'contexts/VideoContext';
 
@@ -55,6 +55,8 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     //Context
     const { videoId } = useContext(VideoContext);
 
+    const inputRef = useRef<InputRef>(null);
+
     //State
     const [newJaText, setNewJaText] = useState<string>('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,7 +79,13 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
 
     //Handle
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
-        setNewJaText(e.target.value);
+        if(isModalOpen === true){
+            setNewJaText(e.target.value);
+        }
+    }
+
+    const handleFocus = (e : React.FocusEvent<HTMLInputElement>) => {
+        e.target.selectionStart = e.target.value.length;
     }
 
     const showModal = () => {
@@ -88,7 +96,6 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     
     const handleOk = () => {
         modifyBun();
-        setIsModalOpen(false);
     };
 
     const handleCancel = () => {
@@ -98,10 +105,7 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     const modifyBun = () => {
         //hukumu 가 아예 없으면 수정이 안됨.
         if( newJaText === '' ){ return }
-        if( modifiedList === null || deletedList === null ){ 
-            if( hukumuData === null ){
-                setParamsUpdateJaText({ videoId : videoId, ytBId : ytb.ytBId, jaText : newJaText })
-            }
+        if( modifiedList === null || deletedList === null || hukumuData === null ){ 
             return;
         }
 
@@ -148,14 +152,10 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
         setDeletedList(deleted);
     }, [hukumuData, newJaText, traceHukumu, ytb.jaText]);
 
-    useHotkeys('ctrl+enter', () => showModal(), { enableOnFormTags : true } )
-    const ref = useHotkeys<HTMLDivElement>('enter', () => handleOk(), { enabled : isModalOpen }, [isModalOpen] )
+    useHotkeys('ctrl+enter', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen }, [isModalOpen, defaultValue] )
     
-    useEffect( () => {
-        if(hukumuData !== null){
-            getList();
-        }
-    }, [hukumuData, getList])
+    const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : isModalOpen && (modifiedList !== null && deletedList !== null && hukumuData !== null) }, [isModalOpen, modifiedList, deletedList, hukumuData] )
+    useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
 
     useDebounceEffect( () => getList(), 1000, [newJaText]);
 
@@ -165,15 +165,27 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
             setHukumuData(res.data);
         }
     }, [response])
+    
+    useEffect( () => {
+        if(hukumuData !== null){
+            getList();
+        }
+    }, [hukumuData, getList])
 
     useEffect( () => {
-        if( resUpdate !== null || resUpdateJaText !== null){
-            refetchHandles.refetch(ytb.jaBId);
+        if( resUpdate ){
+            console.log(resUpdate)
             refetchTimeline();
             cancelEdit();
+            setIsModalOpen(false);
         }
-    }, [resUpdate, resUpdateJaText, refetchHandles, ytb.jaBId, refetchTimeline, cancelEdit])
+    }, [resUpdate, refetchTimeline, cancelEdit])
 
+    useEffect( () => {
+        if(inputRef.current !== null && isModalOpen === true){
+            inputRef.current.focus();
+        }
+    }, [isModalOpen])
 
     return(
         <div>
@@ -188,17 +200,20 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
                 closable={{ 'aria-label': 'Custom Close Button' }}
                 open={isModalOpen}
                 onCancel={handleCancel}
+                keyboard={false}
                 width={'80%'}
                 footer={[
-                    <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>,
-                    <Tooltip title={t('TOOLTIP.ENTER')}>
+                    <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>
+                        <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                    </Tooltip>,
+                    <Tooltip title={t('TOOLTIP.CTRL_ENTER')}>
                         <Button type="primary" onClick={handleOk}>{t('BUTTON.DONE')}</Button>
                     </Tooltip>
                 ]}
                 panelRef={ref}
             >
                 <Bun bId={ytb.jaBId!}/>
-                <Input value={newJaText} onChange={handleChange}/>
+                <Input value={newJaText} onChange={handleChange} ref={inputRef} onFocus={handleFocus}/>
                 <div>{t('CONTENTS.0')}</div>
                 <Flex gap={16}>
                 {

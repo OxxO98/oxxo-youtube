@@ -1,11 +1,8 @@
 import express from "express";
 const router = express.Router();
 
-import ytdl from "@distube/ytdl-core";
 import fs from 'fs'
 import { Innertube, UniversalCache, Platform, Utils } from 'youtubei.js';
-
-import { Readable, PassThrough } from "stream";
 
 import path from 'path';
 import { fileURLToPath } from 'url';

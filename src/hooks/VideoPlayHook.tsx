@@ -697,7 +697,7 @@ function useHandleKeyboard(
 ){
 
   useHotkeys('*', (_) => {
-    switch(_.key){
+    switch(_.key.toLowerCase()){
       case " ":
         if( handleObj?.pauseYT ){ handleObj.pauseYT() }
         break;
@@ -740,57 +740,57 @@ function useHandleKeyboard(
       default :
         if( handleObj?.custom ){
           let custom = handleObj.custom;
-          let customAction = custom.filter( (v) => v.key === _.key );
+          let customAction = custom.filter( (v) => v.key.toLowerCase() === _.key.toLowerCase() );
           if( customAction.length !== 0 ){ customAction[0].action() }
         }
     }
   }, { preventDefault : true } );
 
   const handleKeyboard = (e : React.KeyboardEvent) =>{
-    switch(e.key){
+    switch(e.code){
       case " ":
         if( handleObj?.pauseYT ){ handleObj.pauseYT() }
         break;
-      case "z":
+      case "KeyZ":
         if( handleObj?.prevSec ){ handleObj?.prevSec() }
         break;
-      case "v":
+      case "KeyV":
         if( handleObj?.nextSec ){ handleObj?.nextSec() }
         break;
-      case "x":
+      case "KeyX":
         if( handleObj?.prevFrame ){ handleObj?.prevFrame() }
         break;
-      case "c":
+      case "KeyC":
         if( handleObj?.nextFrame ){ handleObj?.nextFrame() }
         break;
-      case "a":
+      case "KeyA":
         if( handleObj?.markStart ){ handleObj?.markStart() }
         break;
-      case "f":
+      case "KeyF":
         if( handleObj?.markEnd ){ handleObj?.markEnd() }
         break;
-      case "s":
+      case "KeyS":
         if( handleObj?.selectStartTime ){ handleObj?.selectStartTime() }
         break;
-      case "d":
+      case "KeyD":
         if( handleObj?.selectEndTime ){ handleObj?.selectEndTime() }
         break;
-      case "b":
+      case "KeyB":
         if( handleObj?.markerPlay ){ handleObj?.markerPlay() }
         break;
-      case "g":
+      case "KeyG":
         if( handleObj?.markerStop ){ handleObj?.markerStop() }
         break;
-      case 'r' :
+      case 'KeyR' :
         if( handleObj?.loop ){ handleObj?.loop() }
         break;
-      case 'n' :
+      case 'KeyN' :
         if( handleObj?.nextMarkerPlay ){ handleObj?.nextMarkerPlay() }
         break;
       default :
         if( handleObj?.custom ){
           let custom = handleObj.custom;
-          let customAction = custom.filter( (v) => v.key === e.key );
+          let customAction = custom.filter( (v) => v.key.toLowerCase() === e.key.toLowerCase() );
           if( customAction.length !== 0 ){ customAction[0].action() }
         }
     }

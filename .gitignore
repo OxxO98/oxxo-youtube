@@ -26,3 +26,6 @@ yarn-error.log*
 server/Asset/Logs/*
 server/Asset/transcript/*
 server/Asset/db/*
+
+#run
+start.bat
