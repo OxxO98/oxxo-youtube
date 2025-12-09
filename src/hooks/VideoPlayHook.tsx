@@ -697,6 +697,7 @@ function useHandleKeyboard(
 ){
 
   useHotkeys('*', (_) => {
+    if(_.ctrlKey === true ){ return }
     switch(_.key.toLowerCase()){
       case " ":
         if( handleObj?.pauseYT ){ handleObj.pauseYT() }

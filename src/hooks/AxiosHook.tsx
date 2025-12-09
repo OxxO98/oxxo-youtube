@@ -227,11 +227,9 @@ function useAxiosPut<T = any, P = any>(url : string, _pending : boolean | null =
 			).then(
 				response => {
 					if(response.data.length !== 0){
-						console.log(response.data);
 						setResponse(response.data);
 					}
 					else{
-						console.log(response.data);
 						setResponse(null);
 					}
 			})

@@ -103,9 +103,6 @@ const SharedPage = () => {
         if(encode !== null){
             let decode = LZstring.decompressFromEncodedURIComponent(encode);
             let decodedData : RES_SHARED_DATA = JSON.parse(decode);
-            
-            console.log(decodedData.t[0].j !== undefined)
-            console.log(decodedData.t[0].k !== undefined)
 
             let data = {
                 videoId : decodedData.v,

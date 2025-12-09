@@ -53,8 +53,6 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     const { t } = useTranslation('UpdateBunJaTextModalComp');
 
     //Context
-    const { videoId } = useContext(VideoContext);
-
     const inputRef = useRef<InputRef>(null);
 
     //State
@@ -74,8 +72,6 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     const { response, setParams } = useAxiosGet<RES_GET_HUKUMU, REQ_GET_HUKUMU>('/db/hukumu', true, null);
 
     const { response : resUpdate, setParams : setParamsUpdate } = useAxiosPut<null, REQ_PUT_HUKUMU_BUN>('/db/hukumu/bun', true, null );
-
-    const { response : resUpdateJaText, setParams : setParamsUpdateJaText } = useAxiosPut<null, REQ_PUT_BUN_JATEXT>('/db/bun/jaText', true, null);
 
     //Handle
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
@@ -152,9 +148,11 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
         setDeletedList(deleted);
     }, [hukumuData, newJaText, traceHukumu, ytb.jaText]);
 
+    const loaded = isModalOpen && (modifiedList !== null && deletedList !== null && hukumuData !== null);
+
     useHotkeys('ctrl+enter', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen }, [isModalOpen, defaultValue] )
     
-    const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : isModalOpen && (modifiedList !== null && deletedList !== null && hukumuData !== null) }, [isModalOpen, modifiedList, deletedList, hukumuData] )
+    const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : loaded }, [loaded] )
     useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
 
     useDebounceEffect( () => getList(), 1000, [newJaText]);
@@ -174,12 +172,12 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
 
     useEffect( () => {
         if( resUpdate ){
-            console.log(resUpdate)
+            refetchHandles.refetch(ytb.jaBId)
             refetchTimeline();
             cancelEdit();
             setIsModalOpen(false);
         }
-    }, [resUpdate, refetchTimeline, cancelEdit])
+    }, [resUpdate, refetchTimeline, cancelEdit, refetchHandles, ytb.jaBId])
 
     useEffect( () => {
         if(inputRef.current !== null && isModalOpen === true){
@@ -207,7 +205,7 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
                         <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
                     </Tooltip>,
                     <Tooltip title={t('TOOLTIP.CTRL_ENTER')}>
-                        <Button type="primary" onClick={handleOk}>{t('BUTTON.DONE')}</Button>
+                        <Button loading={!loaded} type="primary" onClick={handleOk}>{t('BUTTON.DONE')}</Button>
                     </Tooltip>
                 ]}
                 panelRef={ref}
@@ -276,6 +274,8 @@ const DeleteBunModalComp = ({ ytb, refetchTimeline, cancelEdit } : DeleteBunModa
     const deleteBun = () => {
         setParamsDelete({ videoId : videoId, ytBId : ytb.ytBId, jaBId : ytb.jaBId })
     }
+
+    useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
 
     useEffect( () => {
         let res = response;
@@ -399,7 +399,7 @@ const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHandles, 
     useEffect( () => {
         setInputs({
             jaText : ytb.jaText,
-            koText : ytb.koText ?? ''
+            koText : ytb.koText ?? '/'
         })
     }, [ytb])
 
@@ -430,7 +430,7 @@ const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHandles, 
                     _isOk &&
                     <>
                         <div>{_splitedJaText[0]}</div>
-                        <div>{ _splitedKoText[0] }</div>
+                        <div>{_splitedKoText[0]}</div>
                         <Flex gap={16}>
                         {
                             hukumuDatas !== null && hukumuDatas.filter( (v) => v.endOffset <= _splitedJaText[0].length ).map( (v) => 
@@ -441,7 +441,7 @@ const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHandles, 
                         }
                         </Flex>
                         <div>{_splitedJaText[1]}</div>
-                        <div>{ _splitedKoText[1] }</div>
+                        <div>{_splitedKoText[1]}</div>
                         <Flex gap={16}>
                         {
                             hukumuDatas !== null && hukumuDatas.filter( (v) => v.startOffset >= _splitedJaText[0].length ).map( (v) => 
