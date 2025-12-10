@@ -84,6 +84,7 @@ declare global {
     yomi : string;
     startOffset : number;
     endOffset : number;
+    textData : Array<TextData>;
   }
 
     //LIstComps

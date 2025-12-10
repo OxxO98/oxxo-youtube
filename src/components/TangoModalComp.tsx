@@ -35,7 +35,7 @@ const ModalDeleteHukumu = ({ handleRefetch } : ModalDeleteHukumuProps ) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     //Redux
-    const { selectedBun, textOffset, hukumuData } = useSelector( (_state : RootState ) => _state.selection );
+    const { selectedBun, hukumuData } = useSelector( (_state : RootState ) => _state.selection );
 
     //Hook
     const { response, setParams } = useAxiosDelete<null, REQ_DELETE_HUKUMU>('/db/hukumu', true, null);
@@ -53,7 +53,7 @@ const ModalDeleteHukumu = ({ handleRefetch } : ModalDeleteHukumuProps ) => {
 
         setParams({
             jaBId : selectedBun,
-            startOffset : textOffset.startOffset, endOffset : textOffset.endOffset,
+            startOffset : hukumuData.startOffset, endOffset : hukumuData.endOffset,
             hyId : hukumuData.hyId
         })
     }
@@ -100,7 +100,7 @@ const ModalUpdateHukumu = ({ handleRefetch, multiInputData, multiValue, newYomi 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     //Redux
-    const { selectedBun, textOffset, hukumuData } = useSelector( (_state : RootState ) => _state.selection );
+    const { selectedBun, hukumuData } = useSelector( (_state : RootState ) => _state.selection );
 
     //Hook
     const { getHyoukiQuery, getYomiQuery } = useJaText();
@@ -124,7 +124,7 @@ const ModalUpdateHukumu = ({ handleRefetch, multiInputData, multiValue, newYomi 
 
         setParams({
             jaBId : selectedBun,
-            startOffset : textOffset.startOffset, endOffset : textOffset.endOffset,
+            startOffset : hukumuData.startOffset, endOffset : hukumuData.endOffset,
             hyId : hukumuData.hyId, 
             hyouki : _hyouki, yomi : _yomi,
             hyoukiStr : hukumuData.hyouki, yomiStr : newYomi

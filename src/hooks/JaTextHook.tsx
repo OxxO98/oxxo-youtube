@@ -831,6 +831,10 @@ function useJaText(){
     return multiInputData.map( (v) => v.data ).join('_');
   }
 
+  const getHyoukiQueryByTextData = ( textData : TextData[] ) : string => {
+    return textData.map( (v) => v.data ).join('_');
+  }
+
   const getYomiQuery = ( multiInputData : MultiInput[], multiValue : string[] ) : string => {
     return multiInputData.map( (v, i) => v.inputBool === false ? '0' : multiValue[i] ).join('_');
   }
@@ -848,7 +852,8 @@ function useJaText(){
     koNFCToHira, 
     isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
     matchOkuri, matchOkuriExec, getMED, traceHukumu, 
-    getHyoukiQuery, getYomiQuery, convertObjKey
+    getHyoukiQuery, getYomiQuery, convertObjKey,
+    getHyoukiQueryByTextData,
   }
 }
 

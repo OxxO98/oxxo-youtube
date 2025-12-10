@@ -678,7 +678,7 @@ const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps ) => {
                             label : t('CONTENTS.1'),
                             children : 
                             <>
-                                {state.transcript.loading === true && (
+                                {state.transcript.done === true && state.transcript.loading === true && (
                                     <>
                                         <Spin indicator={<LoadingOutlined spin />} size="large"/>
                                     </>

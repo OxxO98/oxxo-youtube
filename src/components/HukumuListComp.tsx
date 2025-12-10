@@ -46,7 +46,7 @@ const HukumuListComp = ({ hukumuList, refetchHukumuList, refetchTangoList, refet
                 {
                     (hukumu) => (
                         <List.Item>
-                            <HukumuBunComp hukumu={hukumu} refetchHukumuList={refetchHukumuList}  refetchTangoList={refetchTangoList} refetchHandles={refetchHandles}/>
+                            <HukumuBunComp hukumu={hukumu} refetchHukumuList={refetchHukumuList} refetchTangoList={refetchTangoList} refetchHandles={refetchHandles}/>
                         </List.Item>
                     )
                 }
@@ -68,7 +68,7 @@ const HukumuBunComp = ({ hukumu, refetchHukumuList, refetchTangoList, refetchHan
     //Hook
     const { refetch } = refetchHandles;
 
-    const { response, setParams } = useAxiosPost<null, REQ_POST_LIST_COMMIT>('/db/list/commit', true, null);
+    const { response, loading, setParams } = useAxiosPost<null, REQ_POST_LIST_COMMIT>('/db/list/commit', true, null);
 
     //Handle
     const commitOne = () => {
@@ -91,7 +91,7 @@ const HukumuBunComp = ({ hukumu, refetchHukumuList, refetchTangoList, refetchHan
 
     return(
         <Card actions={[
-            <Button onClick={commitOne}>{t('BUTTON.TITLE')}</Button>
+            <Button onClick={commitOne} loading={loading}>{t('BUTTON.TITLE')}</Button>
         ]}
             style={{ width : '100%' }}
             title={

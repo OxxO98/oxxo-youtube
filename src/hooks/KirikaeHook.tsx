@@ -233,12 +233,11 @@ function useMultiInput(dependancy : string | null, defaultInput? : string | unde
       let huriIndex = 0;
       let tmp = [...multiValue];
       for(let key in tmp){
-        if( def !== null && def !==  undefined ){
+        if( def !== null && def !==  undefined && def[huriIndex] !== undefined ){
           tmp[key] = def[huriIndex];
           huriIndex++;
         }
       }
-      
       setMultiValue(tmp);
     }
   }, [edit])

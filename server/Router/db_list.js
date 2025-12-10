@@ -7,8 +7,6 @@ import logger from './core/logger.js';
 
 import _ from 'lodash'
 
-import { nanoid } from "nanoid";
-
 //현재꺼 제외
 async function getHukumuList(req, res){
     await db_connection(req, res, async(db) => {

@@ -16,7 +16,12 @@ async function checkIntegrity(req, res){
         
         db.data.hukumu.map( (hu) => {
             let jaBun = db.data.jaBuns.find( (ja) => ja.jaBId == hu.jaBId );
-            let _hyouki = db.data.hyouki.find( (hy) => hu.hyId == hy.hyId ).hyouki;
+            let hyoukiObj = db.data.hyouki.find( (hy) => hu.hyId == hy.hyId );
+            if( hyoukiObj === undefined ){
+                logger.error(`무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 HYID ${hu.hyId}를 찾을 수 없음`)
+                return;
+            }
+            let _hyouki = hyoukiObj.hyouki;
             let _substring = jaBun.jaText.substring( hu.startOffset, hu.endOffset );
             if( _substring != _hyouki ){
                 logger.error(`무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 ${_hyouki} ${_substring} 불일치`)
@@ -97,7 +102,6 @@ async function checkIntegrity(req, res){
 
         let _hyIds = db.data.hukumu.map( (v) => v.hyId );
         let _tIds = db.data.hukumu.map( (v) => v.tId );
-        let _iIds = db.data.hukumu.map( (v) => v.iId ).filter( (v) => v != null );
 
         db.data.hyouki.map( (v) => {
             if( _hyIds.includes(v.hyId) == false ){
@@ -109,11 +113,6 @@ async function checkIntegrity(req, res){
                 logger.error(`HUKUMU에 존재하지 않는 단어 ${v.tId}`);
             }
         })
-        // db.data.imi.map( (v) => {
-        //     if( _iIds.includes(v.iId) == false ){
-        //         logger.error(`HUKUMU에 존재하지 않는 뜻 ${v.iId}`);
-        //     }
-        // })
 
         let _hy_hyIds = db.data.hyouki.map( (v) => v.hyId );
         db.data.komu.map( (v) => {

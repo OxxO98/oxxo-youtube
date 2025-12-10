@@ -107,9 +107,9 @@ const TangoComp = ({ refetchHandles, refetchTangoList, hukumuCheckLoading } : Ta
 
     const { kirikaeValue, concatMultiInput, handleChange : handleMultiKirikae } = useMultiKirikae(selection, multiValue, handleMultiChange);
 
-    const { multiValue : editMultiValue, multiInputData : editMultiInputData, handleChange : handleEditChange } = useMultiInput(selection, hukumuData?.yomi, edit);
+    const { multiValue : editMultiValue, multiInputData : editMultiInputData, handleChange : handleEditChange } = useMultiInput(hukumuData?.hyouki ?? null, hukumuData?.yomi, edit);
 
-    const { kirikaeValue : editKirikaeValue, concatMultiInput : concatEditMultiInput, handleChange : handleEditMultiKirikae } = useMultiKirikae(selection, editMultiValue, handleEditChange);
+    const { kirikaeValue : editKirikaeValue, concatMultiInput : concatEditMultiInput, handleChange : handleEditMultiKirikae } = useMultiKirikae(hukumuData?.hyouki ?? null, editMultiValue, handleEditChange);
 
     //Handle
     const handleRefetch = useCallback( (...props : any[]) => {
@@ -167,7 +167,7 @@ const TangoComp = ({ refetchHandles, refetchTangoList, hukumuCheckLoading } : Ta
                             <ModalDeleteHukumu handleRefetch={handleRefetch}/>
                             {
                                 concatEditMultiInput() !== hukumuData.yomi &&
-                                <ModalUpdateHukumu handleRefetch={handleRefetch} multiInputData={multiInputData} multiValue={editKirikaeValue} newYomi={concatEditMultiInput()}/>
+                                <ModalUpdateHukumu handleRefetch={handleRefetch} multiInputData={editMultiInputData} multiValue={editKirikaeValue} newYomi={concatEditMultiInput()}/>
                             }
                             <Button type="primary" onClick={() => setEdit(false)}>{t('BUTTON.CANCLE')}</Button>
                         </Flex>
