@@ -133,7 +133,7 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     if( range === null ) return;
 
     let [ _start, _end ] = range;
-    let _zoom = _start - _end;
+    let _move = Math.floor( (_end - _start)/16 );
 
     if(e.shiftKey === false){
       if(e.deltaY > 0){
@@ -144,14 +144,14 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
       }
     }
     else{
-      if(e.deltaY > 0){
-        if( _start-frameRate >= 0 ){
-          setRange([range[0] - frameRate, range[1] - frameRate]);
+      if(e.deltaY < 0){
+        if( _start-_move >= 0 ){
+          setRange([range[0] - _move, range[1] - _move]);
         }
       }
       else{
-        if( _end + 1 <= filteredData.length - _zoom ){
-          setRange([range[0] + frameRate, range[1] + frameRate]);
+        if( _end + _move <= filteredData.length ){
+          setRange([range[0] + _move, range[1] + _move]);
         }
       }
     }

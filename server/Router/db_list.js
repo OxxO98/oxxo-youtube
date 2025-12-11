@@ -67,9 +67,19 @@ async function getOsusumeList(req, res){
         })
         let list = joinList.filter( (v) => v.hyouki == hyouki );
 
+        list = _.uniqBy(list, 'tId');
+
+        list = list.map( (v) => {
+            let imi = db.data.imi.filter( (m) => m.tId == v.tId ).map( (t) => t.koText);
+            return {
+                ...v, 
+                imi : imi
+            }
+        })
+
         res.send({
             message : 'success',
-            data : _.uniqBy(list, 'tId')
+            data : list
         });
     });
 }

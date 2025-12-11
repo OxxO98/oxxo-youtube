@@ -13,6 +13,7 @@ import { PdfModalComp } from 'components/PdfModalComp';
 import { useAxiosGet } from 'hooks/AxiosHook';
 
 import { useKirikae } from 'hooks/KirikaeHook';
+import { useJaText } from 'hooks/JaTextHook';
 
 //CSS@antd
 import { Pagination, Row, Col, Button, Card, Tabs, Input, Flex, Empty  } from 'antd'
@@ -29,6 +30,7 @@ interface TangochouRepresentiveProps {
     tId : tId;
     hyouki : string;
     yomi : string;
+    imi : string[];
 }
 
 interface TangoBunListProps {
@@ -157,7 +159,7 @@ const TangochouTableComp = ({ list, pageSize } : TangochouTableCompProps ) => {
                 list.filter( (v, i) => ( (Number(page)-1) * pageSize <= i && i < Number(page) * pageSize ))
                 .map( (v) =>                 
                     <Col span={6} xxl={span[pageSize].xxl} xl={span[pageSize].xl} lg={8} md={12} sm={24} xs={24} key={v.tId}>
-                        <TangochouRepresentive tId={v.tId} hyouki={v.hyouki} yomi={v.yomi}/>
+                        <TangochouRepresentive tId={v.tId} hyouki={v.hyouki} yomi={v.yomi} imi={v.imi}/>
                     </Col>
                 )
             }
@@ -167,7 +169,7 @@ const TangochouTableComp = ({ list, pageSize } : TangochouTableCompProps ) => {
 
 }
 
-const TangochouRepresentive = ({ tId, hyouki, yomi } : TangochouRepresentiveProps ) => {
+const TangochouRepresentive = ({ tId, hyouki, yomi, imi } : TangochouRepresentiveProps ) => {
 
     //Context
     const { videoId } = useContext(VideoContext);
@@ -181,8 +183,22 @@ const TangochouRepresentive = ({ tId, hyouki, yomi } : TangochouRepresentiveProp
 
     return(
         <>
-            <Card onClick={handleClick} style={{ height : '100%' }} styles={{ body : { padding : '24px 8px' } }} hoverable>
-                <ComplexText bId={tId} data={hyouki} ruby={yomi} offset={0} key={tId}/>
+            <Card
+                onClick={handleClick} style={{ height : '100%' }} styles={{ body : { padding : '24px 8px' } }} hoverable
+            >
+                <Card.Meta
+                    title={
+                        <ComplexText bId={tId} data={hyouki} ruby={yomi} offset={0} key={tId}/>
+                    }
+                    description={
+                    <>
+                    {
+                        imi && imi.length !== 0 &&
+                        <>{imi.join(',')}</>
+                    }
+                    </>
+                    }
+                />
             </Card>
         </>
     );
@@ -427,6 +443,7 @@ const SearchTangoComp = () => {
 
     //Hook
     const navigate = useNavigate();
+    const { isAllHangul } = useJaText();
 
     const { kirikaeValue, handleChange : handleKrikae, kirikae } = useKirikae(value, handleChange);
 
@@ -449,7 +466,13 @@ const SearchTangoComp = () => {
             navigate(`/video/${videoId}/tangochou/1`)
         }
         else{
-            navigate(`/video/${videoId}/tangochou/search/1?keyword=${kirikae}`)
+            if( isAllHangul(value) === true ){
+                navigate(`/video/${videoId}/tangochou/search/1?keyword=${kirikae}&imiKeyword=${value}`)
+            }
+            else{
+                navigate(`/video/${videoId}/tangochou/search/1?keyword=${kirikae}`)
+            }
+            
         }
     }
 
@@ -474,7 +497,6 @@ const SearchTangoListComp = () => {
     const [totalPage, setTotalPage] = useState<number | null>(null);
     const [pageSize, setPageSize] = useState(24);
 
-
     //Hook
     const navigate = useNavigate();
     const location = useLocation();
@@ -486,8 +508,9 @@ const SearchTangoListComp = () => {
         let search = location.search;
         let params = new URLSearchParams(search);
         let keyword = params.get('keyword');
+        let imiKeyword = params.get('imiKeyword');
 
-        navigate(`/video/${videoId}/tangochou/search/${page}?keyword=${keyword}`)
+        navigate(`/video/${videoId}/tangochou/search/${page}?keyword=${keyword}${ imiKeyword !== null ? `&imiKeyword=${imiKeyword}` : ``}`)
     }
     
     const onShowSizeChange: PaginationProps['onShowSizeChange'] = (current, pageSize) => {
@@ -506,17 +529,22 @@ const SearchTangoListComp = () => {
         let search = location.search;
         let params = new URLSearchParams(search);
         let keyword = params.get('keyword');
+        let imiKeyword = params.get('imiKeyword');
 
-        if(keyword === null){ return }
-
-        setParams({ videoId : videoId, keyword : keyword });
+        if( keyword === null ){ return }
+        if( imiKeyword === null ){
+            setParams({ videoId : videoId, keyword : keyword });
+        }
+        else{
+            setParams({ videoId : videoId, keyword : keyword, imiKeyword : imiKeyword });
+        }
     }, [location, setParams, videoId])
 
 
     return(
         <>
             {
-                totalPage === null ?
+                totalPage === null || list.length === 0 ?
                 <>
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 </>

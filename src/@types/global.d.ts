@@ -106,6 +106,7 @@ declare global {
     hyId : hyId;
     hyouki : string;
     yomi : string;
+    imi : string[];
   } //애매함 문제 RESPONSE인가??
 
   export interface FilteredData {
@@ -145,6 +146,7 @@ declare global {
     textData : Array<TextData>;
     yomi : string;
     hyouki : string;
+    imi : string[];
   }
 
   export interface KanjiData {
@@ -344,6 +346,8 @@ declare global {
   export type REQ_GET_TANGO_CHECK = {
     hyouki : string;
     yomi : string;
+    hyoukiQuery? : string;
+    yomiQuery? : string;
   }
 
   export type RES_GET_TANGOCHOU = RES_TANGOCHOU_LIST;
@@ -379,6 +383,7 @@ declare global {
   export type REQ_GET_TANGOCHOU_SEARCH = {
     videoId : string;
     keyword : string;
+    imiKeyword? : string;
   }
 
   export type RES_GET_TANGOCHOU_PDF = RES_PDF_ALL;
@@ -604,6 +609,7 @@ declare global {
     hyId : hyId;
     hyOffset : number;
     yOffset : number;
+    imi : string[];
   }
 
   export type RES_TANGOCHOU_LIST = TangochouData[]

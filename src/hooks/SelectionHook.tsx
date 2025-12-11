@@ -111,7 +111,9 @@ function useHandleSelection( document : Document, restrictId : string ) {
                 _text = _text.replace(/\n/g, '');
 
                 store.dispatch( setSelection(_text) );
-                navigator.clipboard.writeText(_text);
+                if( navigator.clipboard && document.hasFocus() ){
+                    navigator.clipboard.writeText(_text);
+                }
             }
 
             //용도 모름

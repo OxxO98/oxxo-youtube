@@ -21,6 +21,7 @@ async function getTangochou(req, res) {
         let retList = uniqList.map( (v) => {
             return {
                 ...db.data.hyouki.find( (hy) => v.hyId == hy.hyId ),
+                imi : db.data.imi.filter( (m) => v.tId == m.tId ).map( (m) => m.koText ),
                 tId : v.tId
             }
         })
@@ -152,7 +153,23 @@ async function getKanjiInfo(req, res){
 
 async function searchTangochou(req, res) {
     await db_connection(req, res, async(db) => {
-        let { videoId, keyword } = req.query;
+        let { videoId, keyword, imiKeyword } = req.query;
+
+        let _condition = (v) => {
+            if( imiKeyword == undefined ){
+                return v.yomi.includes(keyword) ||
+                    keyword.includes(v.yomi) ||
+                    v.hyouki.includes(keyword) ||
+                    keyword.includes(v.hyouki)
+            }
+            else{
+                return v.yomi.includes(keyword) ||
+                    keyword.includes(v.yomi) ||
+                    v.hyouki.includes(keyword) ||
+                    keyword.includes(v.hyouki) ||
+                    v.imi.filter( (m) => m.includes(imiKeyword) || imiKeyword.includes(m) ).length > 0
+            }
+        }
 
         let timeline = await db_module.getTimeline(db, videoId);
         let joinList = timeline.map( (v) => {
@@ -160,17 +177,14 @@ async function searchTangochou(req, res) {
             return hukumu;
         }).flat();
 
-        //let uniqList = _.uniqBy(joinList, 'tId');
         let retList = joinList.map( (v) => {
             return {
                 tId : v.tId,
-                ...db.data.hyouki.find( (hy) => v.hyId == hy.hyId )
+                ...db.data.hyouki.find( (hy) => v.hyId == hy.hyId ),
+                imi : db.data.imi.filter( (m) => m.tId == v.tId ).map( (m) => m.koText )
             }
         }).filter( (v) => 
-            v.yomi.includes(keyword) ||
-            keyword.includes(v.yomi) ||
-            v.hyouki.includes(keyword) ||
-            keyword.includes(v.hyouki)
+            _condition(v)
         )
 
         res.send({

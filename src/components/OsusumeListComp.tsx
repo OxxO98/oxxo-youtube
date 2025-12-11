@@ -97,6 +97,14 @@ const Osusume = ({ osusume, refetchOsusumeList, refetchTangoList, refetchHandles
                 title={
                     <ComplexText bId={null} data={osusume.hyouki} ruby={osusume.yomi} offset={0}/>
                 }
+                description={
+                    <>
+                    {
+                        osusume.imi && osusume.imi.length !== 0 &&
+                        <>{osusume.imi.join(',')}</>
+                    }
+                    </>
+                }
             />
         </Card>
     )

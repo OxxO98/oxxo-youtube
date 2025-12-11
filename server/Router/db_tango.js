@@ -2,6 +2,7 @@ import express from "express";
 const router = express.Router();
 
 import db_connection from './core/db_connection.js';
+import * as db_module from "./core/db_module.js";
 import _ from 'lodash'
 
 async function getTango(req, res){
@@ -37,14 +38,17 @@ async function getTango(req, res){
     });
 }
 
-//중복제거에서 오류가 있을 수도 있음..
 async function searchTangoList(req, res){
     await db_connection(req, res, async(db) => {
-        let { hyouki, yomi } = req.query;
+        let { hyouki, yomi, hyoukiQuery, yomiQuery } = req.query;
 
-        let condition = ( _joined, hyouki ) => {
-            let _core = _joined.textData[0].ruby != null ? _joined.textData[0].data : _joined.textData[1].data;
-            return hyouki.includes(_core);
+        let _td = await db_module.makeTextData(hyoukiQuery, yomiQuery)
+        let _core = _td.filter( (t) => t.ruby != null ).map( (t) => t.data );
+
+        let condition = ( _joined ) => {
+            let _j_core = _joined.textData.filter( (t) => t.ruby != null).map( (t) => t.data);
+            
+            return _j_core == _core;
         }
 
         let hyoukis = db.data.hyouki;
@@ -55,7 +59,7 @@ async function searchTangoList(req, res){
             }
         }).filter( (v) => 
             v.hyouki.includes(hyouki) || v.yomi.includes(yomi) ||
-            condition( v, hyouki)
+            condition(v)
         ).filter(
             (v, i, arr) => arr.indexOf(v) == i
         ).map( (v) => {

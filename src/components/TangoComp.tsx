@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, CSSProperties, useCallback } from 'react';
+import React, { useEffect, useState, useContext, CSSProperties, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 //Context
@@ -494,7 +494,9 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
                 //오쿠리가나가 있을 때.
                 setParams({
                     hyouki : okuri.hyouki,
-                    yomi : searchText.yomi
+                    yomi : searchText.yomi,
+                    hyoukiQuery : getHyoukiQuery(multiInputData),
+                    yomiQuery : getYomiQuery(multiInputData, multiValue)
                 });
                 setSearchedList(null);
             }
@@ -502,7 +504,9 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
                 //오쿠리가나 없을 때.
                 setParams({
                     hyouki : searchText.hyouki,
-                    yomi : searchText.yomi
+                    yomi : searchText.yomi,
+                    hyoukiQuery : getHyoukiQuery(multiInputData),
+                    yomiQuery : getYomiQuery(multiInputData, multiValue)
                 });
                 setSearchedList(null);
             }
@@ -525,9 +529,11 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
         }
     }, [resNewTango, handleRefetch])
 
+    const isKanzen = searchedList?.kanzen !== undefined && searchedList.kanzen.length > 0
+
     return (
         <>
-            <Button onClick={showModal}>{t('BUTTON.TITLE')}</Button>
+            <Button disabled={multiInputData.filter( (v, i) => v.inputBool === true && multiValue[i] === '' ).length > 0 } type='primary' onClick={showModal}>{t('BUTTON.TITLE')}</Button>
 
             <Modal title={t('TITLE')}
                 closable={{ 'aria-label': 'Custom Close Button' }}
@@ -535,7 +541,7 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
                 onCancel={handleCancel}
                 width={'80%'}
                 footer={[
-                    <Button onClick={() => handleSubmit(null)}>{t('BUTTON.SAVE_NEW')}</Button>,
+                    <Button type={ isKanzen ? "dashed" : "primary"} onClick={() => handleSubmit(null)}>{t('BUTTON.SAVE_NEW')}</Button>,
                     <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
                 ]}
             >
@@ -580,7 +586,7 @@ const AccordianTangoDB = ({ searchedList, handleSubmit } : AccordianTangoDBProps
         }
     }
     
-    const items: TabsProps['items'] = getSearchedArr(searchedList).map( (v, i) => { return {
+    const items: TabsProps['items'] = useMemo( () => getSearchedArr(searchedList).map( (v, i) => { return {
         key : i.toString(),
         label : v.name,
         children : <>
@@ -589,7 +595,7 @@ const AccordianTangoDB = ({ searchedList, handleSubmit } : AccordianTangoDBProps
                 <TangoDB data={arr} handleSubmit={handleSubmit}/>
             )}
         </>
-    } })
+    } }), [searchedList])
 
     return(
         <Tabs defaultActiveKey="1" items={items}/>
@@ -629,13 +635,13 @@ const TangoDB = ({ data, handleSubmit } : TangoDBProps ) => {
                     tangoData.imi !== null &&
                     tangoData.imi.map( (arr) => 
                         <>
-                            <span>{arr}</span>
+                            <span> : {arr}</span>
                         </> 
                     )
                 }
                 {
                     tangoData.imi === null &&
-                    <span>{t('CONTENTS.EMPTY')}</span>
+                    <span> : {t('CONTENTS.EMPTY')}</span>
                 }
                 </>
             }
