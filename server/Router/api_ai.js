@@ -302,18 +302,8 @@ async function getRangeTranscript(req, res){
     }
 } 
 
-async function cancelTranscript(req, res) {
-    let command = 'taskkill /f /im whisper-cli.exe'
-
-    // nodejs error
-    exec(command, (err) => {
-        console.log('err', err);
-    })
-}
-
 router.get('/chat', getChat);
 router.get('/transcript', getTranscipt);
 router.get('/transcript/range', getRangeTranscript);
-router.get('/transcript/cancel', cancelTranscript);
 
 export default router;

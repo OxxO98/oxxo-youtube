@@ -241,7 +241,7 @@ const ShareModalComp = () => {
 
             if( ( opt === 'light' || opt === 'light ko' || opt === 'light ja' ) && bunIds !== null ){       
                 let _encodeOpt : 'both' | 'ja' | 'ko' = opt === 'light ko' ? 'ko' : opt === 'light ja' ? 'ja' : 'both';         
-                _url = _getEncodedLight(bunIds, 0, bunIds.length, _encodeOpt); //약간 legacy, textData만 제외
+                _url = _getEncodedLight(bunIds, 0, bunIds.length, _encodeOpt); //textData만 제외
                 if( _url.length > COPY_MAX && range !== null ){
                     _url = _findRangeLight( bunIds, range[0], _encodeOpt ).encoded;
                 }

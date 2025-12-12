@@ -364,9 +364,6 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
             for(let key in data){
                 let cpr = data[key];
 
-                // %text, text% 결국 둘중 하나인 상태. INSTR이 1이아니면 그 이상, 또는 0(불일치)인데,
-                // 만약 검색어에 오쿠리가나가 있어서 후방 일치라 해도 tango와는 %text%형식으로 일치된 상태일 수도 있음.
-                // tango는 본래 단어, 검색어text는 따로 알아내야 하는 상태.
                 if( okuri.matched === false ){
                     //검색 텍스트가 okuri가 없을 때,
                     if( selection === cpr.hyouki ){

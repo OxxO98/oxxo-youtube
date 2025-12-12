@@ -39,7 +39,7 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
   const filteredData = useContext(FilteredDataContext);
   
   //Redux
-  const { startTime, endTime, selectMarker } = useSelector((state : RootState) => state.reactPlayer)
+  const { startTime, endTime, selectMarker, markerTime } = useSelector((state : RootState) => state.reactPlayer)
 
   //Ref
   const divBox = useRef<HTMLDivElement>(null); //canvas Div Box 크기
@@ -436,8 +436,19 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
       }
     }
 
+    //markerTime
+    if( markerTime !== null ){
+      ctx.beginPath();
+      ctx.moveTo( (markerTime*frameRate-_start)*sampleWidth, 0 );
+      ctx.strokeStyle = (startTime && endTime) ? '#BF4040' : '#ffffff';
+      ctx.lineTo( (markerTime*frameRate-_start)*sampleWidth, canvasHeight );
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.closePath();
+    }
+
     stopDraw();
-  }, [filteredData, canvasWidth, canvasHeight, frameRate, range, videoTime, startTime, endTime, selectMarker, waveAreaHeight, waveAreaWidth, floorFrame, frameTime, getFrame])
+  }, [filteredData, canvasWidth, canvasHeight, frameRate, range, videoTime, startTime, endTime, markerTime, selectMarker, waveAreaHeight, waveAreaWidth, floorFrame, frameTime, getFrame])
 
 	const stopDraw = () => {
 	  cancelAnimationFrame(refId.current);

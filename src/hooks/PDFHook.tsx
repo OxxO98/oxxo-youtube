@@ -159,7 +159,6 @@ function usePDF(){
 
         if( begin !== '' ){
             doc.text( begin, _x, _y, JATEXT_OPTION );
-            // _x += begin.length * fontSize;
             _x += _getLength(begin, fontSize);
         }
 
@@ -170,7 +169,6 @@ function usePDF(){
         _x += hyouki.length * fontSize;
         if( last !== ''){
             doc.text( last, _x, _y, JATEXT_OPTION);
-            // _x += last.length * fontSize;
             _x += _getLength(last, fontSize);
         }
 
@@ -390,7 +388,7 @@ function usePDF(){
 
         })
 
-        doc.addFileToVFS('jaBold.ttf', jaBold);  //_fonts 변수는 Base64 형태로 변환된 내용입니다.
+        doc.addFileToVFS('jaBold.ttf', jaBold);  //_fonts 변수는 Base64 형태로 변환된 내용
         doc.addFont('jaBold.ttf','jaBold', 'normal');
         doc.addFileToVFS('jaNorm.ttf', jaNorm);
         doc.addFont('jaNorm.ttf','jaNorm', 'normal');
@@ -427,16 +425,6 @@ function usePDF(){
     }
 
     const getPdf = ( pdfList : RES_PDF_ALL, opt : 'kanji' | 'tango' | 'both' = 'both' ) => {
-        // let doc : jsPDF | null = null;
-        // if(pdf == null){
-        //     doc = makePdf( pdfList, opt ) ?? null;
-        
-        //     return doc;
-        // }
-        // else{
-        //     return pdf;
-        // }
-
         return makePdf( pdfList, opt );
     }
 

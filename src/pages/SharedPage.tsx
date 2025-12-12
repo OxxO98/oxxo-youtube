@@ -36,7 +36,7 @@ import { SettingOutlined } from '@ant-design/icons'
 import type { ColorPickerProps, GetProp } from 'antd';
     
 type Color = GetProp<ColorPickerProps, 'value'>;
-const { Header, Content } = Layout; //Import 위에 있으면 안됨.
+const { Header, Content } = Layout;
 const { useToken } = theme; 
 
 const { setBackgroundColor, setJaTextColor, setKoTextColor, setJaFontSize, setKoFontSize, setSortFont, setJaFontFamily, setKoFontFamily, toggleFontShadow } = sharedActions;
@@ -338,7 +338,7 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
         markerStop : keyboard.markerStop,
         loop : keyboard.loop
     }
-    useHandleKeyboard({ ...filteredKeyboard, custom : customKeyBoard }); //autoKeyboard는 나중에 추가 바람.
+    useHandleKeyboard({ ...filteredKeyboard, custom : customKeyBoard });
     
     //Handle @timeline
     const prevTimeLine = () => {
@@ -348,7 +348,6 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
 
         if(currentBunId > 0){
             let curr = timeline[currentBunId-1];
-            //setScratch(true, curr.startTime, curr.endTime, false);
             gotoTime(curr.startTime, true);
 
             setCurrentBunId(currentBunId-1);
@@ -362,7 +361,6 @@ const SharedTimelineCarouselComp = ({ timeline, playerRef, state, playerHandles 
         
         if(currentBunId+1 < timeline.length){
             let curr = timeline[currentBunId+1];
-            //setScratch(true, curr.startTime, curr.endTime, false);
             gotoTime(curr.startTime, true);
 
             setCurrentBunId(currentBunId+1);

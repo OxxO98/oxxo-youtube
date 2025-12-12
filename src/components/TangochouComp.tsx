@@ -66,7 +66,7 @@ const TangochouComp = () => {
     //Hook
     const navigate = useNavigate();
 
-    const { response } = useAxiosGet<RES_GET_TANGOCHOU, REQ_GET_TANGOCHOU>('/db/tangochou', false, { videoId : videoId } ); //해당 video의 단어 불러오기
+    const { response } = useAxiosGet<RES_GET_TANGOCHOU, REQ_GET_TANGOCHOU>('/db/tangochou', false, { videoId : videoId } );
 
     //Handle
     const onChange = (page : number, pagesize : number) => {
@@ -438,7 +438,7 @@ const SearchTangoComp = () => {
     const [value, setValue] = useState<string>('');
 
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
-        setValue( e.target.value ); //이건 debounce하면 입력이 불가능해짐.
+        setValue( e.target.value );
     }
 
     //Hook

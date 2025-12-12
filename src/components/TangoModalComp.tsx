@@ -105,7 +105,6 @@ const ModalUpdateHukumu = ({ handleRefetch, multiInputData, multiValue, newYomi 
     //Hook
     const { getHyoukiQuery, getYomiQuery } = useJaText();
 
-    //updateYomi
     const {response : res, setParams } = useAxiosPut<null, REQ_PUT_HUKUMU>('/db/hukumu', true, null);
 
     const handleOpen = () => {

@@ -100,5 +100,5 @@ export const sharedSlice = createSlice({
     }
 })
 
-export const sharedActions = sharedSlice.actions // dispatch를 위한 설정 
+export const sharedActions = sharedSlice.actions
 export default sharedSlice.reducer;

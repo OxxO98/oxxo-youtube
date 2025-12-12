@@ -13,7 +13,7 @@ import { VideoContext } from 'contexts/VideoContext';
 
 //Redux@Reducers
 import { reactPlayerActions } from 'reducers/reactPlayerReducer';
-const { setStartTime, setEndTime, selectMarkerStart, selectMarkerEnd, unselectMarker } = reactPlayerActions;
+const { setStartTime, setEndTime, selectMarkerStart, selectMarkerEnd, unselectMarker, setMarkerTime } = reactPlayerActions;
 
 function useVideoPlayHook( 
     playing : boolean, setPlaying : (playing : boolean) => void,
@@ -23,9 +23,6 @@ function useVideoPlayHook(
   //Context
   const { frameRate : frame } = useContext(VideoContext);
   const filteredData = useContext(FilteredDataContext);
-
-  //Ref
-  const markerTime = useRef<number>(null); //마커 play목적
 
   //State
   const DEBOUNCE_TIME_MS = 200;
@@ -37,7 +34,7 @@ function useVideoPlayHook(
     loop : false
   });
 
-  const { selectMarker, startTime, endTime } = useSelector((state : RootState) => state.reactPlayer);
+  const { selectMarker, startTime, endTime, markerTime } = useSelector((state : RootState) => state.reactPlayer);
 
   const { duration, playedSeconds } = state;
 
@@ -98,7 +95,7 @@ function useVideoPlayHook(
   const pauseYT = () => {
     if(playing === true){
       //일단 markerTime 처럼 재생
-      markerTime.current = playedSeconds;
+      store.dispatch( setMarkerTime(playedSeconds) );
       setPlaying(false);
     }
     else{
@@ -112,9 +109,9 @@ function useVideoPlayHook(
       return;
     }
 
-    if(markerTime.current !== null && playing === true){
-      markerTime.current -= 1/frame;
-      gotoTime(markerTime.current, true);
+    if(markerTime !== null && playing === true){
+      store.dispatch( setMarkerTime(markerTime - 1/frame) );
+      gotoTime(markerTime, true);
     }
     else if( selectMarker !== null){
       if( selectMarker === 'startTime' && startTime !== null && endTime !== null && startTime > 0 ){
@@ -153,9 +150,9 @@ function useVideoPlayHook(
       return;
     }
 
-    if(markerTime.current !== null && playing === true){
-      markerTime.current += 1/frame;
-      gotoTime(markerTime.current, true);
+    if(markerTime !== null && playing === true){
+      store.dispatch( setMarkerTime(markerTime + 1/frame) );
+      gotoTime(markerTime, true);
     }
     else if(selectMarker !== null){
       if(selectMarker === 'startTime' && startTime !== null && endTime !== null && endTime < duration ){
@@ -328,10 +325,9 @@ function useVideoPlayHook(
       return;
     }
 
-    //일단 추가해보기
-    if(markerTime.current !== null && playing === true){
-      markerTime.current -= 1;
-      gotoTime(markerTime.current, true);
+    if(markerTime !== null && playing === true){
+      store.dispatch( setMarkerTime(markerTime - 1/frame) );
+      gotoTime(markerTime, true);
     }
     else if(selectMarker !== null){
       if(selectMarker === 'startTime' && startTime && endTime){
@@ -357,7 +353,6 @@ function useVideoPlayHook(
       }
       else{
         gotoTime( floorFrame(autoStop.startOffset-1, frame), false )
-        // setScratch(true, autoStop.startOffset-1, autoStop.startOffset-1+(4/frame), false);
       }
     }
   }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, getPrevAutoMarkerPoint])
@@ -370,9 +365,9 @@ function useVideoPlayHook(
       return;
     }
 
-    if(markerTime.current !== null && playing === true){
-      markerTime.current += 1;
-      gotoTime(markerTime.current, true);
+    if(markerTime !== null && playing === true){
+      store.dispatch( setMarkerTime(markerTime + 1/frame) );
+      gotoTime(markerTime, true);
     }
     else if(selectMarker !== null){
       if(selectMarker === 'endTime' && startTime && endTime){
@@ -398,7 +393,6 @@ function useVideoPlayHook(
       }
       else{
         gotoTime( floorFrame(autoStop.startOffset+1, frame), false )
-        // setScratch(true, autoStop.startOffset+1, autoStop.startOffset+1+(4/frame), false);
       }
     }
   }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, duration, getNextAutoMarkerPoint])
@@ -436,12 +430,12 @@ function useVideoPlayHook(
     //멈췄을 경우는 새로 marker를 찍고 play 재생중일 경우는 marker로 가서 재생
     if(playing === false){
       //pause
-      markerTime.current = playedSeconds;
+      store.dispatch( setMarkerTime(playedSeconds) );
       setPlaying(true);
     }
     else{
-      if(markerTime.current !== null){
-        gotoTime(markerTime.current, true);
+      if(markerTime !== null){
+        gotoTime(markerTime, true);
       }
     }
   }
@@ -469,8 +463,8 @@ function useVideoPlayHook(
   }
 
   const markerStop = () => {
-    if(markerTime.current !== null){
-      gotoTime(markerTime.current, false);
+    if(markerTime !== null){
+      gotoTime(markerTime, false);
     }
     setPlaying(false);
   }
@@ -495,7 +489,7 @@ function useVideoPlayHook(
 
   useEffect( () => {
     if(playing === false){
-      markerTime.current = null;
+      store.dispatch( setMarkerTime(null) );
       setScratch(false, 0, 0, false);
     }
   }, [playing, setScratch])

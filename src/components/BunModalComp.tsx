@@ -99,7 +99,6 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     };
 
     const modifyBun = () => {
-        //hukumu 가 아예 없으면 수정이 안됨.
         if( newJaText === '' ){ return }
         if( modifiedList === null || deletedList === null || hukumuData === null ){ 
             return;

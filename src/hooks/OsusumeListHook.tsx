@@ -31,7 +31,6 @@ function useOsusumeList(){
 
     useEffect( () => {
         if(selection !== null && selection !== '' && hukumuData === null){
-            //useJatext를 통해 일본어만 검색.
             let katachi = checkKatachi(selection);
 
             if(katachi !== null){

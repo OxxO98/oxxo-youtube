@@ -45,7 +45,7 @@ const SplitterStyle = {
 
 const YoutubePage = () => {
     //State
-    const { videoId : VIDEO_ID } = useParams(); //undefined일 경우 처리 추가 바람.
+    const { videoId : VIDEO_ID } = useParams();
 
     //Hook
     const { frameRate, state, playerRef, setPlayerRef, playerHandles } = useReactPlayerHook(VIDEO_ID!);
@@ -114,7 +114,7 @@ const YoutubePage = () => {
                                                 </Splitter.Panel>
                                                 <Splitter.Panel>
                                                     <Splitter style={SplitterStyle}>
-                                                        <Splitter.Panel collapsible defaultSize="50%" min="30%">
+                                                        <Splitter.Panel collapsible defaultSize="50%" min="0%">
                                                             <AiComp bIdRef={bIdRef}/>
                                                         </Splitter.Panel>
                                                         <Splitter.Panel collapsible defaultSize="50%" min="30%">

@@ -66,7 +66,7 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
 
     //State
     const [editYtbId, setEditYtbId] = useState<string | null>(null);
-    const [value, setValue] = useState<string>(''); //입력 Input
+    const [value, setValue] = useState<string>('');
 
     const [bunIds, setBunIds] = useState<RES_GET_TIMELINE | null>(null);
     const currentTimelineBun = useRef<Array<HTMLDivElement | null>>([]);
@@ -91,7 +91,7 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
         markerStop : keyboard.markerStop,
         loop : keyboard.loop
     }
-    useHandleKeyboard({ ...filteredKeyboard, custom : customKeyboard }); //autoKeyboard는 나중에 추가 바람.
+    useHandleKeyboard({ ...filteredKeyboard, custom : customKeyboard });
     
     useHotkeys('enter', () => handleEdit() )
     useHotkeys('shift+enter', () => cancelEdit(), { enableOnFormTags : true } )
@@ -309,7 +309,7 @@ const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHand
         markerStop : keyboard.markerStop,
         loop : keyboard.loop
     }
-    useHandleKeyboard({ ...filteredKeyboard, custom : customKeyboard }); //autoKeyboard는 나중에 추가 바람.
+    useHandleKeyboard({ ...filteredKeyboard, custom : customKeyboard });
     
     const { response : resGetTimeLine } = useAxiosGet<RES_GET_TIMELINE, REQ_GET_TIMELINE>('/db/timeline', false, { videoId : videoId });
 

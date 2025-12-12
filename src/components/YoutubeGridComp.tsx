@@ -88,7 +88,7 @@ const YoutubeGridComp = () => {
         }
     }, [response, fetch])
 
-        //무결성
+    //무결성 체크
     useEffect( () => {
         let res = resIntegrity;
         if( res !== null ){

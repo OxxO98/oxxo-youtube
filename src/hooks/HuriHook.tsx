@@ -9,11 +9,6 @@ function useHuri(){
   const kanjiEndRegex = useContext<UnicodeContext>(UnicodeContext).kanjiEnd;
   const okuriRegex = useContext<UnicodeContext>(UnicodeContext).okuri;
 
-  //현재 애매한 부분..
-  /*
-    개선 이유 : 일단 HUKUMU가 없이 임의로 입력하는 경우, ComplexText => Text의 과정이 필요
-    또한 Hukumu가 있다면 해당 데이터로 출력도 가능하게 분리 예정.
-  */
   const yomiToHuri = useCallback( (hyouki : string, yomi : string) => {
     if(hyouki === null || hyouki === undefined || yomi === null || yomi === undefined){
       return;

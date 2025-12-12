@@ -63,7 +63,7 @@ function useReactPlayerHook(
 
     const handleTimeUpdate = () => {
         const player = playerRef.current;
-        // We only want to update time slider if we are not currently seeking
+        
         if (!player || player.seeking ) return;
 
         if (!player.duration) return;

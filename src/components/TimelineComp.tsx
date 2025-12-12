@@ -69,7 +69,7 @@ const TimelineComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles } : Ti
     //State
     const [editYtbId, setEditYtbId] = useState<string | null>(null);
 
-    const [value, setValue] = useState<string>(''); //입력 Input
+    const [value, setValue] = useState<string>('');
 
     const [bunIds, setBunIds] = useState<RES_GET_TIMELINE | null>(null);
     const currentTimelineBun = useRef<Array<HTMLDivElement | null>>([]);
@@ -119,7 +119,7 @@ const TimelineComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles } : Ti
     }, [])
 
     //Memo
-    const currentBunId = useMemo( () => { return getCurrentTimeLine() }, [getCurrentTimeLine]) // number : index인듯
+    const currentBunId = useMemo( () => { return getCurrentTimeLine() }, [getCurrentTimeLine])
 
     const handleEditCurrent = () => {
         if( currentBunId === null || bunIds === null ){ return }
@@ -246,7 +246,7 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
         { key : 'ArrowLeft', action : () => { prevTimeLine() } },
         { key : 'q', action : () => { autoMarker() } }
     ]
-    const { handleKeyboard } = useHandleKeyboard({ ...keyboard, custom : customKeyboard }); //autoMarker는 나중에 추가 바람.
+    const { handleKeyboard } = useHandleKeyboard({ ...keyboard, custom : customKeyboard });
     
     //Handle
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
@@ -283,7 +283,6 @@ const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, cur
     }
 
     const autoMarker = () => {
-        //약간의 버그가 있는 것으로 보임.
         if( bunIds === null ){
             return;
         }
@@ -525,6 +524,8 @@ const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps ) => {
 
     const compareData = useMemo( () => {
         if(transcriptData === null || captionData === null ){ return [] }
+        if( captionData.length === 0 ){ return transcriptData }
+        if( transcriptData.length === 0 ){ return captionData }
         let _dataArr = [...transcriptData, ...captionData].sort( (a, b) => a.startTime-b.startTime );
 
         let _ret : any[] = [];
@@ -651,7 +652,9 @@ const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps ) => {
                                     key={'startTime'}
                                     renderItem={
                                         (data) => (
-                                            <List.Item>
+                                            <List.Item
+                                                onClick={ () => gotoTime(data.startTime, true) }
+                                            >
                                                 <Flex gap={16}>
                                                     <div>{ timeToTS(data.startTime) }</div>
                                                     <div>{ timeToTS(data.endTime) }</div>
@@ -702,7 +705,10 @@ const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps ) => {
                                         key={'startTime'}
                                         renderItem={
                                             (data) => (
-                                                <List.Item style={{ backgroundColor : token.colorBgBase }}>
+                                                <List.Item 
+                                                    style={{ backgroundColor : token.colorBgBase }}
+                                                    onClick={ () => gotoTime(data.startTime, true) }
+                                                >
                                                     <Flex gap={16}>
                                                         <div>{ timeToTS(data.startTime) }</div>
                                                         <div>{ timeToTS(data.endTime) }</div>
@@ -729,13 +735,16 @@ const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps ) => {
                                         <Spin indicator={<LoadingOutlined spin />} size="large"/>
                                     </>
                                 )}
-                                {state.transcript.done === true && state.transcript.loading === false && transcriptData !== null && captionData !== null && (
+                                {state.transcript.done === true && state.transcript.loading === false && compareData !== null && (
                                     <List style={{ maxHeight : '60vh', overflow : 'scroll' }}
                                         bordered
                                         dataSource={compareData}
                                         renderItem={
                                             (data) => (
-                                                <List.Item style={{ backgroundColor : data.tag === 'transcript' ? token.colorBgBase : ''}}>
+                                                <List.Item 
+                                                    style={{ backgroundColor : data.tag === 'transcript' ? token.colorBgBase : ''}} 
+                                                    onClick={ () => gotoTime(data.startTime, true) }
+                                                >
                                                     <Flex 
                                                         gap={16} 
                                                         style={{ 

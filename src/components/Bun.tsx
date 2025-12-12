@@ -35,7 +35,6 @@ interface KanjiTextProps {
     onClick : ( kanji : string ) => void;
 }
 
-//HUKUMU까지 확인함
 const Bun = ({ bId, bIdRef } : BunProps ) => {
 
     //State
@@ -77,7 +76,6 @@ const Bun = ({ bId, bIdRef } : BunProps ) => {
                     fetchBun : fetchBun,
                     jaText : res.data.jaText
                 };
-                //fetchHukumu: fetchHukumu,
             }
         }
 
@@ -210,7 +208,7 @@ const Text = ({ bId, data, ruby, offset } : TextProps ) => {
     )
 }
 
-//단어장의 단어 정보 onClick이벤트를 위해 만듬.
+//단어장의 한자 정보 onClick이벤트를 위해 만듬.
 const KanjiText = ({ hyouki, yomi, onClick } : KanjiTextProps ) => {
     const { complexArr } = useHuri();
 

@@ -4,12 +4,10 @@ import { useAxiosGet, useAxiosPost } from './AxiosHook';
 import { useJaText } from './JaTextHook';
 
 function useTranscript(){
-    // const [transcriptText, setTranscriptText] = useState<any>('');
     const [transcriptData, setTranscriptData] = useState<RES_TRANSCRIPT[] | null>(null);
 
     const { response, loading, setParams } = useAxiosGet<RES_GET_TRANSCRIPT, REQ_GET_TRANSCRIPT>('/ai/transcript', true, null);
     const { response : resPost, loading : loadingPost, setParams : setParamsPost } = useAxiosPost<null, REQ_POST_TRANSCRIPT_TO_BUNS>('/db/transcriptToBuns', true, null);
-    const { fetch : cancelTranscript } = useAxiosGet('/ai/transcript/cancel', true, {});
     
     const handleTranscript = ( _videoId : string, _reset? : boolean, _lang? : lang, _offset? : OffsetObj ) => {
         let option : TranscriptOption = {};
@@ -39,7 +37,7 @@ function useTranscript(){
         post : { loading : loadingPost, done : resPost !== null }
     }
 
-    return { transcriptData, handleTranscript, postTranscript, cancelTranscript, state }
+    return { transcriptData, handleTranscript, postTranscript, state }
 }
 
 function useChat(){

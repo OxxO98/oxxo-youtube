@@ -99,7 +99,6 @@ async function getAudioCaption (req, res) {
     let transcript = defaultTranscriptInfo;
 
     let langs = defaultTranscriptInfo.languages;
-
     let _ja = langs.filter( (v) => v == 'Japanese' ).length != 0;
     let _jaAuto = langs.filter( (v) => v == 'Japanese (auto-generated)' ).length != 0;
 

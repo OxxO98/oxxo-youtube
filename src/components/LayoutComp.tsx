@@ -22,7 +22,7 @@ import {
     DatabaseOutlined
 } from '@ant-design/icons';
 
-const { Header, Content, Sider } = Layout; //Import 위에 있으면 안됨.
+const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>['items'][number];
 
 interface LayoutCompProps {

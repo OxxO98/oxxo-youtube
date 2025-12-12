@@ -21,9 +21,9 @@ const initialState : SelctionInitial = {
 } 
 
 export const selectionSlice = createSlice({
-    name : 'selection', // action 이름을 만드는데 사용되는 키 
-    initialState, // 리듀서에서 사용될 state값을 정의
-    reducers : { // 객체 타입. switch등으로 만들어 사용하던 케이스들을 아래와 같이 설정하면 됨 
+    name : 'selection', 
+    initialState,
+    reducers : {
         setSelection : (state, action) => {
             state.selection = action.payload;
         },
@@ -63,5 +63,5 @@ export const selectionSlice = createSlice({
     }
 })
 
-export const selectionActions = selectionSlice.actions // dispatch를 위한 설정 
+export const selectionActions = selectionSlice.actions
 export default selectionSlice.reducer;

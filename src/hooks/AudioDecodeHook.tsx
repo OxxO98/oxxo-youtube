@@ -116,7 +116,6 @@ function useAudioDecode(videoId : string, frameRate : number){
     
     useEffect( () => {
         if(audioError === true && audioData === null){
-            //state의 duration을 쓸 수 있을지는 고민
             let dummyLength = Math.floor(180*frameRate);
             const dummyData = Array.from({ length : dummyLength }, (v, i) =>  Math.random() > 0.5 ? Math.random()*0.7 + 0.3 : Math.random()*0.2 + 0.4 );
         

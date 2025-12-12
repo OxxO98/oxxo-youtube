@@ -346,8 +346,8 @@ declare global {
   export type REQ_GET_TANGO_CHECK = {
     hyouki : string;
     yomi : string;
-    hyoukiQuery? : string;
-    yomiQuery? : string;
+    hyoukiQuery : string;
+    yomiQuery : string;
   }
 
   export type RES_GET_TANGOCHOU = RES_TANGOCHOU_LIST;

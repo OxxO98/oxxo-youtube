@@ -124,7 +124,6 @@ function useMultiInput(dependancy : string | null, defaultInput? : string | unde
 
   const { yomiToHuri } = useHuri();
 
-  //useHuri로 대체 할 수 있는 지 확인 바람.
   const kanjiRegex = useContext<UnicodeContext>(UnicodeContext).kanji;
   const hiraganaRegex = useContext<UnicodeContext>(UnicodeContext).hiragana;
 
@@ -192,7 +191,6 @@ function useMultiInput(dependancy : string | null, defaultInput? : string | unde
     return tmp;
   }
 
-  //불안정.
   const getDefaultInput = () => {
     if(defaultInput !== null && defaultInput !== undefined && dependancy){
       let huriArr = yomiToHuri(dependancy, defaultInput);
