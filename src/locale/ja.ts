@@ -117,7 +117,12 @@ const BunkatsuTimelineComp : Locale['BunkatsuTimelineComp'] = {
         CANCLE : '取り消し',
         DONE : '分割'
     },
-    CONTENTS : [ '分割するところを「/」で表示してください']
+    CONTENTS : [ '分割するところを「/」で表示してください'],
+    TOOLTIP : {
+      BUNKATSU : 'ショートカット : ctrl + shift + e, ctrl + q',
+      CTRL_ENTER : 'ショートカット : ctrl + enter',
+      SHIFT_ENTER :'ショートカット : shift + enter'
+    }
 }
 
 const HeigouTimelineComp : Locale['HeigouTimelineComp'] = {
@@ -127,7 +132,12 @@ const HeigouTimelineComp : Locale['HeigouTimelineComp'] = {
         CANCLE : '取り消し',
         DONE : '併合'
     },
-    CONTENTS : [ '二つの文章を併合します。代表翻訳文ではない場合は併合されません。']
+    CONTENTS : [ '二つの文章を併合します。代表翻訳文ではない場合は併合されません。'],
+    TOOLTIP : {
+      HEIGOU : 'ショートカット : ctrl + e',
+      CTRL_ENTER : 'ショートカット : ctrl + enter',
+      SHIFT_ENTER :'ショートカット : shift + enter'
+    }
 }
 
 const MakeDrftComp : Locale["MakeDrftComp"] = {

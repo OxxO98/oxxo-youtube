@@ -979,6 +979,11 @@ declare global {
       DONE : string;
     },
     CONTENTS : string[];
+    TOOLTIP : {
+      BUNKATSU : string;
+      CTRL_ENTER : string;
+      SHIFT_ENTER : string;
+    }
   }
 
   export interface HeigouTimelineComp {
@@ -989,6 +994,11 @@ declare global {
       DONE : string;
     },
     CONTENTS : string[];
+    TOOLTIP : {
+      HEIGOU : string;
+      CTRL_ENTER : string;
+      SHIFT_ENTER : string;
+    }
   }
 
   export interface MakeDrftComp {

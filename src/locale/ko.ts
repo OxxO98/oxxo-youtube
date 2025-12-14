@@ -117,7 +117,12 @@ const BunkatsuTimelineComp : Locale['BunkatsuTimelineComp'] = {
         CANCLE : '취소',
         DONE : '분할'
     },
-    CONTENTS : [ '분할할 부분을 "/"로 표시해 주세요.']
+    CONTENTS : [ '분할할 부분을 "/"로 표시해 주세요.'],
+    TOOLTIP : {
+      BUNKATSU : '단축키 : ctrl + shift + e, ctrl + q',
+      CTRL_ENTER : '단축키 : ctrl + enter',
+      SHIFT_ENTER :'단축키 : shift + enter'
+    }
 }
 
 const HeigouTimelineComp : Locale['HeigouTimelineComp'] = {
@@ -127,7 +132,12 @@ const HeigouTimelineComp : Locale['HeigouTimelineComp'] = {
         CANCLE : '취소',
         DONE : '병합'
     },
-    CONTENTS : [ '두 문장을 병합 합니다. 대표 번역문이 아닌 경우는 병합되지 않습니다.']
+    CONTENTS : [ '두 문장을 병합 합니다. 대표 번역문이 아닌 경우는 병합되지 않습니다.'],
+    TOOLTIP : {
+      HEIGOU : '단축키 : ctrl + e',
+      CTRL_ENTER : '단축키 : ctrl + enter',
+      SHIFT_ENTER :'단축키 : shift + enter'
+    }
 }
 
 const MakeDrftComp : Locale["MakeDrftComp"] = {

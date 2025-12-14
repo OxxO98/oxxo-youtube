@@ -147,6 +147,7 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
         setDeletedList(deleted);
     }, [hukumuData, newJaText, traceHukumu, ytb.jaText]);
 
+    //HotKeys
     const loaded = isModalOpen && (modifiedList !== null && deletedList !== null && hukumuData !== null);
 
     useHotkeys('ctrl+enter', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen }, [isModalOpen, defaultValue] )
@@ -154,6 +155,7 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
     const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : loaded }, [loaded] )
     useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
 
+    //Effect
     useDebounceEffect( () => getList(), 1000, [newJaText]);
 
     useEffect( () => {
@@ -208,6 +210,7 @@ const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTi
                     </Tooltip>
                 ]}
                 panelRef={ref}
+                destroyOnHidden={true}
             >
                 <Bun bId={ytb.jaBId!}/>
                 <Input value={newJaText} onChange={handleChange} ref={inputRef} onFocus={handleFocus}/>
@@ -274,8 +277,10 @@ const DeleteBunModalComp = ({ ytb, refetchTimeline, cancelEdit } : DeleteBunModa
         setParamsDelete({ videoId : videoId, ytBId : ytb.ytBId, jaBId : ytb.jaBId })
     }
 
+    //HotKeys
     useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
 
+    //Effect
     useEffect( () => {
         let res = response;
         if( res !== null ){
@@ -379,6 +384,17 @@ const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHandles, 
         setIsModalOpen(false);
     };
 
+    //HotKeys
+    const _splitedJaText = inputs.jaText.split('/');
+    const _splitedKoText = inputs.koText.split('/');
+    const _isOk = _splitedJaText.length === 2 && _splitedKoText.length === 2 && hukumuDatas !== null && hukumuDatas.filter( (v) => v.startOffset < _splitedJaText[0].length && _splitedJaText[0].length < v.endOffset ).length === 0;
+
+    useHotkeys('ctrl+shift+e, ctrl+q', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen, preventDefault : true }, [isModalOpen] )
+    
+    const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : isModalOpen && _isOk }, [isModalOpen, _isOk] )
+    useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
+
+    //Effect
     useEffect( () => {
         let res = response;
         if(res !== null){
@@ -402,14 +418,11 @@ const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHandles, 
         })
     }, [ytb])
 
-    const _splitedJaText = inputs.jaText.split('/');
-    const _splitedKoText = inputs.koText.split('/');
-
-    const _isOk = _splitedJaText.length === 2 && _splitedKoText.length === 2 && hukumuDatas !== null && hukumuDatas.filter( (v) => v.startOffset < _splitedJaText[0].length && _splitedJaText[0].length < v.endOffset ).length === 0;
-
     return(
         <>
-            <Button onClick={showModal}>{t('BUTTON.TITLE')}<SplitCellsOutlined /></Button>
+            <Tooltip title={t('TOOLTIP.BUNKATSU')}>
+                <Button onClick={showModal}>{t('BUTTON.TITLE')}<SplitCellsOutlined /></Button>
+            </Tooltip>
             
             <Modal
                 title={t('TITLE')}
@@ -418,9 +431,15 @@ const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHandles, 
                 onCancel={handleCancel}
                 width={'80%'}
                 footer={[
-                    <Button type='primary' disabled={!_isOk} onClick={handleOk}>{t('BUTTON.DONE')}</Button>,
-                    <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                    <Tooltip title={t('TOOLTIP.CTRL_ENTER')}>
+                        <Button type='primary' disabled={!_isOk} onClick={handleOk}>{t('BUTTON.DONE')}</Button>
+                    </Tooltip>,
+                    <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>
+                        <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                    </Tooltip>
                 ]}
+                panelRef={ref}
+                destroyOnHidden={true}
             >
                 <div>{t('CONTENTS.0')}</div>
                 <Input value={inputs.jaText} name='jaText' onChange={handleInputChange}/>
@@ -496,6 +515,17 @@ const HeigouTimelineComp = ({ bunIds, ytb, refetchTimeline, refetchHandles, canc
         setIsModalOpen(false);
     };
 
+    //HotKeys
+    let _index = bunIds !== null ? bunIds.findIndex( (v) => v.ytBId === ytb.ytBId ) : null;
+
+    let _isOk = _index !== null && bunIds !== null && _index !== bunIds.length-1;
+    
+    useHotkeys('ctrl+e', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen, preventDefault : true }, [isModalOpen] )
+    
+    const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : isModalOpen && _isOk }, [isModalOpen, _isOk] )
+    useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
+
+    //Effect
     useEffect( () => {
         let res = response;
         if(res !== null){
@@ -505,13 +535,11 @@ const HeigouTimelineComp = ({ bunIds, ytb, refetchTimeline, refetchHandles, canc
         }
     }, [response, refetchTimeline, refetchHandles, cancelEdit])
 
-    let _index = bunIds !== null ? bunIds.findIndex( (v) => v.ytBId === ytb.ytBId ) : null;
-
-    let _isOk = _index !== null && bunIds !== null && _index !== bunIds.length-1;
-
     return(
         <>
-            <Button onClick={showModal}>{t('BUTTON.TITLE')}<MergeCellsOutlined /></Button>
+            <Tooltip title={t('TOOLTIP.HEIGOU')}>
+                <Button onClick={showModal}>{t('BUTTON.TITLE')}<MergeCellsOutlined /></Button>
+            </Tooltip>
             
             <Modal
                 title={t('TITLE')}
@@ -520,9 +548,15 @@ const HeigouTimelineComp = ({ bunIds, ytb, refetchTimeline, refetchHandles, canc
                 onCancel={handleCancel}
                 width={'80%'}
                 footer={[
-                    <Button type='primary' disabled={!_isOk} onClick={handleOk}>{t('BUTTON.DONE')}</Button>,
-                    <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                    <Tooltip title={t('TOOLTIP.CTRL_ENTER')}>
+                        <Button type='primary' disabled={!_isOk} onClick={handleOk}>{t('BUTTON.DONE')}</Button>
+                    </Tooltip>,
+                    <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>
+                        <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                    </Tooltip>
                 ]}
+                panelRef={ref}
+                destroyOnHidden={true}
             >
                 <div>{t('CONTENTS.0')}</div>
                 <Flex gap={16}>

@@ -31,7 +31,7 @@ const DictionaryComp = () => {
     //Redux
     const { selection } = useSelector( (_state : RootState) => _state.selection );
 
-    const [selectDict, setSelectDict] = useState(i18n.language == 'ko' ? 'naver' : 'weblio');
+    const [selectDict, setSelectDict] = useState(i18n.language === 'ko' ? 'naver' : 'weblio');
 
     const onChange = (e: RadioChangeEvent) => {
         setSelectDict(e.target.value);
