@@ -103,7 +103,7 @@ function useAudioDecode(videoId : string, frameRate : number){
 
                 filteredData.left.push(blockSum / blockSize);
             }
-            //setRange(0);
+            
             setFilteredData({
                 right : normalizeData(filteredData.right),
                 left : normalizeData(filteredData.left),

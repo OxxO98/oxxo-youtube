@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -8,7 +8,6 @@ import { store, RootState } from 'reducers/store';
 
 //Hooks
 import { useDebounce } from 'hooks/OptimizationHook';
-import { FilteredDataContext } from 'contexts/FilteredDataContext';
 import { VideoContext } from 'contexts/VideoContext';
 
 //Redux@Reducers
@@ -18,11 +17,11 @@ const { setStartTime, setEndTime, selectMarkerStart, selectMarkerEnd, unselectMa
 function useVideoPlayHook( 
     playing : boolean, setPlaying : (playing : boolean) => void,
     state : ReactPlayerState,
-    handleSeek : ( time : number ) => void
+    handleSeek : ( time : number ) => void,
+    filteredData : FilteredData | null = null
 ){
   //Context
   const { frameRate : frame } = useContext(VideoContext);
-  const filteredData = useContext(FilteredDataContext);
 
   //State
   const DEBOUNCE_TIME_MS = 200;
@@ -141,7 +140,7 @@ function useVideoPlayHook(
         setScratch(true, autoStop.startOffset - 1/frame, autoStop.startOffset, false);
       }
     }
-  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, frame])
+  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, frame, markerTime])
 
   const debouncedPrev = debounce( prevFrame, DEBOUNCE_TIME_MS);
 
@@ -183,138 +182,41 @@ function useVideoPlayHook(
         setScratch(true, autoStop.startOffset + 1/frame, autoStop.startOffset + 2/frame, false);
       }
     }
-  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, frame, duration])
+  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, frame, duration, markerTime])
 
   const debouncedNext = debounce( nextFrame, DEBOUNCE_TIME_MS);
 
-  const getPrevAutoMarkerPoint = useCallback( (time : number, range : number, threshold : number) => {
-    /*
-      일단 급하락 지점을 찾음.
-      또한 서서히 상승은 무시
-      급 상승지점에선 이전 프레임 시간 반환.
-      단, 이미 0.01값 이하면 반환.
-      현재 1프레임 정도 뒤에서 찾는 경우가 있음.
-    */
+  const getPrevAutoMarkerPoint = useCallback( (time : number, range : number) => {
     let rangePointIndex = floorFrame(time, frame)*frame;
     let rangePrevIndex = rangePointIndex - range*frame;
-    let minThreshold = 0.01;
+    
     if(filteredData !== null){
-      let rangeFilteredData = filteredData.right.filter( (arr, index) => ( rangePrevIndex < index && index <= rangePointIndex ) );
-
-      let currTimeWaveRate = rangeFilteredData[rangeFilteredData.length - 1];
-
-      if( threshold > currTimeWaveRate ){
-        for(let i = rangeFilteredData.length-2; i >= 0; i--){
-          let currFrameTime = rangeFilteredData.length-1-i;
-
-          if( rangeFilteredData[i] > rangeFilteredData[i+1] ){
-
-            return floorFrame(time - (currFrameTime-1)/frame, frame);
-          }
+      let _r = filteredData.right.filter( (v, index) => ( rangePrevIndex < index && index <= rangePointIndex ) ).reverse();
+      
+      for( let i = 1; i < _r.length-1; i++ ){
+        if( _r[i-1] > _r[i] && _r[i+1] > _r[i] ){
+          return floorFrame(time - i/frame, frame);
         }
       }
-
-      let maxWaveRate = currTimeWaveRate;
-      //이미 0.01이하면 현재 시간 반환.
-      if( minThreshold > currTimeWaveRate ){
-
-        return floorFrame(time, frame);
-      }
-      //기준치보다 낮은 marker 탐색.
-      // length : 30, length-1 : 29 lastIndex, length-2 :첫 비교.
-      let lastThreshold = null;
-      for(let i = rangeFilteredData.length-2; i >= 0; i-- ){
-        let currFrameTime = rangeFilteredData.length-1-i;
-
-        if( maxWaveRate - rangeFilteredData[i] > threshold ){
-          if(lastThreshold !== null){
-            if(rangeFilteredData[lastThreshold] > rangeFilteredData[i]){
-              lastThreshold = i;
-            }
-            else{
-
-              return floorFrame(time - (rangeFilteredData.length-1-lastThreshold)/frame, frame);
-            }
-          }
-          else{
-            lastThreshold = i;
-          }
-        }
-        else if( minThreshold > rangeFilteredData[i] ){
-
-          return floorFrame(time - (currFrameTime)/frame, frame);
-        }
-        maxWaveRate = Math.max(maxWaveRate, rangeFilteredData[i]);
-      }
-
-      return floorFrame(time, frame);
     }
-    else{
-      return time;
-    }
+    return time;
   }, [filteredData, floorFrame, frame])
 
-  const getNextAutoMarkerPoint = useCallback( (time : number, range : number, threshold : number) => {
-    /*
-      getPrevAutoMarkerPoint에서 반대로 수정.
-    */
+  const getNextAutoMarkerPoint = useCallback( (time : number, range : number) => {
     let rangePointIndex = floorFrame(time, frame)*frame;
     let rangeNextIndex = rangePointIndex + range*frame;
-    let minThreshold = 0.01;
 
     if(filteredData !== null){
-      let rangeFilteredData = filteredData.right.filter( (arr, index) => ( rangePointIndex <= index && index < rangeNextIndex ) );
+      let _r = filteredData.right.filter( (arr, index) => ( rangePointIndex <= index && index < rangeNextIndex ) );
 
-      let currTimeWaveRate = rangeFilteredData[0];
-
-      if( threshold > currTimeWaveRate ){
-        for(let i = 1; i <= rangeFilteredData.length-1; i++){
-          let currFrameTime = i;
-
-          if( rangeFilteredData[i] > rangeFilteredData[i-1] ){
-
-            return floorFrame(time + (currFrameTime-1)/frame, frame);
-          }
+      for( let i = 1; i < _r.length-1; i++ ){
+        if( _r[i-1] > _r[i] && _r[i+1] > _r[i] ){
+          return floorFrame(time + i/frame, frame);
         }
       }
-
-      let maxWaveRate = currTimeWaveRate;
-      //이미 0.01이하면 현재 시간 반환.
-      if( minThreshold > currTimeWaveRate ){
-
-        return floorFrame(time, frame);
-      }
-      //기준치보다 낮은 marker 탐색.
-      let lastThreshold = null;
-      for(let i = 1; i <= rangeFilteredData.length-1; i++){
-        let currFrameTime = i;
-
-        if( maxWaveRate - rangeFilteredData[i] > threshold ){
-          if(lastThreshold !== null){
-            if(rangeFilteredData[lastThreshold] > rangeFilteredData[i]){
-              lastThreshold = i;
-            }
-            else{
-
-              return floorFrame(time + (lastThreshold)/frame, frame);
-            }
-          }
-          else{
-            lastThreshold = i;
-          }
-        }
-        else if( minThreshold > rangeFilteredData[i] ){
-
-          return floorFrame(time + (currFrameTime)/frame, frame);
-        }
-        maxWaveRate = Math.max(maxWaveRate, rangeFilteredData[i]);
-      }
-
-      return floorFrame(time, frame);
     }
-    else{
-      return time;
-    }
+    
+    return time;
   }, [filteredData, floorFrame, frame])
 
   const prevSec = useCallback( () => {
@@ -331,13 +233,13 @@ function useVideoPlayHook(
     }
     else if(selectMarker !== null){
       if(selectMarker === 'startTime' && startTime && endTime){
-        let autoMarkerPoint = getPrevAutoMarkerPoint( startTime, 1, 0.5 );
+        let autoMarkerPoint = getPrevAutoMarkerPoint( startTime, 1 );
         store.dispatch(setStartTime(autoMarkerPoint));
         gotoTime(autoMarkerPoint, true);
         setScratch(true, autoMarkerPoint, endTime, false);
       }
       else if(selectMarker === 'endTime' && startTime && endTime){
-        let autoMarkerPoint = getPrevAutoMarkerPoint( endTime, 1, 0.5 );
+        let autoMarkerPoint = getPrevAutoMarkerPoint( endTime, 1 );
         store.dispatch(setEndTime( autoMarkerPoint ));
         gotoTime(startTime, true);
         setScratch(true, startTime, autoMarkerPoint, false);
@@ -355,7 +257,7 @@ function useVideoPlayHook(
         gotoTime( floorFrame(autoStop.startOffset-1, frame), false )
       }
     }
-  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, getPrevAutoMarkerPoint])
+  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, getPrevAutoMarkerPoint, markerTime])
 
   const nextSec = useCallback( () => {
     let sec = playedSeconds;
@@ -371,13 +273,13 @@ function useVideoPlayHook(
     }
     else if(selectMarker !== null){
       if(selectMarker === 'endTime' && startTime && endTime){
-        let autoMarkerPoint = getNextAutoMarkerPoint( endTime, 1, 0.5);
+        let autoMarkerPoint = getNextAutoMarkerPoint( endTime, 1);
         store.dispatch(setEndTime( autoMarkerPoint ));
         gotoTime(startTime, true);
         setScratch(true, startTime, autoMarkerPoint, false);
       }
       else if(selectMarker === 'startTime' && startTime && endTime){
-        let autoMarkerPoint = getNextAutoMarkerPoint( startTime, 1, 0.5 );
+        let autoMarkerPoint = getNextAutoMarkerPoint( startTime, 1);
         store.dispatch(setStartTime( autoMarkerPoint ));
         gotoTime(autoMarkerPoint, true);
         setScratch(true, autoMarkerPoint, endTime, false);
@@ -395,7 +297,7 @@ function useVideoPlayHook(
         gotoTime( floorFrame(autoStop.startOffset+1, frame), false )
       }
     }
-  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, duration, getNextAutoMarkerPoint])
+  }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, duration, getNextAutoMarkerPoint, markerTime])
 
   const selectStartTime = () => {
     if(selectMarker !== 'startTime' && startTime !== null){

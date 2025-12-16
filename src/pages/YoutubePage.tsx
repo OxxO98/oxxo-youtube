@@ -54,7 +54,7 @@ const YoutubePage = () => {
     const { playing } = state;
     const { handlePausePlay, handleSeek } = playerHandles;
 
-    const { videoPlayerHandles } = useVideoPlayHook( playing, handlePausePlay, state, handleSeek );
+    const { videoPlayerHandles } = useVideoPlayHook( playing, handlePausePlay, state, handleSeek, filteredData );
     
     useHandleSelection( document, "activeRange" );
     const { fetchInHR, loading : hukumuCheckLoading } = useHukumu();
