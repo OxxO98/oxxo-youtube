@@ -9,6 +9,7 @@ import { MainPage } from 'pages/MainPage'
 import { YoutubePage } from 'pages/YoutubePage';
 import { NotFoundPage } from 'pages/NotFoundPage';
 import { SharedPage } from 'pages/SharedPage';
+import { DBPage } from 'pages/DBPage';
 
 //Component
 
@@ -56,6 +57,7 @@ const App = () => {
                                     <Route path="/" element={<MainPage/>}/>
                                     <Route path="/video/:videoId/*" element={<YoutubePage/>}/>
                                     <Route path="/shared" element={<SharedPage/>}/>
+                                    <Route path="/db/*" element={<DBPage/>}/>
                                     <Route path="*" element={<NotFoundPage/>}/>
                                 </Routes>
                         </BrowserRouter>

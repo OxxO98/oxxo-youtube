@@ -10,7 +10,9 @@ import { nanoid } from "nanoid";
 
 import path, { join } from 'path';
 import { fileURLToPath } from 'url';
-import { message } from "antd";
+
+import _ from 'lodash'
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const assetPath = path.join(__dirname, '../Asset');
@@ -460,6 +462,122 @@ async function getExportJson(req, res){
     })
 }
 
+function _exp_searchJaText(joinData){
+    //filter after
+    joinData = joinData.map( (v) => { return {
+            ...v,
+            hukumus : v.hukumus.map(
+                (s) => s.map(
+                    (t) => t.filter( 
+                        (b) => b.jaText.includes(keyword)
+                    ) 
+                ) 
+            )
+        }}
+    )
+
+    joinData = joinData.map( (v) => { return {
+            ...v,
+            hukumus : v.hukumus.map(
+                (s) => s.filter(
+                    (t) => t.length != 0
+                ) 
+            )
+        }}
+    )
+
+    joinData = joinData.map( (v) => { return {
+            ...v,
+            hukumus : v.hukumus.filter(
+                (s) => s.length != 0
+            )
+        }}
+    )
+
+    joinData = joinData.filter( (v) => v.hukumus.length != 0 )
+    //이러면 가능은 한데, jaText에 포함이 되지만, 해당 문장에 등록된 단어가 없는 경우는 나오지 않음
+    //걍 따로 검색을 두는 것이 맞는 듯.
+}
+
+async function getDBAll(req, res){
+    await db_connection(req, res, async(db) => {
+        let { keyword, imiKeyword } = req.query;
+
+        //추후 조건 필요
+        //search 후의 sort조건까지
+        //한자 활용 방안 찾기
+
+        let _cond_hyouki = (v) => {
+            if(keyword !== undefined ){
+                let _comp = v.hukumus.map( (s) => s[0][0] );
+                let _hyoukis = _comp.map( (s) => s.hyouki);
+                let _yomis = _comp.map( (s) => s.yomi);
+                let _imis = _comp.map( (s) => s.imi).filter( (s) => s != undefined );
+                if(imiKeyword !== undefined ){
+                    return _hyoukis.filter( (s) => s.includes(keyword) == true ).length > 0 ||
+                        _yomis.filter( (s) => s.includes(keyword) == true ).length > 0 ||
+                        _imis.filter( (s) => s.includes(imiKeyword) == true ).length > 0
+                }
+                else{
+                    return _hyoukis.filter( (s) => s.includes(keyword) == true ).length > 0 ||
+                        _yomis.filter( (s) => s.includes(keyword) == true ).length > 0
+                }
+            }
+
+            return true;
+        }
+
+
+        let ytBuns = db.data.videos.map( (v) => {
+            return v.timeline.map( (t) => {
+                return {
+                    ...t,
+                    title : v.title,
+                    src : v.src
+                }
+            })
+        }).flat();
+        
+        let joinData = db.data.tango.map( (v) => {
+            return {
+                ...v,
+                hukumus : _.toArray( _.groupBy( db.data.hukumu
+                    .filter( (hu) => hu.tId == v.tId )
+                    .map( (hu) => { 
+                        let _ja = db.data.jaBuns.find( (ja) => ja.jaBId == hu.jaBId);
+                        let _ytBun = ytBuns.find( (yt) => yt.ytBId == _ja.ytBId);
+                        return {
+                            ...hu,
+                            ...db.data.hyouki.find( (hy) => hy.hyId == hu.hyId),
+                            ...( hu.iId != null ? { imi : db.data.imi.find( (v) => v.iId == hu.iId ).koText } : {} ),
+                            ..._ja,
+                            ...db.data.koBuns.find( (ko) => ko.koBId == _ytBun.koBId),
+                            ..._ytBun,
+                            kanjis : db.data.komu.filter( (km) => km.hyId == hu.hyId )
+                                .map( (km) => 
+                                    db.data.kanji.find( (k) => k.kId == km.kId)
+                                )
+                        }
+                    }), "hyId") )
+            }
+        })
+        .map( (v) => {
+            return {
+                ...v,
+                hukumus : v.hukumus.map( (hu) => _.toArray( _.groupBy(hu, "src") ) )
+            }
+        }).filter( (v) => _cond_hyouki(v) )
+
+        //sort
+        joinData = _.sortBy( joinData, (v) => v.hukumus[0][0][0].yomi);
+
+        res.send({
+            message : 'success',
+            data : joinData
+        })
+    })
+} 
+
 router.post('/userId', saveUserId);
 router.get('/userId', getUserId);
 
@@ -477,5 +595,7 @@ router.post('/captionToBuns', captionToBuns);
 
 router.get('/share', getShare);
 router.get('/json', getExportJson);
+
+router.get('/all', getDBAll);
 
 export default router;
