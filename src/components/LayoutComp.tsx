@@ -70,11 +70,13 @@ const LayoutComp = ({ children } : LayoutCompProps ) => {
     const { t } = useTranslation('LayoutComp');
 
     const routes : Routes[] = [
-        getRouteItem( '1', 'Home', '/', null)
+        getRouteItem( '1', 'Home', '/', null),
+        getRouteItem( '2', 'DB', '/db/1', null )
     ]
 
     const items: MenuItem[] = [
         getItem(t('HOME'), '1', <HomeOutlined/>),
+        getItem(t('DB'), '2', <DatabaseOutlined/>)
     ];
 
     //State

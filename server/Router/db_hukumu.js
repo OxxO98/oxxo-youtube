@@ -209,6 +209,11 @@ async function deleteHukumu(req, res){
                     await db_module.deleteKanji(db, kId);
                 }
             }
+            let _hukumu = await db_module.getExistHukumu( db, jaBId, start, end);
+            if( await db_module.getMoreExistTId( db, _hukumu.tId ) == false ){
+                logger.info( db_module.logTangoDelete(_hukumu.tId) );
+                db.data.tango = db.data.tango.filter( (v) => v.tId != _hukumu.tId );
+            }
         }
         logger.info( db_module.logHukumuDelete( jaBId, start, end ) );
         await db_module.deleteHukumu( db, jaBId, start, end );
