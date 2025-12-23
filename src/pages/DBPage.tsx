@@ -14,8 +14,7 @@ import { useKirikae } from 'hooks/KirikaeHook';
 import { useJaText } from 'hooks/JaTextHook';
 
 //CSS@Antd
-import { DownOutlined } from '@ant-design/icons';
-import { Row, Col, Card, Pagination, Table, Empty, Input, Flex, Affix, Button } from 'antd';
+import { Pagination, Table, Empty, Input, Flex, Affix, Button, Space } from 'antd';
 import type { TableColumnsType, PaginationProps, GetProps } from 'antd';
 
 type SearchProps = GetProps<typeof Input.Search>;
@@ -74,11 +73,11 @@ interface DataType extends db_hukumu_data {
 }
 
 interface VideoExpendedDataType extends db_hukumu_data {
-
+    key : React.Key;
 }
 
 interface BunExpendedDataType extends db_hukumu_data {
-    // key : React.Key;
+    key : React.Key;
 }
 
 const DBPage = () => {
@@ -157,12 +156,14 @@ const DBTable = ({ list, pageSize } : DBTableProps) => {
             render : (v) => <ComplexText bId={null} data={v.hukumus[0][0][0].hyouki} ruby={v.hukumus[0][0][0].yomi} offset={0}/>,
         },
         { 
-            title : '의미', key : 'imi',
-            render : (v) => v.hukumus[0][0][0].imi,
+            title : '의미', key : 'imi', 
+            render : (v) => v.hukumus[0][0][0].imi ?? '',
         },
         { 
-            title : '표기 요약', key : 'sum',
-            render : (v) => v.hukumus.map( (v : any) => v[0][0].hyouki).join(', '),
+            title : '표기 요약', key : 'sum', 
+            render : (v) => <Space>{ 
+                v.hukumus.map( (hu : db_hukumu_data[][]) => <ComplexText bId={null} data={hu[0][0].hyouki} ruby={hu[0][0].yomi} offset={0}/> )
+            }</Space>,
         },
         { 
             title : '갯수', key : 'sum',
@@ -172,19 +173,28 @@ const DBTable = ({ list, pageSize } : DBTableProps) => {
 
     const columns : TableColumnsType<DataType> = [
         { 
-            title : 'comp', key : 'hyouki', 
+            title : '표기', key : 'hyouki', 
             render : (v) => <ComplexText bId={null} data={v.hyouki} ruby={v.yomi} offset={0}/>,
         },
-        { title : 'yomi', dataIndex : 'yomi', key : 'yomi' },
+        { title : '읽기', dataIndex : 'yomi', key : 'yomi' },
+        { 
+            title : '한자', key : 'kanji', 
+            render : (v) => v.kanjis.map( (k : db_kanji_data ) => k.jaText ).join(', '),
+        },
     ]
 
     const videoColumns : TableColumnsType<VideoExpendedDataType> = [
-        { title : 'title', dataIndex : 'title', key : 'title' },
+        { 
+            title : '영상 제목', dataIndex : 'title', key : 'title'
+        },
+        { 
+            title : '갯수', dataIndex : 'length', key : 'sum'
+        }
     ]
 
     const bunColumns : TableColumnsType<BunExpendedDataType> = [
         { 
-            title : 'jaText', key : 'jaText',
+            title : '원문', key : 'jaText',
             render : (v) => <div>
                         {v.jaText.substring(0, v.startOffset)}
                         <span className="bold highlight">
@@ -193,8 +203,8 @@ const DBTable = ({ list, pageSize } : DBTableProps) => {
                         {v.jaText.substring(v.endOffset)}
                     </div>
         },
-        { title : 'koText', dataIndex : 'koText', key : 'koText' },
-        { title : '이동', key : 'src',
+        { title : '번역문', dataIndex : 'koText', key : 'koText' },
+        { title : '해당 영상으로 이동', key : 'src',
             render : (v) => <Button onClick={ () => navigate(`/video/${v.src}`) }>이돟</Button>
         }
     ]
@@ -204,24 +214,24 @@ const DBTable = ({ list, pageSize } : DBTableProps) => {
             size="small"
             columns={columns}
             expandable={{ expandedRowRender : ( _, i) => HyoukiRowRender( v, i ) }}
-            dataSource={ v.map( (_ : any) => _[0][0] ).map( (_, i) => { return { ..._, key : i.toString() }})  }    
+            dataSource={ v.map( (_ : db_hukumu_data[][]) => _[0][0] ).map( (_, i) => { return { ..._, key : i.toString() }})  }    
         />
     )
 
     const HyoukiRowRender = (v : db_hukumu_data[][][], i : number) => (
-        <Table<db_hukumu_data>
+        <Table<VideoExpendedDataType>
             size="small"
             columns={videoColumns}
             expandable={{ expandedRowRender : (_, j) => VideoRowRender(v, i, j) }}
-            dataSource={ v[i].map( (_ : any) => _[0] ).map( (_, i) => { return { ..._, key : i.toString() }}) }
+            dataSource={ v[i].map( (_ : db_hukumu_data[]) => { return { ..._[0], length : _.length } } ).map( (_, i) => { return { ..._, key : i.toString() }}) }
         />
     )
 
     const VideoRowRender = (v : db_hukumu_data[][][], i : number, j : number) => (
-        <Table<db_hukumu_data>
+        <Table<BunExpendedDataType>
             size="small"
             columns={bunColumns}
-            dataSource={v[i][j]}
+            dataSource={ v[i][j].map( (_, i) => { return { ..._, key : i.toString() }}) }
         />
     )
 

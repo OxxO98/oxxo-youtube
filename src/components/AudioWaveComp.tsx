@@ -42,16 +42,14 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
   const { startTime, endTime, selectMarker, markerTime } = useSelector((state : RootState) => state.reactPlayer)
 
   //Ref
-  const divBox = useRef<HTMLDivElement>(null); //canvas Div Box 크기
+  const divBox = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const refId = useRef<number>(-1);
   const mouseDownStartTime = useRef<number | null>(startTime);
 
   //State
-  const [canvasSize, setCanvasSize] = useState<{width : number, height : number}>({ width : 700, height : 100 });
-  const [waveAreaSize, setWaveAreaSize] = useState<{width : number, height : number}>({ width : 700, height : 45 });
-  const { width : canvasWidth, height : canvasHeight } = canvasSize;
-  const { width : waveAreaWidth, height : waveAreaHeight } = waveAreaSize;
+  const [canvasWidth, setCanvasWidth] = useState<number>(700)
+  const canvasHeight = 100;
   const frameArea = 10;
 
   const [range, setRange] = useState<number[] | null>(null); //Index
@@ -252,10 +250,14 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     
     if(range === null) return;
 
+    let waveAreaWidth = canvasWidth;
+    let waveAreaHeight = (canvasHeight - 10)/2
+
     let [ _start, _end ] = range;
     let _zoom = _end - _start;
 
-    const dpr = window.devicePixelRatio || 1;
+    // const dpr = window.devicePixelRatio || 1;
+    let dpr = 1;
 
     ctx.scale(dpr, dpr);
 
@@ -448,7 +450,7 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
     }
 
     stopDraw();
-  }, [filteredData, canvasWidth, canvasHeight, frameRate, range, videoTime, startTime, endTime, markerTime, selectMarker, waveAreaHeight, waveAreaWidth, floorFrame, frameTime, getFrame])
+  }, [filteredData, canvasWidth, frameRate, range, videoTime, startTime, endTime, markerTime, selectMarker, floorFrame, frameTime, getFrame])
 
 	const stopDraw = () => {
 	  cancelAnimationFrame(refId.current);
@@ -465,12 +467,14 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
   }, [videoTime, setRangeCrit])
 
   useEffect( () => {
+    console.log(divBox.current);
     if(divBox.current !== null){
        const observer = new ResizeObserver(entries => {
         for (let entry of entries) {
+          console.log(entry);
           const { width } = entry.contentRect;
-          setCanvasSize( (prev) => ({ ...prev, width : width }));
-          setWaveAreaSize( (prev) => ({ ...prev, width : width }));
+          console.log(width);
+          setCanvasWidth(width);
         }
       });
 
@@ -501,8 +505,8 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
       }
       {
         filteredData !== null &&
-        <>
-          <canvas ref={canvas} id="my-house" width={canvasWidth} height={canvasHeight}
+        <div>
+          <canvas ref={canvas} id="waveComp" width={canvasWidth} height={canvasHeight}
             onClick={(e) => seekByAudioWave(e)}
             onWheel={(e) => onWheelFunction(e)}
             onMouseDown={(e) => onMouseDownFunction(e)}
@@ -514,7 +518,7 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
               <Slider range={{ draggableTrack: true }} defaultValue={[0, filteredData.length-1]} value={range} min={0} max={filteredData.length-1} onChange={changeRange}/>
             }
           </div>
-        </>
+        </div>
       }
       {
         filteredData !== null &&

@@ -6,7 +6,7 @@ import { nodewhisper } from "nodejs-whisper";
 import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
 
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 
 import path, { resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -62,6 +62,17 @@ async function getChat(req, res){
     res.end();
 }
 
+function _checkCudaStatus() {
+  try {
+    const result = execSync('nvidia-smi', { encoding: 'utf8' });
+    console.log("CUDA is installed");
+    return true;
+  } catch (error) {
+    console.log("CUDA is not installed");
+    return false;
+  }
+}
+
 async function _sliceAudio( filePath, outFilePath, startTime, endTime, option ){
 
     if(fs.existsSync(`${outFilePath}.json`) == true){
@@ -85,7 +96,7 @@ async function _sliceAudio( filePath, outFilePath, startTime, endTime, option ){
                         await nodewhisper(outFilePath, {
                             modelName : option.model,
                             autoDownloadModelName : option.model,
-                            withCuda : false,
+                            withCuda : _checkCudaStatus(),
                             whisperOptions : {
                                 outputInJson : true,
                                 translateToEnglish : false,
@@ -263,7 +274,7 @@ async function getRangeTranscript(req, res){
                 nodewhisper(outFilePath, {
                     modelName : option.model,
                     autoDownloadModelName : option.model,
-                    withCuda : false,
+                    withCuda : _checkCudaStatus(),
                     whisperOptions : {
                         translateToEnglish : false,
                         wordTimestamps : true,

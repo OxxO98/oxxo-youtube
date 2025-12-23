@@ -527,7 +527,6 @@ async function getDBAll(req, res){
             return true;
         }
 
-
         let ytBuns = db.data.videos.map( (v) => {
             return v.timeline.map( (t) => {
                 return {
@@ -576,7 +575,33 @@ async function getDBAll(req, res){
             data : joinData
         })
     })
-} 
+}
+
+async function getDBJaBun(req, res){
+    await db_connection(req, res, async(db) => {
+        let { keyword, imiKeyword } = req.query;
+
+        let ytBuns = db.data.videos.map( (v) => {
+            return v.timeline.map( (t) => {
+                return {
+                    ...t,
+                    title : v.title,
+                    src : v.src
+                }
+            })
+        }).flat();
+
+        joinData = ytBuns.map( (v) => {
+            return {
+                ...v,
+                jaBuns : db.data.jaBuns.filter( (ja) => ja.ytBId == v.ytBId ),
+                koBuns : db.data.koBuns.filter( (ko) => ko.ytBId == v.ytBId )
+            }
+        })
+
+        joinData = _.toArray( _.groupBy(joinData, "src") )
+    })
+}
 
 router.post('/userId', saveUserId);
 router.get('/userId', getUserId);
