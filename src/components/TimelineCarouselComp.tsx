@@ -34,6 +34,7 @@ interface TimelineCarouselCompProps {
     bIdRef : React.RefObject<BIdRef>;
     refetchHandles : RefetchHandles;
     videoPlayerHandles : VideoPlayerHandles;
+    deselect : () => void;
 }
 
 const TimelineControlstyle : CSSProperties = {
@@ -55,7 +56,7 @@ const TranslateBunStyle : CSSProperties = {
     alignContent : 'center'
 }
 
-const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, videoPlayerHandles } : TimelineCarouselCompProps) => {
+const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, videoPlayerHandles, deselect } : TimelineCarouselCompProps) => {
     
     const { t } = useTranslation('TimelineCarouselComp');
 
@@ -129,6 +130,7 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
         }
 
         store.dispatch( clear() );
+        deselect();
 
         if(currentBunId > 0){
             let curr = bunIds[currentBunId-1];
@@ -144,6 +146,7 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
         }
 
         store.dispatch( clear() );
+        deselect();
         
         if(currentBunId+1 < bunIds.length){
             let curr = bunIds[currentBunId+1];
@@ -278,7 +281,7 @@ const TimelineCarouselComp = ({ state, playerHandles, bIdRef, refetchHandles, vi
     )
 }
 
-const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHandles, videoPlayerHandles } : TimelineCarouselCompProps ) => {
+const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHandles, videoPlayerHandles, deselect } : TimelineCarouselCompProps ) => {
 
     //Context
     const { videoId } = useContext(VideoContext);
@@ -329,6 +332,7 @@ const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHand
         }
 
         store.dispatch( clear() );
+        deselect();
 
         if(currentBunId > 0){
             let curr = bunIds[currentBunId-1];
@@ -344,6 +348,7 @@ const TimelineCarouselHonyakuComp = ({ state, playerHandles, bIdRef, refetchHand
         }
 
         store.dispatch( clear() );
+        deselect();
         
         if(currentBunId+1 < bunIds.length){
             let curr = bunIds[currentBunId+1];

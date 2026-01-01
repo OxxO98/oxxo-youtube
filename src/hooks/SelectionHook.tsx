@@ -6,9 +6,9 @@ import { useDebounceEffect } from 'hooks/OptimizationHook';
 import { useSelector } from 'react-redux';
 import { store, RootState } from 'reducers/store';
 import { selectionActions } from 'reducers/selectionReducer';
-const { setSelection, setHurigana, setSelectedBun, setTextOffset, setOffset } = selectionActions;
+const { setSelection, setHurigana, setSelectedBun, setTextOffset, setOffset, clear } = selectionActions;
 
-const HANDLE_SELECTION_DELAY = 500;
+const HANDLE_SELECTION_DELAY = 100;
 
 //비 효울적임은 인지. but, mouseUp, Down으로 하기에는 정확하지 않음.
 function useHandleSelection( document : Document, restrictId : string ) {
@@ -162,6 +162,18 @@ function useHandleSelection( document : Document, restrictId : string ) {
         }
     }
 
+    const deselect = () => {
+        var sel = document.getSelection();
+        if (sel) {
+            if (sel.removeAllRanges) {
+                sel.removeAllRanges();
+            } else if (sel.empty) {
+                sel.empty();
+            }
+        }
+        store.dispatch( clear() )
+    }
+
     useDebounceEffect( () => {
         document.addEventListener('selectionchange', handleSelection);
         return () => {
@@ -169,7 +181,7 @@ function useHandleSelection( document : Document, restrictId : string ) {
         };
     }, HANDLE_SELECTION_DELAY, [])
 
-    return { selection, hurigana, offset, selectedBun, textOffset, setRestrict };
+    return { selection, hurigana, offset, selectedBun, textOffset, setRestrict, deselect };
 }
 
 export { useHandleSelection }

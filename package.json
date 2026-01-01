@@ -1,6 +1,6 @@
 {
   "name": "oxxo_youtube",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": true,
   "proxy": "http://localhost:3000",
   "dependencies": {
@@ -19,6 +19,7 @@
     "body-parser": "^2.2.0",
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
+    "es-hangul": "^2.3.8",
     "express": "^5.1.0",
     "file-saver": "^2.0.5",
     "fluent-ffmpeg": "^2.1.3",

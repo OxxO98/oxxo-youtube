@@ -11,9 +11,9 @@ import { store, RootState } from 'reducers/store';
 import { selectionActions } from 'reducers/selectionReducer';
 const { setHukumuData, setStyled, clear } = selectionActions;
 
-const FETCH_HUKUMU_CHECK_DELAY = 300;
+const FETCH_HUKUMU_CHECK_DELAY = 100;
 
-function useHukumu(){
+function useHukumu( deselect : () => void ){
     //Context
 
     //Redux
@@ -64,11 +64,11 @@ function useHukumu(){
                 });
             }
             else{
-                store.dispatch( clear() )
+                deselect();
             }
         }
         else{
-            store.dispatch( clear() )
+            deselect();
         }
     }, FETCH_HUKUMU_CHECK_DELAY, [textOffset.startOffset, textOffset.endOffset, setParams, selectedBun]);
 

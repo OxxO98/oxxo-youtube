@@ -5,6 +5,8 @@ import { useDebounceEffect } from 'hooks/OptimizationHook';
 import { useJaText } from 'hooks/JaTextHook';
 import { useHuri } from 'hooks/HuriHook';
 
+const KIRIKAE_DELAY = 100;
+
 function useKirikae(value : string, handleChange : (e : React.ChangeEvent<any>) => void){
 
   const [kirikae, setKirikae] = useState<string | null>(null); //변환된 히라가나
@@ -32,7 +34,7 @@ function useKirikae(value : string, handleChange : (e : React.ChangeEvent<any>) 
 
   useDebounceEffect( () => {
     if(isKirikae === false ){ setIsKirikae( true ) }
-  }, 1000, [value, isKirikae] )
+  }, KIRIKAE_DELAY, [value, isKirikae] )
 
   useEffect( () => {
     if(value !== null){
@@ -94,7 +96,7 @@ function useMultiKirikae(dependancy : string | null, multiValue : Array<string>,
 
   useDebounceEffect( () => {
     if(isKirikae === false ){ setIsKirikae( true ) }
-  }, 1000, [isKirikae, multiValue] )
+  }, KIRIKAE_DELAY, [isKirikae, multiValue] )
 
   useEffect( () => {
     if(multiValue !== null){

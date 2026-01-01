@@ -56,7 +56,19 @@ async function getUserId(req, res){
 
 async function getVideo(req, res){
     await db_connection( req, res, async (db) => {
-        let videos = db.data.videos;
+        let videos = db.data.videos.sort( (a, b) => {
+            if( a.lastEditTime === undefined ){
+                return 1;
+            }
+            if( b.lastEditTime === undefined ){
+                return -1;
+            }
+            if( a.lastEditTime != undefined && b.lastEditTime != undefined ){
+                return b.lastEditTime - a.lastEditTime;
+            }
+
+            return 0;
+        });
 
         res.send({
             data : videos,
@@ -70,7 +82,7 @@ async function postVideo(req, res){
         let { youtubeSrc, title } = req.body;
         
         logger.info( db_module.logVideoInsert(title, youtubeSrc) );
-        db.data.videos.push({ title : title, src : youtubeSrc, timeline : [], tags : [] });
+        db.data.videos.push({ title : title, src : youtubeSrc, timeline : [], tags : [], lastEditTime : Date.now() });
         await db.write();
 
         res.send({
@@ -201,7 +213,9 @@ async function getTimeline(req, res) {
     await db_connection(req, res, async (db) => {
         let { videoId } = req.query;
 
-        let timeline = db.data.videos.find( (video) => video.src == videoId).timeline;
+        let video = db.data.videos.find( (video) => video.src == videoId);
+
+        let timeline = video.timeline;
         
         if( !timeline ){ 
             res.send({
@@ -219,6 +233,10 @@ async function getTimeline(req, res) {
                     ...koBuns.find( (ko) => ko.koBId == v.koBId ) 
                 }
             }).toSorted( (a, b) => a.startTime - b.startTime );
+
+            video.lastEditTime = Date.now();
+
+            await db.write();
 
             if( joinText.length == 0){
                 res.send({

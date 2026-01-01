@@ -467,13 +467,10 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
   }, [videoTime, setRangeCrit])
 
   useEffect( () => {
-    console.log(divBox.current);
     if(divBox.current !== null){
        const observer = new ResizeObserver(entries => {
         for (let entry of entries) {
-          console.log(entry);
           const { width } = entry.contentRect;
-          console.log(width);
           setCanvasWidth(width);
         }
       });

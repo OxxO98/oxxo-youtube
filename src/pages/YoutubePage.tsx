@@ -56,8 +56,8 @@ const YoutubePage = () => {
 
     const { videoPlayerHandles } = useVideoPlayHook( playing, handlePausePlay, state, handleSeek, filteredData );
     
-    useHandleSelection( document, "activeRange" );
-    const { fetchInHR, loading : hukumuCheckLoading } = useHukumu();
+    const { deselect } = useHandleSelection( document, "activeRange" );
+    const { fetchInHR, loading : hukumuCheckLoading } = useHukumu(deselect);
 
     const { bIdRef, refetchHandles } = useBunRefetch( fetchInHR );
 
@@ -77,9 +77,9 @@ const YoutubePage = () => {
                                         <Route path="/*" element={<VideoComp playerRef={playerRef} setPlayerRef={setPlayerRef} state={state} playerHandles={playerHandles} videoPlayerHandles={videoPlayerHandles}/>}/>
                                     </Routes>
                                     <Routes>
-                                        <Route path="/timeline" element={<TimelineCarouselComp state={state} playerHandles={playerHandles} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles}/>}/>
-                                        <Route path="/honyaku" element={<TimelineCarouselComp.Honyaku state={state} playerHandles={playerHandles} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles}/>}/>
-                                        <Route path="/tangochou/*" element={<TimelineCarouselComp.Honyaku state={state} playerHandles={playerHandles} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles}/>}/>
+                                        <Route path="/timeline" element={<TimelineCarouselComp state={state} playerHandles={playerHandles} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles} deselect={deselect}/>}/>
+                                        <Route path="/honyaku" element={<TimelineCarouselComp.Honyaku state={state} playerHandles={playerHandles} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles} deselect={deselect}/>}/>
+                                        <Route path="/tangochou/*" element={<TimelineCarouselComp.Honyaku state={state} playerHandles={playerHandles} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles} deselect={deselect}/>}/>
                                     </Routes>
                                 </Splitter.Panel>
                                 <Splitter.Panel>

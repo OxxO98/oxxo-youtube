@@ -1,4 +1,4 @@
-import { useEffect, CSSProperties } from 'react';
+import { useEffect, useState, CSSProperties } from 'react';
 import VirtualList from 'rc-virtual-list';
 import { useTranslation } from 'react-i18next';
 
@@ -22,9 +22,7 @@ interface HukumuListCompProps {
 
 interface HukumuBunCompProps {
     hukumu : HukumuList;
-    refetchHukumuList : () => void;
-    refetchTangoList : () => void;
-    refetchHandles : RefetchHandles;
+    commitOne : ( hukumu : HukumuList, hukumuData : HukumuData | null ) => void;
 }
 
 const ListCompStyle : CSSProperties = {
@@ -33,45 +31,13 @@ const ListCompStyle : CSSProperties = {
 
 const HukumuListComp = ({ hukumuList, refetchHukumuList, refetchTangoList, refetchHandles } : HukumuListCompProps ) => {
 
-    return(
-        <Skeleton loading={hukumuList === null} title={false} active>
-        {
-            hukumuList !== null &&
-            <List style={ListCompStyle}>
-                <VirtualList
-                    data={hukumuList}
-                    itemHeight={47}
-                    itemKey="tId"
-                >
-                {
-                    (hukumu) => (
-                        <List.Item>
-                            <HukumuBunComp hukumu={hukumu} refetchHukumuList={refetchHukumuList} refetchTangoList={refetchTangoList} refetchHandles={refetchHandles}/>
-                        </List.Item>
-                    )
-                }
-                </VirtualList>
-            </List>
-        }
-        </Skeleton>
-    )
-}
-
-const HukumuBunComp = ({ hukumu, refetchHukumuList, refetchTangoList, refetchHandles } : HukumuBunCompProps ) => {
-
-    //i18n
-    const { t } = useTranslation('HukumuBunComp');
-
-    //Redux
-    const { hukumuData } = useSelector((state : RootState) => state.selection);
-
     //Hook
     const { refetch } = refetchHandles;
 
     const { response, loading, setParams } = useAxiosPost<null, REQ_POST_LIST_COMMIT>('/db/list/commit', true, null);
 
     //Handle
-    const commitOne = () => {
+    const commitOne = ( hukumu : HukumuList, hukumuData : HukumuData | null ) => {
         if( hukumuData === null){ return }
 
         setParams({
@@ -83,15 +49,47 @@ const HukumuBunComp = ({ hukumu, refetchHukumuList, refetchTangoList, refetchHan
     useEffect( () => {
         let res = response;
         if(res !== null){
-            refetch(hukumu.jaBId);
+            // refetch(hukumu.jaBId);
             refetchHukumuList();
             refetchTangoList();
         }
-    }, [response, refetch, hukumu.jaBId, refetchHukumuList, refetchTangoList]);
+    }, [response, refetchHukumuList, refetchTangoList]);
+
+    return(
+        <Skeleton loading={loading} title={false} active>
+        {
+            hukumuList !== null &&
+            <List style={ListCompStyle}>
+                <VirtualList
+                    data={hukumuList}
+                    itemHeight={47}
+                    itemKey="tId"
+                >
+                {
+                    (hukumu) => (
+                        <List.Item>
+                            <HukumuBunComp hukumu={hukumu} commitOne={commitOne}/>
+                        </List.Item>
+                    )
+                }
+                </VirtualList>
+            </List>
+        }
+        </Skeleton>
+    )
+}
+
+const HukumuBunComp = ({ hukumu, commitOne } : HukumuBunCompProps ) => {
+
+    //i18n
+    const { t } = useTranslation('HukumuBunComp');
+
+    //Redux
+    const { hukumuData } = useSelector((state : RootState) => state.selection);
 
     return(
         <Card actions={[
-            <Button onClick={commitOne} loading={loading}>{t('BUTTON.TITLE')}</Button>
+            <Button onClick={() => commitOne(hukumu, hukumuData)}>{t('BUTTON.TITLE')}</Button>
         ]}
             style={{ width : '100%' }}
             title={

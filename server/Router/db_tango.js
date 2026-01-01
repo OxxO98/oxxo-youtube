@@ -43,10 +43,10 @@ async function searchTangoList(req, res){
         let { hyouki, yomi, hyoukiQuery, yomiQuery } = req.query;
 
         let _td = await db_module.makeTextData(hyoukiQuery, yomiQuery)
-        let _core = _td.filter( (t) => t.ruby != null ).map( (t) => t.data );
+        let _core = _td.filter( (t) => t.ruby != null ).map( (t) => t.data ).join('');
 
         let condition = ( _joined ) => {
-            let _j_core = _joined.textData.filter( (t) => t.ruby != null).map( (t) => t.data);
+            let _j_core = _joined.textData.filter( (t) => t.ruby != null).map( (t) => t.data).join('');
             
             return _j_core == _core;
         }

@@ -1,5 +1,7 @@
-import React, { useEffect, useState, useContext, CSSProperties, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useContext, CSSProperties, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useHotkeys } from 'react-hotkeys-hook';
+import VirtualList from 'rc-virtual-list';
 
 //Context
 import { UnicodeContext } from 'contexts/UnicodeContext'
@@ -15,7 +17,7 @@ import { useMultiInput, useMultiKirikae } from 'hooks/KirikaeHook'
 import { useHuri } from 'hooks/HuriHook'
 
 //Css@antD
-import { Button, Input, Space, Modal, Tabs, Flex, Col, Row } from 'antd';
+import { Button, Input, Space, Modal, Tabs, Flex, Col, Row, InputRef, List } from 'antd';
 import type { TabsProps } from 'antd';
 
 //Redux
@@ -87,6 +89,12 @@ const ColStyleStart : CSSProperties = {
 const ButtonContainerStyle : CSSProperties = {
     width : '100%',
     margin : '0 16px'
+}
+
+const ListCompStyle : CSSProperties = {
+    padding : '16px',
+    maxHeight : '60vh',
+    overflow : 'scroll'
 }
 
 const TangoComp = ({ refetchHandles, refetchTangoList, hukumuCheckLoading } : TangoCompProps ) => {
@@ -245,6 +253,16 @@ const DynamicInputComp = ({ handleMultiChange, multiInputData, multiValue, conca
 
 const AutoMultiInput = ({ multiInputData, multiValue, handleMultiChange, ...props } : AutoMultiInputProps ) => {
 
+    //Context
+    const inputRef = useRef<InputRef[] | null[]>([]);
+
+    const focusFisrtInput = () => {
+        let _index = multiInputData.findIndex( (v) => v.inputBool === true );
+        inputRef.current[_index]?.focus()
+    }
+    
+    useHotkeys('backslash', () => focusFisrtInput(), { enableOnFormTags : false })
+
     return (
         <>
             {
@@ -252,7 +270,7 @@ const AutoMultiInput = ({ multiInputData, multiValue, handleMultiChange, ...prop
                     if(v['inputBool'] === true){
                         return(
                             <AutoLengthInput key={'id'+index}>
-                                <Input className="input dynamic" key={'id'+index} value={multiValue[index]} onChange={(e) => handleMultiChange(e, index)} onFocus={props?.handleHighlight} autoComplete='off'/>
+                                <Input ref={(el) => { inputRef.current[index] = el; }} className="input dynamic" key={'id'+index} value={multiValue[index]} onChange={(e) => handleMultiChange(e, index)} onFocus={props?.handleHighlight} autoComplete='off'/>
                             </AutoLengthInput>
                         )
                     }
@@ -304,12 +322,15 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
     const [searchedList, setSearchedList] = useState<TangoDBSearchedList | null>(null);
 
     //Hook
-    const { isOnajiOkuri, getHyoukiQuery, getYomiQuery } = useJaText();
+    const { isOnajiOkuri, getHyoukiQuery, getYomiQuery, isAllNihongo } = useJaText();
     const { getOkuri } = useHuri();
 
     const { response, setParams } = useAxiosGet<RES_GET_TANGO_CHECK, REQ_GET_TANGO_CHECK>('/db/tango/check', true, null);
 
     const { response : resNewTango, setParams : setParamsNewTango } = useAxiosPost<null, REQ_POST_HUKUMU>('/db/hukumu', true, null);
+    
+    // useHotkeys('ctrl+enter', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen }, [isModalOpen])
+    // problem !! input에서 핫키 입력시 value가 변하면서 yomi가 초기화 됨.
 
     //Handle
     const postNewTango = (hyouki : string, yomi : string, tId : string | null) => {
@@ -335,7 +356,7 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
     }
 
     const showModal = () => {
-        setSearchText({hyouki : selection, yomi : value});
+        setSearchText({ hyouki : selection, yomi : value });
         setIsModalOpen(true);
     }
 
@@ -345,6 +366,8 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
 
 
     const handleSubmit = (tId : string | null) => {
+        if( isAllNihongo(value) === false ){ return }
+
         postNewTango(selection, value, tId);
         setIsModalOpen(false);
     }
@@ -537,12 +560,16 @@ const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : Mod
                 open={isModalOpen}
                 onCancel={handleCancel}
                 width={'80%'}
+                height={'70vh'}
+                styles={{ 
+                    content : { height : '80vh' }, body : { minHeight : '90%'}
+                }}
                 footer={[
                     <Button type={ isKanzen ? "dashed" : "primary"} onClick={() => handleSubmit(null)}>{t('BUTTON.SAVE_NEW')}</Button>,
                     <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
                 ]}
             >
-                <ComplexText bId={null} data={selection} ruby={value} offset={0}/>
+                <ComplexText bId={'tango'} data={selection} ruby={value} offset={0}/>
                 <AccordianTangoDB searchedList={searchedList} handleSubmit={handleSubmit}/>
             </Modal>
         </>
@@ -586,12 +613,24 @@ const AccordianTangoDB = ({ searchedList, handleSubmit } : AccordianTangoDBProps
     const items: TabsProps['items'] = useMemo( () => getSearchedArr(searchedList).map( (v, i) => { return {
         key : i.toString(),
         label : v.name,
-        children : <>
+        children : <div>
             <div>{t('CONTENTS.MESSAGE', {count : v.count})}</div>
-            {v.list.map( (arr : RES_SEARCH_TANGO) =>
-                <TangoDB data={arr} handleSubmit={handleSubmit}/>
-            )}
-        </>
+            <List style={ListCompStyle}>
+                <VirtualList
+                    data={v.list}
+                    itemHeight={47}
+                    itemKey="tId"
+                >
+                {
+                    (data) => (
+                        <List.Item>
+                            <TangoDB data={data} handleSubmit={handleSubmit}/>
+                        </List.Item>
+                    )
+                }
+                </VirtualList>
+            </List>
+        </div>
     } }), [searchedList])
 
     return(

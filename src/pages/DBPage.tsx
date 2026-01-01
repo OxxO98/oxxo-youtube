@@ -150,6 +150,8 @@ const DBTable = ({ list, pageSize } : DBTableProps) => {
 
     const navigate = useNavigate();
 
+    const { HiraToKoNFC } = useJaText()
+
     const allColumns : TableColumnsType<AllDataType> = [
         { 
             title : '표기', key : 'hyouki', 
@@ -177,6 +179,10 @@ const DBTable = ({ list, pageSize } : DBTableProps) => {
             render : (v) => <ComplexText bId={null} data={v.hyouki} ruby={v.yomi} offset={0}/>,
         },
         { title : '읽기', dataIndex : 'yomi', key : 'yomi' },
+        { 
+            title : '발음', key : 'pronc',
+            render : (v) => HiraToKoNFC(v.yomi)
+        },
         { 
             title : '한자', key : 'kanji', 
             render : (v) => v.kanjis.map( (k : db_kanji_data ) => k.jaText ).join(', '),

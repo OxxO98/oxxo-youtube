@@ -2,6 +2,8 @@ import { useCallback, useContext, useMemo } from 'react';
 
 import { UnicodeContext, UnicodeRangeContext } from 'contexts/UnicodeContext';
 
+import { assemble } from 'es-hangul';
+
 const hiraganaKumi = [
   ['あ', 'い', 'う', 'え', 'お', 'や', 'ゆ', 'よ'],
   ['か', 'き', 'く', 'け', 'こ', 'きゃ', 'きゅ', 'きょ'],
@@ -17,6 +19,8 @@ const hiraganaKumi = [
   ['ま', 'み', 'む', 'め', 'も', 'みゃ', 'みゅ', 'みょ'],
   ['ら', 'り', 'る', 'れ', 'ろ', 'りゃ', 'りゅ', 'りょ']
 ]
+
+const hiraganaKumiRegex = new RegExp( `[${hiraganaKumi.flat().filter( (v) => v.length === 1).join('')}わをぁぃぅぇぉっん]{1}[ゃゅょ]?`, 'g' )
 
 //'ぅ'로 되는 경우의 모음은 아직 정해지지 않은 상태
 const hiraganaTokubetsuKumi = [
@@ -34,13 +38,20 @@ const hiraganaTokubetsuKumi = [
   ['ぷぁ', 'ぷぃ', 'ぅ', 'ぷぇ', 'ぷぉ'],
   ['むぁ', 'むぃ', 'ぅ', 'むぇ', 'むぉ'],
   ['るぁ', 'るぃ', 'ぅ', 'るぇ', 'るぉ']
-
 ]
 
 const hiraganaTokubetsuDan : ObjKey = hiraganaTokubetsuKumi[0].reduce( (acc, value, index) => { return {...acc, [value] : index} }, {} );
 
 const hiraganaKou : ObjKey = hiraganaKumi.reduce( (acc, value, index) => { return {...acc, [value[0]] : index} }, {} );
 const hiraganaDan : ObjKey = hiraganaKumi[0].reduce( (acc, value, index) => { return {...acc, [value] : index} }, {} );
+
+const hiraganaKouExpended : ObjKey = hiraganaKumi.map( (v, i) => v
+    .reduce( (acc, value, index) => { return {...acc, [value] : i } }, {} ) 
+  ).reduce( (acc, value, index) => { return {...acc, ...value} }, {} );
+const hiraganaDanExpended : ObjKey = hiraganaKumi.map( (v, i) => v
+    .reduce( (acc, value, index) => { return {...acc, [value] : index } }, {} ) 
+  ).reduce( (acc, value, index) => { return {...acc, ...value} }, {} );
+
 
 const chosungs = [
   'ㄱ',
@@ -164,6 +175,26 @@ const hangulJunsungHiraMatch : ObjKey = {
   ㅣ: 'い'
 }
 
+const hiraAllHangul = [
+  ['아', '이', '우', '에', '오', '야', '유', '요'],
+  ['카', '키', '쿠', '케', '코', '캬', '큐', '쿄'],
+  ['가', '기', '구', '게', '고', '갸', '규', '교'],
+  ['사', '시', '스', '세', '소', '샤', '슈', '쇼'],
+  ['자', '지', '즈', '제', '조', '쟈', '쥬', '죠'],
+  ['타', '치', '츠', '테', '토', '챠', '츄', '쵸'],
+  ['다', '지', '즈', '데', '도', '쟈', '쥬', '죠'],
+  ['나', '니', '누', '네', '도', '냐', '뉴', '뇨'],
+  ['하', '히', '후', '헤', '호', '햐', '휴', '효'],
+  ['바', '비', '부', '베', '보', '뱌', '뷰', '뵤'],
+  ['파', '피', '푸', '페', '포', '퍄', '퓨', '표'],
+  ['마', '미', '무', '메', '모', '먀', '뮤', '묘'],
+  ['라', '리', '루', '레', '로', '랴', '류', '료']
+]
+
+const hiraAllMatch : ObjKey = hiraganaKumi.map( (v, i) => v
+    .reduce( (acc, value, index) => { return {...acc, [value] : hiraAllHangul[i][index] } }, {} ) 
+  ).reduce( (acc, value, index) => { return { ...acc, ...value } }, {})
+
 const hangulJonsungHiraMatch : ObjKey = {
   ㄱ : 'っ',
   ㄲ : 'っ',
@@ -185,12 +216,6 @@ const hangulJonsungHiraMatch : ObjKey = {
 
 function useJaText(){
   const unicodeRange = useContext<UnicodeRangeContext>(UnicodeRangeContext);
-  const unicodeContext = useContext<UnicodeContext>(UnicodeContext);
-
-  /**
-   * Original Code
-   * https://github.com/toss/es-hangul/blob/main/src/getChoseong/getChoseong.ts
-  */
 
   const nfd = useMemo( () => [...'각힣'.normalize('NFD')].map( el => el.charCodeAt(0) ), []);
   const chosungsRegex = useMemo( () => new RegExp(
@@ -289,12 +314,70 @@ function useJaText(){
     }
   }, [checkChouon, chosungsRegex, jongsungsRegex, jungsungsRegex])
 
+  const HiraToHangul = useCallback( ( char : string, index : number, arr : Array<string>  ) => {
+    
+    if(char === 'を'){
+      return '오'
+    }
+    if(char === 'わ'){
+      return '와'
+    }
+    if(char === 'ん'){
+      return 'ㄴ';
+    }
+    if(char === 'っ'){
+      return 'ㅅ';
+    }
+
+    let _match = hiraAllMatch[ char ];
+
+    if( _match !== undefined ){
+
+      if(char === 'う' && index !== 0){
+        // い => e단 일경우 '에'
+        let _prev = arr[index-1];
+        let _dan = hiraganaDanExpended[ _prev ];
+        
+        return '우우우우오우우오'[_dan];
+      }
+
+      return _match;
+    }
+    else{
+      switch( char ){
+        case 'ぁ' :
+          return '아'        
+        case 'ぃ' :
+          return '이'        
+        case 'ぅ' :
+          return '우'        
+        case 'ぇ' :
+          return '에'        
+        case 'ぉ' :
+          return '오'
+        default :
+          return ''        
+      }
+    }
+
+  }, [hiraAllMatch])
+
   const koNFCToHira = useCallback( ( hangul : string ) => {
     let hangulArr = hangul.split('');
     let hira = hangulArr.map( (word, index, arr) =>  hangulToHira(word, index, arr) )
 
     return hira.join('');
   }, [hangulToHira])
+
+  const HiraToKoNFC = useCallback( (hira : string) => {
+    let hiraArr = hira.match(hiraganaKumiRegex);
+    if(hiraArr === null){
+      return '';
+    }
+    let hangul = hiraArr.map( (v, index, arr) => HiraToHangul(v, index, arr) ).join('');
+
+    return assemble(hangul.split(''));
+  }, [hiraAllMatch, HiraToHangul])
   
   const isAllHangul = useCallback( ( text : string ) => {
     isHangulRegex.lastIndex = 0;
@@ -836,7 +919,7 @@ function useJaText(){
   }
 
   const getYomiQuery = ( multiInputData : MultiInput[], multiValue : string[] ) : string => {
-    return multiInputData.map( (v, i) => v.inputBool === false ? '0' : multiValue[i] ).join('_');
+    return multiInputData.map( (v, i) => v.inputBool === false ? '0' : koNFCToHira(multiValue[i]) ).join('_');
   }
   
   const convertObjKey = ( arr : any ) => {
@@ -849,7 +932,7 @@ function useJaText(){
   }
 
   return { 
-    koNFCToHira, 
+    koNFCToHira, HiraToKoNFC,
     isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
     matchOkuri, matchOkuriExec, getMED, traceHukumu, 
     getHyoukiQuery, getYomiQuery, convertObjKey,
