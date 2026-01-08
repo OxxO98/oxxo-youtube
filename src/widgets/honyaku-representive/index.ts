@@ -1,0 +1,1 @@
+export { HonyakuRepresentive } from './ui/HonyakuRepresentive';

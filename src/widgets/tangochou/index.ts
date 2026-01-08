@@ -1,0 +1,1 @@
+export { TangochouComp } from './ui/TangochouComp';

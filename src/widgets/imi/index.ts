@@ -1,0 +1,1 @@
+export { ImiComp } from './ui/ImiComp'

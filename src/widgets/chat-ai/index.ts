@@ -1,0 +1,1 @@
+export { AiComp } from './ui/AiComp';

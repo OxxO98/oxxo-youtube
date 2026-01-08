@@ -1,0 +1,1 @@
+export { ShareModalComp } from './ui/ShareModalComp'

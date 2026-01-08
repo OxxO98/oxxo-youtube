@@ -1,0 +1,1 @@
+export { ModalDeleteHukumu } from './ui/ModalDeleteHukumu';

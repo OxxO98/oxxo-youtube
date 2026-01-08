@@ -1,0 +1,1 @@
+export { VideoComp } from './ui/VideoComp';

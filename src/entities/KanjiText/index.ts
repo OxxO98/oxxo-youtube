@@ -1,0 +1,1 @@
+export { KanjiText } from './ui/KanjiText';
