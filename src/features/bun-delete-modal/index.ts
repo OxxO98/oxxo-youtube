@@ -1,0 +1,1 @@
+export { DeleteBunModalComp } from './ui/DeleteBunModal';

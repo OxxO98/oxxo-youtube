@@ -1,0 +1,1 @@
+export { CompoundListComp } from './ui/CompoundListComp';

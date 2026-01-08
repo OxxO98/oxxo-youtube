@@ -408,6 +408,10 @@ declare global {
     ytBId : string;
   }
 
+  export type RES_POST_LIST_HUKUMU = {
+    jaBId : jaBId;
+  }
+
   //REQUEST : POST, PUT, DELETE
   export type REQ_POST_TRANSLATE = {
     videoId : string;
@@ -855,11 +859,6 @@ declare global {
     AiComp : AiComp;
 
     NotFoundPage : NotFoundPage;
-
-    SharedPage : SharedPage;
-    SharedTimelineCarouselComp : SharedTimelineCarouselComp;
-    SharedBunSettingModalComp : SharedBunSettingModalComp;
-    SharedDictionaryComp : SharedDictionaryComp;
   }
 
   export interface LayoutComp {
@@ -1227,43 +1226,6 @@ declare global {
     }
     BUTTON : {
       MOVE : string;
-    }
-  }
-
-  //SHARED
-  export interface SharedPage {
-    BUTTON : {
-      SAVE_CAPTION_JA : string;
-      SAVE_CAPTION_KO : string;
-    }
-  }
-
-  export interface SharedTimelineCarouselComp {
-    BUTTON : {
-      PREV : string;
-      CURR : string;
-      NEXT : string;
-    }
-    SELECT : {
-      JATEXT_ONLY : string;
-      KOTEXT_ONLY : string;
-      BOTH : string;
-    }
-  }
-
-  export interface SharedBunSettingModalComp {
-    TITLE : string;
-    BUTTON : {
-      CANCLE : string;
-      DONE : string;
-    }
-    CONTENTS : string[];
-    FONTS_PRESETS : string[];
-  }
-
-  export interface SharedDictionaryComp {
-    MESSAGE : {
-      ERROR : string;
     }
   }
   

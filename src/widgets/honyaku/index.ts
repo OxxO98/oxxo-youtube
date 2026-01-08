@@ -1,0 +1,1 @@
+export { HonyakuComp } from './ui/HonyakuComp';

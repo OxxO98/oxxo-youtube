@@ -1,0 +1,1 @@
+export { DictionaryComp } from './ui/DictionaryComp';

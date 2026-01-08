@@ -1,0 +1,1 @@
+export { HukumuListComp } from './ui/HukumuList';

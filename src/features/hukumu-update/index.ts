@@ -1,0 +1,1 @@
+export { ModalUpdateHukumu, } from './ui/ModalUpdateHukumu'

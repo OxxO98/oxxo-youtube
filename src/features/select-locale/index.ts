@@ -1,0 +1,1 @@
+export { SelectLocaleComp } from './ui/SelectLocaleComp';

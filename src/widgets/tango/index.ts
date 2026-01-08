@@ -1,0 +1,1 @@
+export { TangoComp } from './ui/TangoComp';

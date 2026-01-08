@@ -1,0 +1,1 @@
+export { AudioWaveComp } from './ui/AudioWaveComp';

@@ -3,15 +3,15 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, useParams, useNavigate, useLocation } from "react-router-dom";
 
 //Hook
-import { useAxiosGet } from 'hooks/AxiosHook';
+import { useKirikae } from 'shared/hooks/useKirikae';
+import { useJaText } from 'shared/lib/useJaText';
+import { useAxiosGet } from 'shared/hooks/useAxios';
 
-//Component
-import { ComplexText } from 'components/Bun';
-import { LayoutComp } from 'components/LayoutComp';
+//widgets
+import { LayoutComp } from 'widgets/layout/index';
 
-//Hook
-import { useKirikae } from 'hooks/KirikaeHook';
-import { useJaText } from 'hooks/JaTextHook';
+//entities
+import { ComplexText } from 'entities/ComplexText/index';
 
 //CSS@Antd
 import { Pagination, Table, Empty, Input, Flex, Affix, Button, Space } from 'antd';

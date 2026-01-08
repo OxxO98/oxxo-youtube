@@ -1,0 +1,1 @@
+export { DynamicInputComp } from './ui/DynamicInputComp';

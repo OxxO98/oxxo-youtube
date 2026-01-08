@@ -1,11 +1,11 @@
-
 import { useEffect, useState } from 'react';
-//Component
-import { YoutubeGridComp } from 'components/YoutubeGridComp'
-import { LayoutComp } from 'components/LayoutComp';
+
+//widgets
+import { YoutubeGridComp } from 'widgets/video-grid/index'
+import { LayoutComp } from 'widgets/layout/index';
 
 //Hook
-import { useAxiosGet } from 'hooks/AxiosHook';
+import { useAxiosGet } from 'shared/hooks/useAxios';
 
 //CSS@Antd
 import { Spin } from 'antd';

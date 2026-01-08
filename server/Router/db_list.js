@@ -131,7 +131,9 @@ async function commitHukumu(req, res) {
 
         res.send({
             message : 'success',
-            data : {}
+            data : { 
+                jaBId : jaBId
+            }
         });
     });
 }
