@@ -7,243 +7,274 @@ import { useHuri } from 'shared/lib/useHuri';
 
 const KIRIKAE_DELAY = 300;
 
+/**
+ * 입력값이 모두 한글일 경우, 히라가나로 변환 하는 Hook
+ * 히라가나일떄는 상관 없음
+ * 
+ * @param value 입력값
+ * @param handleChange onChange함수 
+ * @returns kirikaeValue 보여줄 값, 입력중일 때는 원본, 입력이 끝난 뒤에는 히라가나
+ * @returns handleChange 변환이 추가된 onChange함수
+ * @returns kirikae 변환된 히라가나 값
+ */
 function useKirikae(value : string, handleChange : (e : React.ChangeEvent<any>) => void){
 
-  const [kirikae, setKirikae] = useState<string | null>(null); //변환된 히라가나
-  const [isKirikae, setIsKirikae] = useState<boolean>(false);
+    const [kirikae, setKirikae] = useState<string | null>(null); //변환된 히라가나
+    const [isKirikae, setIsKirikae] = useState<boolean>(false);
 
-  const { isAllHangul, isAllHira, koNFCToHira } = useJaText();
+    const { isAllHangul, isAllHira, koNFCToHira } = useJaText();
 
-  const handleKrikae = (e : React.ChangeEvent) => {
-    if( isKirikae === true ){
-      setIsKirikae(false);
+    const handleKrikae = (e : React.ChangeEvent) => {
+        if( isKirikae === true ){
+            setIsKirikae(false);
+        }
+        else{
+            handleChange(e);
+        }
     }
-    else{
-      handleChange(e);
+
+    const changeHira = (value : string) => {
+        if( isAllHangul(value) === true && isAllHira(value) === false ){
+            return koNFCToHira(value);
+        }
+        else{
+            return value;
+        }
     }
-  }
 
-  const changeHira = (value : string) => {
-    if( isAllHangul(value) === true && isAllHira(value) === false ){
-      return koNFCToHira(value);
-    }
-    else{
-      return value;
-    }
-  }
+    useDebounceEffect( () => {
+        if(isKirikae === false ){ setIsKirikae( true ) }
+    }, KIRIKAE_DELAY, [value, isKirikae] )
 
-  useDebounceEffect( () => {
-    if(isKirikae === false ){ setIsKirikae( true ) }
-  }, KIRIKAE_DELAY, [value, isKirikae] )
+    useEffect( () => {
+        if(value !== null){
+            if(isKirikae === true){
+                setIsKirikae(false);
+            }
+            else{
+                let kirikaeTmp = changeHira(value);
+                setKirikae(kirikaeTmp);
+            }
+        }
+    }, [value])
 
-  useEffect( () => {
-    if(value !== null){
-      if(isKirikae === true){
-        setIsKirikae(false);
-      }
-      else{
-        let kirikaeTmp = changeHira(value);
-        setKirikae(kirikaeTmp);
-      }
-    }
-  }, [value])
+    const kirikaeValue = isKirikae ? kirikae : value;
 
-  const kirikaeValue = isKirikae ? kirikae : value;
-
-  return { kirikaeValue, handleChange : handleKrikae, kirikae }
+    return { kirikaeValue, handleChange : handleKrikae, kirikae }
 }
 
+/**
+ * 입력값이 모두 한글일 경우, 히라가나로 변환 하는 Hook
+ * 배열 버전
+ * 
+ * @param dependancy 의존값
+ * @param multiValue 입력값 배열 
+ * @param handleMultiChange onChange함수
+ * @returns kirikaeValue 보여줄 값 배열, 입력중일 때는 원본, 입력이 끝난 뒤에는 히라가나
+ * @returns concatMultiInput 히라가나로 변환한 배열을 모두 합친 값
+ * @returns handleChange 변환이 추가된 onChange함수
+ */
 function useMultiKirikae(dependancy : string | null, multiValue : Array<string>, handleMultiChange : (e : React.ChangeEvent<any>, index : number) => void ){
 
-  const [value, setValue] = useState<Array<string>>([]); //변환된 히라가나 배열
-  const [isKirikae, setIsKirikae] = useState<boolean>(false);
+    const [value, setValue] = useState<Array<string>>([]); //변환된 히라가나 배열
+    const [isKirikae, setIsKirikae] = useState<boolean>(false);
 
-  const { isAllHangul, isAllHira, koNFCToHira } = useJaText();
+    const { isAllHangul, isAllHira, koNFCToHira } = useJaText();
 
-  const handleChange = (e : React.ChangeEvent, index : number) => {
-    if( isKirikae === true){
-      setIsKirikae(false);
+    const handleChange = (e : React.ChangeEvent, index : number) => {
+        if( isKirikae === true){
+            setIsKirikae(false);
+        }
+        else{
+            handleMultiChange(e, index);
+        }
     }
-    else{
-      handleMultiChange(e, index);
+
+    const changeHira = (value : string) => {
+        if( isAllHangul(value) === true && isAllHira(value) === false ){
+            return koNFCToHira(value);
+        }
+        else{
+            return value;
+        }
     }
-  }
 
-  const changeHira = (value : string) => {
-    if( isAllHangul(value) === true && isAllHira(value) === false ){
-      return koNFCToHira(value);
+    const changeMultiHira = () => {
+        let kirikaeTmp = [...value];
+        for(let key in multiValue){
+            kirikaeTmp[key] = changeHira( multiValue[key] );
+        }
+        setValue(kirikaeTmp);
     }
-    else{
-      return value;
+
+    const concatMultiInput = () => {
+        let retStr = '';
+        for(let key in multiValue){
+            retStr += changeHira(multiValue[key]);
+        }
+        return retStr;
     }
-  }
 
-  const changeMultiHira = () => {
-    let kirikaeTmp = [...value];
-    for(let key in multiValue){
-      kirikaeTmp[key] = changeHira( multiValue[key] );
-    }
-    setValue(kirikaeTmp);
-  }
+    useDebounceEffect( () => {
+        if(isKirikae === false ){ setIsKirikae( true ) }
+    }, KIRIKAE_DELAY, [isKirikae, multiValue] )
 
-  const concatMultiInput = () => {
-    let retStr = '';
-    for(let key in multiValue){
-      retStr += changeHira(multiValue[key]);
-    }
-    return retStr;
-  }
+    useEffect( () => {
+        if(multiValue !== null){
+            changeMultiHira();
+            if(isKirikae === true){
+                setIsKirikae(false);
+            }
+        }
+    }, [multiValue])
 
-  useDebounceEffect( () => {
-    if(isKirikae === false ){ setIsKirikae( true ) }
-  }, KIRIKAE_DELAY, [isKirikae, multiValue] )
+    useEffect( () => {
+        if(dependancy !== null){
+            setValue([]);
+        }
+    }, [dependancy])
 
-  useEffect( () => {
-    if(multiValue !== null){
-      changeMultiHira();
-      if(isKirikae === true){
-        setIsKirikae(false);
-      }
-    }
-  }, [multiValue])
+    const kirikaeValue = isKirikae ? value : multiValue;
 
-  useEffect( () => {
-    if(dependancy !== null){
-      setValue([]);
-    }
-  }, [dependancy])
-
-  const kirikaeValue = isKirikae ? value : multiValue;
-
-  return { kirikaeValue, concatMultiInput, handleChange }
+    return { kirikaeValue, concatMultiInput, handleChange }
 }
 
+/**
+ * 한자인 경우에만 input값을 받는 hook
+ * 
+ * @param dependancy 의존값
+ * @param defaultInput 기본값
+ * @param edit 편집 상태인 경우
+ * @returns multiValue input과 label의 모든 텍스트 값 배열
+ * @returns multiInputData string값의 data, input여부의 inputBool 객체 배열
+ * @returns handleChange input여러개를 관리하는 onChange 함수
+ * @todo Hook 분리하기
+ */
 function useMultiInput(dependancy : string | null, defaultInput? : string | undefined, edit? : boolean ){
 
-  const [multiValue, setMultiValue] = useState<Array<string>>([]);
+    const [multiValue, setMultiValue] = useState<Array<string>>([]);
 
-  const [multiInputData, setMultiInputData] = useState([{data : '', inputBool : false}]);
+    const [multiInputData, setMultiInputData] = useState([{data : '', inputBool : false}]);
 
-  const { yomiToHuri } = useHuri();
+    const { yomiToHuri } = useHuri();
 
-  const kanjiRegex = useContext<UnicodeContext>(UnicodeContext).kanji;
-  const hiraganaRegex = useContext<UnicodeContext>(UnicodeContext).hiragana;
+    const kanjiRegex = useContext<UnicodeContext>(UnicodeContext).kanji;
+    const hiraganaRegex = useContext<UnicodeContext>(UnicodeContext).hiragana;
 
-  const handleChange = (e : React.ChangeEvent<HTMLInputElement>, index : number) => {
-    let tmp = [...multiValue];
-    tmp[index] = e.target.value;
-    setMultiValue(tmp);
-  }
+    const handleChange = (e : React.ChangeEvent<HTMLInputElement>, index : number) => {
+        let tmp = [...multiValue];
+        tmp[index] = e.target.value;
+        setMultiValue(tmp);
+    }
 
-  const multiInput = (tango : string) => {
-    let arrKanji = tango.match(kanjiRegex);
-    let arrOkuri = tango.match(hiraganaRegex);
-    let arrHuri = []; //tango의 히라가나 부분만 들어가는 배열
+    const multiInput = (tango : string) => {
+        let arrKanji = tango.match(kanjiRegex);
+        let arrOkuri = tango.match(hiraganaRegex);
+        let arrHuri = []; //tango의 히라가나 부분만 들어가는 배열
 
-    let startBool = true; //true면 한자 시작
+        let startBool = true; //true면 한자 시작
 
-    let tmp = [];
+        let tmp = [];
 
-    let endIndex = 0;
-    if(arrOkuri !== null){
-      for(let idx = 0; idx < arrOkuri.length; idx++){
+        let endIndex = 0;
+        if(arrOkuri !== null){
+            for(let idx = 0; idx < arrOkuri.length; idx++){
 
-        if(tango.substring(endIndex, tango.indexOf(arrOkuri[idx], endIndex)) === ''){
-          startBool = false;
+                if(tango.substring(endIndex, tango.indexOf(arrOkuri[idx], endIndex)) === ''){
+                    startBool = false;
+                }
+                else{
+                    arrHuri.push(tango.substring(endIndex, tango.indexOf(arrOkuri[idx], endIndex)));
+                }
+                endIndex = tango.indexOf(arrOkuri[idx], endIndex)+arrOkuri[idx].length;
+                //첫문자가 히라가나로 시작할 경우 빈문자열 push됨.
+            }
+            if(tango.substring(endIndex) !== ''){
+                arrHuri.push(tango.substring(endIndex));
+            }
+        }
+
+        let kanjiIndex = 0;
+        let okuriIndex = 0;
+        if(arrOkuri !== null && arrKanji !== null){
+            for(let i = 0; i < arrKanji.length + arrOkuri.length; i++){
+                if(startBool === false){
+                    tmp.push({ data : arrOkuri[okuriIndex], inputBool : false });
+                    okuriIndex++;
+                    startBool = true;
+                }
+                else{
+                    tmp.push({ data : arrKanji[kanjiIndex], inputBool : true });
+                    kanjiIndex++;
+                    startBool = false;
+                }
+            }
         }
         else{
-          arrHuri.push(tango.substring(endIndex, tango.indexOf(arrOkuri[idx], endIndex)));
+            if(arrOkuri !== null && arrKanji === null){
+                tmp = [{ data : arrOkuri[0], inputBool :  false }];
+            }
+            else if(arrOkuri === null && arrKanji !== null){
+                tmp = [{ data : arrKanji[0], inputBool : true }];
+            }
+            else{
+                tmp = [{ data : '', inputBool : false }];
+            }
         }
-        endIndex = tango.indexOf(arrOkuri[idx], endIndex)+arrOkuri[idx].length;
-        //첫문자가 히라가나로 시작할 경우 빈문자열 push됨.
-      }
-      if(tango.substring(endIndex) !== ''){
-        arrHuri.push(tango.substring(endIndex));
-      }
+
+        return tmp;
     }
 
-    let kanjiIndex = 0;
-    let okuriIndex = 0;
-    if(arrOkuri !== null && arrKanji !== null){
-      for(let i = 0; i < arrKanji.length + arrOkuri.length; i++){
-        if(startBool === false){
-          tmp.push({ data : arrOkuri[okuriIndex], inputBool : false });
-          okuriIndex++;
-          startBool = true;
-        }
-        else{
-          tmp.push({ data : arrKanji[kanjiIndex], inputBool : true });
-          kanjiIndex++;
-          startBool = false;
-        }
-      }
-    }
-    else{
-      if(arrOkuri !== null && arrKanji === null){
-        tmp = [{ data : arrOkuri[0], inputBool :  false }];
-      }
-      else if(arrOkuri === null && arrKanji !== null){
-        tmp = [{ data : arrKanji[0], inputBool : true }];
-      }
-      else{
-        tmp = [{ data : '', inputBool : false }];
-      }
-    }
+    const getDefaultInput = () => {
+        if(defaultInput !== null && defaultInput !== undefined && dependancy){
+            let huriArr = yomiToHuri(dependancy, defaultInput);
 
-    return tmp;
-  }
-
-  const getDefaultInput = () => {
-    if(defaultInput !== null && defaultInput !== undefined && dependancy){
-      let huriArr = yomiToHuri(dependancy, defaultInput);
-
-      return huriArr;
-    }
-    else{
-      return null;
-    }
-  }
-
-  useEffect( () => {
-    if(dependancy !== null && dependancy !== undefined){
-      if( dependancy.length > 10 ){
-        return;
-      }
-      let tmp = multiInput(dependancy);
-
-      setMultiInputData(tmp);
-
-      let ret : Array<string> = [];
-      for(let key in tmp){
-        if(tmp[key]['inputBool'] === false){
-          ret[key] = tmp[key]['data'];
+            return huriArr;
         }
         else{
-          ret[key] = '';
+            return null;
         }
-      }
-      setMultiValue( ret );
     }
-  }, [dependancy]);
 
-  useEffect( () => {
-    if( edit === true && defaultInput !== undefined ){
-      let def = getDefaultInput();
+    useEffect( () => {
+        if(dependancy !== null && dependancy !== undefined){
+            if( dependancy.length > 10 ){
+                return;
+            }
+            let tmp = multiInput(dependancy);
 
-      let huriIndex = 0;
-      let tmp = [...multiValue];
-      for(let key in tmp){
-        if( def !== null && def !==  undefined && def[huriIndex] !== undefined ){
-          tmp[key] = def[huriIndex];
-          huriIndex++;
+            setMultiInputData(tmp);
+
+            let ret : Array<string> = [];
+            for(let key in tmp){
+                if(tmp[key]['inputBool'] === false){
+                    ret[key] = tmp[key]['data'];
+                }
+                else{
+                    ret[key] = '';
+                }
+            }
+            setMultiValue( ret );
         }
-      }
-      setMultiValue(tmp);
-    }
-  }, [edit])
+    }, [dependancy]);
 
+    useEffect( () => {
+        if( edit === true && defaultInput !== undefined ){
+            let def = getDefaultInput();
 
-  return { multiValue, multiInputData, handleChange }
+            let huriIndex = 0;
+            let tmp = [...multiValue];
+            for(let key in tmp){
+                if( def !== null && def !==  undefined && def[huriIndex] !== undefined ){
+                    tmp[key] = def[huriIndex];
+                    huriIndex++;
+                }
+            }
+            setMultiValue(tmp);
+        }
+    }, [edit])
+
+    return { multiValue, multiInputData, handleChange }
 }
 
 export { useKirikae, useMultiKirikae, useMultiInput }

@@ -8,6 +8,13 @@ const { setSelection, setHurigana, setSelectedBun, setTextOffset, setOffset, cle
 
 const HANDLE_SELECTION_DELAY = 100;
 
+/**
+ * 드래그 해서 offset과 문장 ID를 추출하는 함수
+ * 
+ * @param document document
+ * @param restrictId selection이 허용되는 범위 css id로 구별
+ * @returns 
+ */
 function useHandleSelection( document : Document, restrictId : string ) {
     //State
     const [restrict, setRestrict] = useState<string>(restrictId);
@@ -17,7 +24,9 @@ function useHandleSelection( document : Document, restrictId : string ) {
     const dispatch = useAppDispatch();
 
     //Handle
-    //hurigana는 실질적인 사용은 없음. offset도 아마 그런 듯.
+    /**
+     * Bun의 data-bid, data-offset을 읽어서 offset과 문장 ID를 추출하는 함수
+     */
     const handleSelection = () => {
         const _selection = document.getSelection();
 
@@ -161,6 +170,9 @@ function useHandleSelection( document : Document, restrictId : string ) {
         }
     }
 
+    /**
+     * selection 해제
+     */
     const deselect = () => {
         var sel = document.getSelection();
         if (sel) {

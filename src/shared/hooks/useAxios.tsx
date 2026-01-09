@@ -4,6 +4,16 @@ import { ServerContext } from '../contexts/ServerContext';
 
 import axios from 'axios';
 
+/**
+ * GET
+ * 
+ * @param T Response 타입
+ * @param P Request 타입
+ * 
+ * @param url baseUrl을 제외한 서버 엔드포인트
+ * @param _pending true일 경우 즉시 실행, false일 경우 setParams, fetch이전까지 대기
+ * @param _parameter api 파라미터
+ */
 function useAxiosGet<T = any, P = any>(url : string, _pending : boolean | null = null, _parameter : P | null = null ) {
     const [response, setResponse] = useState<ApiResponse<T> | null>(null);
     const [error, setError] = useState<any>(null);
@@ -72,6 +82,16 @@ function useAxiosGet<T = any, P = any>(url : string, _pending : boolean | null =
     return { response, error, loading, setParams, fetch };
 }
 
+/**
+ * POST
+ * 
+ * @param T Response 타입
+ * @param P Request 타입
+ * 
+ * @param url baseUrl을 제외한 서버 엔드포인트
+ * @param _pending true일 경우 즉시 실행, false일 경우 setParams, fetch이전까지 대기
+ * @param _parameter api 파라미터
+ */
 function useAxiosPost<T = any, P = any>(url : string,  _pending : boolean | null = null, _parameter : P | null = null ) {
 	const [response, setResponse] = useState<ApiResponse<T> | null>(null);
 	const [error, setError] = useState<any>(null);
@@ -140,6 +160,17 @@ function useAxiosPost<T = any, P = any>(url : string,  _pending : boolean | null
   	return { response, error, loading, setParams, fetch };
 }
 
+
+/**
+ * DELETE
+ * 
+ * @param T Response 타입
+ * @param P Request 타입
+ * 
+ * @param url baseUrl을 제외한 서버 엔드포인트
+ * @param _pending true일 경우 즉시 실행, false일 경우 setParams, fetch이전까지 대기
+ * @param _parameter api 파라미터
+ */
 function useAxiosDelete<T = any, P = any>(url : string, _pending : boolean | null = null, _parameter : P | null = null ) {
 	const [response, setResponse] = useState<ApiResponse<T> | null>(null);
 	const [error, setError] = useState<any>(null);
@@ -208,6 +239,17 @@ function useAxiosDelete<T = any, P = any>(url : string, _pending : boolean | nul
 	return { response, error, loading, setParams, fetch };
 }
 
+
+/**
+ * PUT
+ * 
+ * @param T Response 타입
+ * @param P Request 타입
+ * 
+ * @param url baseUrl을 제외한 서버 엔드포인트
+ * @param _pending true일 경우 즉시 실행, false일 경우 setParams, fetch이전까지 대기
+ * @param _parameter api 파라미터
+ */
 function useAxiosPut<T = any, P = any>(url : string, _pending : boolean | null = null, _parameter : P | null = null ) {
 	const [response, setResponse] = useState<ApiResponse<T> | null>(null);
 	const [error, setError] = useState<any>(null);

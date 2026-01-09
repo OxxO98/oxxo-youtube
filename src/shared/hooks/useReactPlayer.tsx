@@ -1,5 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 
+/**
+ * React-Player 라이브러리에서 사용되는 Hook
+ * 
+ * @param videoId 비디오 ID
+ * @returns 
+ */
 function useReactPlayerHook( 
     videoId : string,
 ){

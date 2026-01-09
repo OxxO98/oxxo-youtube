@@ -11,6 +11,13 @@ const { setHukumuData, setStyled, setHukumuChecking, setHukumuCheckDone } = sele
 
 const FETCH_HUKUMU_CHECK_DELAY = 100;
 
+/**
+ * 서버에서 해당 selection범위에 hukumu가 있는지 체크하는 함수
+ * 여러개가 포함된 경우 맨 처음만 반환
+ * 
+ * @param deselect useSelection의 해제 함수
+ * @returns 
+ */
 function useHukumu( deselect : () => void ){
     //Context
 
@@ -22,6 +29,9 @@ function useHukumu( deselect : () => void ){
     //Hook
     const { response, setParams } = useAxiosGet<RES_GET_HUKUMU_CHECK, REQ_GET_HUKUMU_CHECK>('/db/hukumu/check', true, null);
 
+    /**
+     * hukumu체크 refetch
+     */
     const fetchInHR = useCallback( () => {
         if(selectedBun !== null && selectedBun !== undefined && selectedBun !== '' ){
             setParams({

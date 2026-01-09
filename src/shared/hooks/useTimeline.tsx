@@ -13,6 +13,13 @@ export type timelineHandles = {
     loading : boolean
 }
 
+/**
+ * 해당 비디오의 Timeline의 정보를 가져오는 Hook
+ * 가져온 뒤에는 store에 저장
+ * 
+ * @param videoId 비디오 ID
+ * @returns 
+ */
 export function useTimeline( videoId : string ){
 
     const { response, loading, fetch } = useAxiosGet<RES_GET_TIMELINE, REQ_GET_TIMELINE>('/db/timeline', false, { videoId: videoId });

@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 
 import { useAxiosGet, useAxiosPost } from './useAxios';
 
+/**
+ * youtube api를 통한 자막 데이터를 불러옴
+ * postCaption을 통해 이를 DB에 저장가능
+ */
 function useCaptionData(){
     const [captionData, setCaptionData] = useState<Array<RES_CAPTION> | null>(null);
     

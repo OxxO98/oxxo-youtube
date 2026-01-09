@@ -41,6 +41,15 @@ function getItem(
     } as MenuItem;
 }
 
+/**
+ * 레이아웃에서 메뉴 설정에 관한 Hook
+ * 
+ * @param name i18n에 사용될 구별자
+ * @param routesData 라우팅 정보
+ * @param itemesData Menu에 들어갈 아이템 정보
+ * @param videoId 비디오 ID (라우팅 시 사용됨)
+ * @returns 
+ */
 export function useLayoutMenu(
     name : string,
     routesData : routeTuple[],

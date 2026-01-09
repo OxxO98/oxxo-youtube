@@ -5,6 +5,12 @@ import { useAxiosGet } from 'shared/hooks/useAxios';
 //Redux
 import { useAppSelector } from 'shared/store';
 
+/**
+ * 선택된 hukumuData를 통해 비디오 ID에 있는 모든 후보 검색
+ * 
+ * @param videoId 비디오 ID
+ * @returns 
+ */
 function useHukumuList( videoId : string ){
 
     //Redux

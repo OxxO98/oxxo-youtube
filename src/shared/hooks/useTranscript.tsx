@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react';
 
 import { useAxiosGet, useAxiosPost } from './useAxios';
 
+/**
+ * node-whisper 라이브러리를 통해 오디오를 음성인식해 text로 변환하는 Hook
+ * postTranscript의 경우 이를 DB에 저장할 수 있음
+ * 
+ * @returns 
+ */
 function useTranscript(){
     const [transcriptData, setTranscriptData] = useState<RES_TRANSCRIPT[] | null>(null);
 

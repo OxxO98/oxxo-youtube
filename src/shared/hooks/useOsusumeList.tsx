@@ -6,6 +6,12 @@ import { useJaText } from 'shared/lib/useJaText';
 //Redux
 import { useAppSelector } from 'shared/store';
 
+/**
+ * 선택된 selection과 정확히 일치하는 hukumu를 검색
+ * videoId와는 상관 없이 전체 DB에서 검색
+ * 
+ * @returns 
+ */
 function useOsusumeList(){
     //Redux
     const { selection, hukumuData, hukumuCheckLoading } = useAppSelector((state) => state.selection);
