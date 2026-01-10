@@ -48,7 +48,7 @@ const HukumuListComp = ({ hukumuList, refetchHukumuList, refetchTangoList, refet
                 <VirtualList
                     data={hukumuList}
                     itemHeight={47}
-                    itemKey="tId"
+                    itemKey="jaBId"
                 >
                 {
                     (hukumu) => (

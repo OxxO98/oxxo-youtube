@@ -5,7 +5,7 @@ import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 import { useJaText } from 'shared/lib/useJaText';
 import { useHuri } from 'shared/lib/useHuri';
 
-const KIRIKAE_DELAY = 300;
+const KIRIKAE_DELAY = 1000;
 
 /**
  * 입력값이 모두 한글일 경우, 히라가나로 변환 하는 Hook
