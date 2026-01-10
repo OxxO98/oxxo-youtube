@@ -1,5 +1,5 @@
-import { CSSProperties, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { CSSProperties, useState, useCallback, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 //hooks
 import { useLayoutMenu } from 'shared/lib/useLayoutMenu';
@@ -27,8 +27,8 @@ const MenuStyle : CSSProperties = {
 }
 
 const routeTuples : routeTuple[] = [
-    [ '1', 'Home', '/', null ],
-    [ '2', 'DB', '/db/1', null ]
+    [ '1', 'Home', '/', '' ],
+    [ '2', 'DB', '/db/1', 'db' ]
 ]
 
 const itemTuples : itemTuple[] = [
@@ -45,6 +45,15 @@ export const LayoutComp = ({ children } : LayoutCompProps ) => {
 
     //Hook
     const navigate = useNavigate();
+    const location = useLocation();
+        
+    const getLocation = useCallback( () => {
+        let _find = routes.filter( (v) => v.path === location.pathname || ( v.comparePath !== null && location.pathname.split('/')[1] === v.comparePath ) );
+
+        return _find.length !== 0 ? _find[0].key : '2';
+    }, [location.pathname, routes])
+
+    const currentLocation = useMemo( () => { return getLocation() }, [getLocation]);
 
     //Handle
     const handleClick: MenuProps['onClick'] = (e) => {
@@ -55,7 +64,7 @@ export const LayoutComp = ({ children } : LayoutCompProps ) => {
     return(
         <Layout style={{ minHeight : '100vh' }}>
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-                <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} onClick={handleClick} style={MenuStyle}/>
+                <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} selectedKeys={[currentLocation]} onClick={handleClick} style={MenuStyle}/>
             </Sider>
             <Layout>
                 <Header style={{ padding: 0 }}>

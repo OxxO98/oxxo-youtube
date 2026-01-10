@@ -322,7 +322,7 @@ const DBSearchList = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { response, setParams, fetch, error } = useAxiosGet<any, any>('/db/all', false, null );
+    const { response, setParams, fetch, error } = useAxiosGet<any, any>('/db/all', true, null );
 
     //Handle
     const onChange = (page : number, pagesize : number) => {
