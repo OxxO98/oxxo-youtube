@@ -40,7 +40,7 @@ export const TangoDB = ({ data, handleSubmit } : TangoDBProps ) => {
                     tangoData.list !== null &&
                     tangoData.list.map( (arr) =>
                         <>
-                            <ComplexText bId={null} data={arr.hyouki} ruby={arr.yomi} offset={0}/>
+                            <ComplexText bId={null} data={arr.hyouki} ruby={arr.yomi} offset={0}/>　 
                         </> 
                     )
                 }

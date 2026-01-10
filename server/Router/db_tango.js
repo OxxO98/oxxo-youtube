@@ -10,10 +10,7 @@ async function getTango(req, res){
         let { tId } = req.query;
 
         let hyoukis = db.data.hyouki;
-        let joinHukumu = _.uniqBy(
-                db.data.hukumu
-                .filter( (v) => v.tId == tId )
-            , 'tId')
+        let joinHukumu = db.data.hukumu.filter( (v) => v.tId == tId ) 
             .map( (v) => {
                 return {
                     ...v,
@@ -27,6 +24,10 @@ async function getTango(req, res){
                     yomi : v.yomi
                 }
             })
+        joinHukumu = _.uniqBy(
+            joinHukumu
+            , 'hyouki'
+        )
 
         res.send({
             message : 'success',

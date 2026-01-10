@@ -41,7 +41,7 @@ const CompoundListComp = ({ hukumuList, osusumeList, tangoList, refetchHukumuLis
                 :
                 <>
                 {
-                    osusumeList !== null ? 
+                    osusumeList !== null && osusumeList.length !== 0 ? 
                     <>
                         <OsusumeListComp osusumeList={osusumeList} refetchOsusumeList={refetchOsusumeList} refetchTangoList={refetchTangoList} refetchHandles={refetchHandles}/>
                     </>

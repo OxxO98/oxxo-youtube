@@ -10,6 +10,7 @@ import { useAppSelector } from 'shared/store';
 //CSS@antd
 import { Empty, Typography, Radio } from 'antd';
 import type { RadioChangeEvent } from 'antd';
+import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 
 const DictionaryStyle = {
     width : "100%",
@@ -33,9 +34,17 @@ const DictionaryComp = () => {
 
     const [selectDict, setSelectDict] = useState(i18n.language === 'ko' ? 'naver' : 'weblio');
 
+    const [searchText, setSearchText] = useState<string>('');
+
     const onChange = (e: RadioChangeEvent) => {
         setSelectDict(e.target.value);
     };
+
+    useDebounceEffect( () => {
+        if( selection && selection !== '　' && selection !== ' ' && selection !== '' && selection.length < 10 && checkKatachi(selection) !== null ){
+            setSearchText(selection)
+        }
+    }, 500, [selection])
 
     //Hook
     const { checkKatachi } = useJaText();
@@ -43,13 +52,13 @@ const DictionaryComp = () => {
     return(
         <>
         {
-            selection && selection !== '　' && selection !== ' ' && selection.length < 10 && checkKatachi(selection) !== null ?
+            searchText ?
             <div style={DictionaryStyle}>
                 <Radio.Group defaultValue={selectDict} size="middle" onChange={onChange} buttonStyle="solid">
                     <Radio.Button value="naver">Naver</Radio.Button>
                     <Radio.Button value="weblio">weblio</Radio.Button>
                 </Radio.Group>
-                <iframe title="dictionary_naver" src={ selectDict === 'naver' ? `https://ja.dict.naver.com/?m=mobile#/search?range=all&query=${selection}` : `https://www.weblio.jp/content/${selection}` } style={InnerStyle}></iframe>
+                <iframe title="dictionary_naver" src={ selectDict === 'naver' ? `https://ja.dict.naver.com/?m=mobile#/search?range=all&query=${searchText}` : `https://www.weblio.jp/content/${searchText}` } style={InnerStyle}></iframe>
             </div>
             :
             <Empty 

@@ -7,7 +7,7 @@ import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 
 //Redux
 import { useAppSelector, useAppDispatch, selectionActions } from 'shared/store';
-const { setHukumuData, setStyled, setHukumuChecking, setHukumuCheckDone } = selectionActions;
+const { setHukumuData, setStyled, setHukumuChecking, setHukumuCheckDone, clear } = selectionActions;
 
 const FETCH_HUKUMU_CHECK_DELAY = 100;
 
@@ -55,6 +55,9 @@ function useHukumu( deselect : () => void ){
                     startOffset : res.data[0].startOffset, endOffset : res.data[0].endOffset, 
                     opt : 'highlight' 
                 }) );
+            }
+            else{
+                dispatch( setHukumuData(null) );
             }
         }
     }, [response, selectedBun])
