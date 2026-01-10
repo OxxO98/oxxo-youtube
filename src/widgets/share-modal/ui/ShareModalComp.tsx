@@ -35,7 +35,7 @@ const ShareModalComp = () => {
     const [userId, setUserId] = useState<string | null>(null);
     const [json, setJson] = useState<JSON_DATA[] | null>(null);
 
-    const [jsonBunIds, setJsonBunIds] = useState<Array<RES_JSON> | null>(null);
+    const [jsonBunIds, setJsonBunIds] = useState<RES_JSON[] | null>(null);
     
     const [isModalOpen, setIsModalOpen] = useState(false);
     

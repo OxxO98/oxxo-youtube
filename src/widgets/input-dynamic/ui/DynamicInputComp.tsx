@@ -18,8 +18,8 @@ const { setStyled } = selectionActions;
 
 interface DynamicInputCompProps {
     handleMultiChange : (e : React.ChangeEvent, index : number) => void;
-    multiInputData : Array<MultiInput>;
-    multiValue : Array<string>;
+    multiInputData : MultiInput[];
+    multiValue : string[];
     concatMultiInput : () => string;
     handleRefetch : (opt? : string[]) => void; 
 }

@@ -84,7 +84,7 @@ declare global {
     yomi : string;
     startOffset : number;
     endOffset : number;
-    textData : Array<TextData>;
+    textData : TextData[];
   }
 
     //LIstComps
@@ -110,8 +110,8 @@ declare global {
   } //애매함 문제 RESPONSE인가??
 
   export interface FilteredData {
-    right : Array<number>; 
-    left : Array<number>;
+    right : number[]; 
+    left : number[];
     length : number;
   }
 
@@ -135,15 +135,15 @@ declare global {
   }
 
   export interface TangoData {
-    list : Array<ComplexText>;
-    imi : Array<string> | null;
+    list : ComplexText[];
+    imi : string[] | null;
   }
 
     //Tangochou
   export interface TangochouData {
     tId : tId;
     hyId : string;
-    textData : Array<TextData>;
+    textData : TextData[];
     yomi : string;
     hyouki : string;
     imi : string[];
@@ -161,7 +161,7 @@ declare global {
     hyId : string;
     iId : string;
     tId : string;
-    textData : Array<TextData>
+    textData : TextData[]
     hyouki : string;
     yomi : string;
   }
@@ -197,12 +197,12 @@ declare global {
   }
 
   export interface TangoDBSearchedList {
-    kanzen : Array<RES_SEARCH_TANGO>;
-    orSame : Array<RES_SEARCH_TANGO>;
-    prefix : Array<RES_SEARCH_TANGO>; 
-    suffix : Array<RES_SEARCH_TANGO>;
-    okuri : Array<RES_SEARCH_TANGO>;
-    theOther : Array<RES_SEARCH_TANGO>;
+    kanzen : RES_SEARCH_TANGO[];
+    orSame : RES_SEARCH_TANGO[];
+    prefix : RES_SEARCH_TANGO[]; 
+    suffix : RES_SEARCH_TANGO[];
+    okuri : RES_SEARCH_TANGO[];
+    theOther : RES_SEARCH_TANGO[];
   }
 
   //Transcription & chatgpt
@@ -394,8 +394,8 @@ declare global {
   export type RES_GET_TRANSLATE = {
     jaBun : jaBun;
     koBun : koBun | null;
-    jaList : Array<jaBun>;
-    koList : Array<koBun> | null;
+    jaList : jaBun[];
+    koList : koBun[] | null;
   }
   export type REQ_GET_TRANSLATE = {
     videoId : string;
@@ -569,7 +569,7 @@ declare global {
     iId : string | null;
     tId : string;
     //Hyouki
-    textData : Array<TextData>;
+    textData : TextData[];
     yomi : string;
     hyouki : string;
   }
@@ -597,7 +597,7 @@ declare global {
     yomi : string;
     startOffset : number;
     endOffset : number;
-    textData : Array<TextData>
+    textData : TextData[]
   }
 
   export interface RES_IMI {
@@ -619,13 +619,13 @@ declare global {
   export type RES_TANGOCHOU_LIST = TangochouData[]
 
   export interface RES_TANGO_INFO {
-    tangoList : Array<TangoBunData>;
-    kanjiList : Array<KanjiData>;
+    tangoList : TangoBunData[];
+    kanjiList : KanjiData[];
   }
 
   export interface RES_KANJI_INFO {
     kanji : KanjiData;
-    tangoList : Array<KanjiTangoData>
+    tangoList : KanjiTangoData[]
   }
 
     //PDF
@@ -638,7 +638,7 @@ declare global {
     iId : iId | null;
     tId : string;
     //HYOUKI
-    textData : Array<TextData>;
+    textData : TextData[];
     yomi : string;
     hyouki : string;
     //JABUN
@@ -654,7 +654,7 @@ declare global {
     hyId : hyId;
     tId : tId;
     //HYOUKI
-    textData : Array<TextData>;
+    textData : TextData[];
     yomi : string;
     hyouki : string;
     //IMI
@@ -664,13 +664,13 @@ declare global {
     jaText : string; //한자 표기
   }
 
-  export type RES_PDF_TANGO_LIST = Array<RES_PDF_TANGO_DATA>;
+  export type RES_PDF_TANGO_LIST = RES_PDF_TANGO_DATA[];
 
-  export type RES_PDF_KANJI_LIST = Array<RES_PDF_KANJI_DATA>;
+  export type RES_PDF_KANJI_LIST = RES_PDF_KANJI_DATA[];
 
   export interface RES_PDF_ALL {
-    tangoList : Array<RES_PDF_TANGO_LIST>;
-    kanjiList : Array<RES_PDF_KANJI_LIST>;
+    tangoList : RES_PDF_TANGO_LIST[];
+    kanjiList : RES_PDF_KANJI_LIST[];
   };
 
   //공유하는 데이터
@@ -678,7 +678,7 @@ declare global {
     startTime : number;
     endTime : number;
     jaText : string;
-    textData : Array<RES_SHARED_TEXTDATA>;
+    textData : RES_SHARED_TEXTDATA[];
     koText? : string;
   }
 
@@ -691,7 +691,7 @@ declare global {
   export interface RES_SHARED_TIMELINE {
     s : number; //startTime
     e : number; //endTime
-    j : Array<RES_SHARED_TEXTDATA>; //jaText but, Textdata
+    j : RES_SHARED_TEXTDATA[]; //jaText but, Textdata
     k : string; //koText
   }
 
@@ -704,7 +704,7 @@ declare global {
     startTime : number;
     endTime : number;
     jaText : string;
-    textData : Array<TextData>;
+    textData : TextData[];
     koText? : string;
   }
 
@@ -793,7 +793,7 @@ declare global {
     markerStop? : () => void;
     loop? : () => void;
     nextMarkerPlay? : () => void;
-    custom? : Array<{ key : string; action : () => void; }>
+    custom? : { key : string; action : () => void; }[]
   }
 
   export interface VideoPlayerHandles {
@@ -1237,7 +1237,7 @@ declare global {
   }
 
   export interface tracedMed {
-    add : Array<number>;
-    del : Array<number>;
+    add : number[];
+    del : number[];
   }
 }

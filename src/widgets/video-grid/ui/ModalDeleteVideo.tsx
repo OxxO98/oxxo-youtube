@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+//api
+import { useDeleteVideo } from '../api/useDeleteVideo';
+
 //CSS@AntD
 import { Button, Modal } from "antd";
-import { useDeleteVideo } from '../api/useDeleteVideo';
 
 interface ModalDeleteVideoProps {
     videoId : string;

@@ -219,9 +219,8 @@ const hangulJonsungHiraMatch : ObjKey = {
  * 
  * @returns koNFCToHira, HiraToKoNFC,
     isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
-    matchOkuri, matchOkuriExec, getMED, traceHukumu, 
+    traceHukumu, 
     getHyoukiQuery, getYomiQuery, convertObjKey,
-    getHyoukiQueryByTextData,
  */
 function useJaText(){
     const unicodeRange = useContext<UnicodeRangeContext>(UnicodeRangeContext);
@@ -294,7 +293,7 @@ function useJaText(){
      * @example hangulToHira('콘', 0, '콘도') : 'こん'
      * @example hangulToHira('샤', 0, '샤신') : 'しゃ'
      */
-    const hangulToHira = useCallback( ( char : string, index : number, arr : Array<string> ) => {
+    const hangulToHira = useCallback( ( char : string, index : number, arr : string[] ) => {
         let normalized = char.normalize('NFD').replace(chosungsRegex, $0 => chosungs[$0.charCodeAt(0) - 0x1100]).replace(jungsungsRegex, $0 => junsungs[$0.charCodeAt(0) - 0x1161]).replace(jongsungsRegex, $0 => jongsungs[$0.charCodeAt(0) - 0x11A8]);
 
         if(normalized.length >= 2 && normalized.length <= 3){
@@ -338,7 +337,7 @@ function useJaText(){
      * @example HiraToHangul('そ', 0, 'そうぞう') : '소'
      * @example HiraToHangul('ん', 1, 'こんど') : 'ㄴ'
      */
-    const HiraToHangul = useCallback( ( char : string, index : number, arr : Array<string>  ) => {
+    const HiraToHangul = useCallback( ( char : string, index : number, arr : string[]  ) => {
         
         if(char === 'を'){
             return '오'
@@ -461,7 +460,7 @@ function useJaText(){
      */
     const getRegexRevise = useCallback( ( text : string ) => {
         let extractKanjiArr = extractKanji(text);
-        let kanjiArr : Array<string> = extractKanjiArr !== null ? extractKanjiArr.join('').split('') : [""];
+        let kanjiArr : string[] = extractKanjiArr !== null ? extractKanjiArr.join('').split('') : [""];
         let kanji_pattern = kanjiArr.map( (arr) => `${arr}`).join(`[${unicodeRange.hiragana}]*`);
 
         let testRegex = new RegExp(
@@ -821,7 +820,7 @@ function useJaText(){
             }
         }
 
-        let delExec = function( delMed : Array<number> ){
+        let delExec = function( delMed : number[] ){
             let medValue = delMed;
 
             function getValue(){
@@ -861,7 +860,7 @@ function useJaText(){
             }
         }
 
-        let addExec = function( addMed : Array<number> ){
+        let addExec = function( addMed : number[] ){
             let medValue = addMed;
 
             function getValue(){
@@ -909,13 +908,13 @@ function useJaText(){
      * 현대 문장에 포함된 Hukumu가 새 문장에서 어디에 위치하고 변경되었는지 추측
      * 위치 변화 및 오쿠리가나를 포함한 표기 변형, 삭제 여부를 찾음
      */
-    const traceHukumu = useCallback( (hukumu : Array<HukumuData>, bunText : string, newText : string) => {
+    const traceHukumu = useCallback( (hukumu : HukumuData[], bunText : string, newText : string) => {
         const med = getMED(bunText, newText);
 
         //일단 현재 getHukumuData의 양식에 따라서.
         const matchArr = hukumu.map( (arr) => { return matchOkuriExec(arr.hyouki, arr.yomi, newText) });
 
-        let ret = [...hukumu] as Array<tracedHukumu>;
+        let ret = [...hukumu] as tracedHukumu[];
 
         let { del, add } = med;
 
@@ -1010,19 +1009,6 @@ function useJaText(){
     }
 
     /**
-     * API를 위해 TextData의 표기를 쿼리 형태로 변환
-     * 백엔드에서 TextData로 변환하기 위해 구분자로 힌트를 얻음
-     * 
-     * @param textData 
-     * @example '申し込み' => '申_し_込_み'
-     * @deprecated
-     * @todo 사용되지 않음 삭제 예정
-     */
-    const getHyoukiQueryByTextData = ( textData : TextData[] ) : string => {
-        return textData.map( (v) => v.data ).join('_');
-    }
-
-    /**
      * API를 위해 input에 입력된 읽기를 쿼리형태로 변환
      * 백엔드에서 TextData로 변환하기 위해 구분자로 힌트를 얻음
      * 
@@ -1050,13 +1036,12 @@ function useJaText(){
         return obj;
     }
 
-  return { 
-    koNFCToHira, HiraToKoNFC,
-    isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
-    matchOkuri, matchOkuriExec, getMED, traceHukumu, 
-    getHyoukiQuery, getYomiQuery, convertObjKey,
-    getHyoukiQueryByTextData,
-  }
+    return { 
+        koNFCToHira, HiraToKoNFC,
+        isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
+        traceHukumu, 
+        getHyoukiQuery, getYomiQuery, convertObjKey,
+    }
 }
 
 export { useJaText }

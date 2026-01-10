@@ -15,7 +15,7 @@ export const useSearchedList = () => {
     const { isOnajiOkuri } = useJaText();
     const { getOkuri } = useHuri();
 
-    const getSearchedList = useCallback( ( selection : string, value : string, searchText : SearchText, data : Array<RES_SEARCH_TANGO> ) => {
+    const getSearchedList = useCallback( ( selection : string, value : string, searchText : SearchText, data : RES_SEARCH_TANGO[] ) => {
         if(data !== null && searchText !== null){
             let kanzenSame : RES_SEARCH_TANGO[] = []; //표기 읽기 완전 일치
             let orSame : RES_SEARCH_TANGO[] = []; //표기 or 읽기 완전 일치

@@ -28,7 +28,7 @@ export const KanjiInfo = () => {
 
     //State
     const [kanji, setKanji] = useState<KanjiData | null>(null);
-    const [list, setList] = useState<Array<KanjiTangoData> | null>(null);
+    const [list, setList] = useState<KanjiTangoData[] | null>(null);
 
     const { kId } = useParams();
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext, CSSProperties, useCallback } fr
 
 //Hook
 import { useHandleKeyboard } from 'shared/hooks/useHandleKeyboard';
-import { useSelectEdit } from 'shared/lib/useSelect'
+import { useSelectEdit } from '../lib/useSelect'
 
 //widgets
 import { HonyakuComp } from 'widgets/honyaku/index';

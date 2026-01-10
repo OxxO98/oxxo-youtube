@@ -1,10 +1,7 @@
-import React, { useEffect, useState, useRef, useContext, useMemo, CSSProperties, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import VirtualList, { ListRef } from 'rc-virtual-list';
 import { useHotkeys } from 'react-hotkeys-hook';
 
-//Hook
-import { useTimeStamp } from 'shared/lib/useTimeStamp';
-import { useActive } from 'shared/lib/useActive';
 
 import type { timelineHandles } from 'shared/hooks/useTimeline'
 
@@ -14,6 +11,9 @@ import { TimelineBun } from 'entities/TimelineBun/index'
 //ui
 import { MakeDrftComp } from './MakeDraftComp';
 import { TimelineControlComp } from './TimelineControlComp';
+
+//lib
+import { useActive } from '../lib/useActive';
 
 //Redux
 import { useAppSelector, useAppDispatch, reactPlayerActions } from 'shared/store';
@@ -53,9 +53,7 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
 
     const dispatch = useAppDispatch();
 
-    //Hook
-    const { timestampEdit } = useTimeStamp();
-    
+    //Hook    
     const { getActive, setActive } = useActive();
 
     const { setScratch, gotoTime } = videoPlayerHandles;
@@ -155,7 +153,7 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
                                         <TimelineBun 
                                             key={timeline.ytBId} bId={timeline.jaBId} ytbId={timeline.ytBId}
                                             jaText={timeline.jaText}
-                                            startTimestamp={ timestampEdit( timeline.startTime.toString() ) } endTimestamp={ timestampEdit( timeline.endTime.toString() ) }
+                                            startTimestamp={ timeline.startTime.toString() } endTimestamp={ timeline.endTime.toString() }
                                             startTime={ timeline.startTime } endTime={ timeline.endTime }
                                             setInputText={setInputText}
                                             selectEditYtBId={selectEditYtBId}

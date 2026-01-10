@@ -3,16 +3,18 @@ import { useTranslation } from 'react-i18next'
 import { useHotkeys } from 'react-hotkeys-hook';
 
 //Hook
-import { useAxiosGet, useAxiosPut } from 'shared/hooks/useAxios';
+import { useAxiosGet } from 'shared/hooks/useAxios';
 
 //entities
 import { ComplexText } from 'entities/ComplexText/index';
+
+//api
+import { useDivide } from '../api/useDivide';
 
 //CSS@antD
 import { Input, Button, Flex, Modal, Card, Tooltip } from 'antd';
 import { SplitCellsOutlined } from '@ant-design/icons'
 import { VideoContext } from 'shared/contexts/VideoContext';
-import { useDivide } from '../api/useDivide';
 
 interface BunkatsuTimelineCompProps {
     ytb : RES_TIMELINE;
@@ -37,7 +39,7 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHa
         koText : ''
     })
 
-    const [hukumuDatas, setHukumuDatas] = useState<Array<HukumuData> | null>(null);
+    const [hukumuDatas, setHukumuDatas] = useState<HukumuData[] | null>(null);
 
     //Hook
     const { response : resHukumu, setParams : setParamsHukumu } = useAxiosGet<RES_GET_HUKUMU, REQ_GET_HUKUMU>('/db/hukumu', true, null);

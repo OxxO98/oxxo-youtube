@@ -11,7 +11,7 @@ import HukumuItem from './HukumuItem';
 import { List, Skeleton } from 'antd'
 
 interface HukumuListCompProps {
-    hukumuList : Array<HukumuList>;
+    hukumuList : HukumuList[];
     refetchHukumuList : () => void;
     refetchTangoList : () => void;
     refetchHandles : RefetchHandles;

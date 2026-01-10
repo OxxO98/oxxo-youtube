@@ -12,7 +12,7 @@ import { useAppSelector } from 'shared/store';
 import { List, Empty } from 'antd'
 
 interface OsusumeListCompProps {
-    osusumeList : Array<OsusumeList>;
+    osusumeList : OsusumeList[];
     refetchOsusumeList : () => void;
     refetchTangoList : () => void;
     refetchHandles : RefetchHandles;

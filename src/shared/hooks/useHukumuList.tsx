@@ -17,7 +17,7 @@ function useHukumuList( videoId : string ){
     const { selectedBun, hukumuData, hukumuCheckLoading } = useAppSelector((state) => state.selection);
 
     //State  
-    const [hukumuList, setHukumuList] = useState<Array<HukumuList> | null>(null);
+    const [hukumuList, setHukumuList] = useState<HukumuList[] | null>(null);
   
     //Hook  
     const {response, setParams, fetch} = useAxiosGet<RES_GET_LIST_HUKUMU, REQ_GET_LIST_HUKUMU>('/db/list/hukumu', true, null);

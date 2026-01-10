@@ -12,7 +12,7 @@ import { useAppSelector } from 'shared/store';
 import { List, Empty } from 'antd'
 
 interface TangoListCompProps {
-    tangoList : Array<TangoList> | null;
+    tangoList : TangoList[] | null;
 }
 
 const ListCompStyle : CSSProperties = {

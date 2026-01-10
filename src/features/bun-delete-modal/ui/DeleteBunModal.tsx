@@ -2,15 +2,20 @@ import { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next'
 import { useHotkeys } from 'react-hotkeys-hook';
 
+//Context
+import { VideoContext } from 'shared/contexts/VideoContext';
+
 //Hook
-import { useAxiosDelete, useAxiosGet } from 'shared/hooks/useAxios';
+import { useAxiosGet } from 'shared/hooks/useAxios';
 
 //entities
 import { ComplexText } from 'entities/ComplexText/index';
 
+//api
+import { useDeleteHukumuBun } from '../api/useDeleteHukumuBun';
+
 //CSS@antD
 import { Button, Flex, Modal, Card } from 'antd';
-import { VideoContext } from 'shared/contexts/VideoContext';
 
 interface DeleteBunModalCompProps {
     ytb : RES_TIMELINE;
@@ -28,12 +33,12 @@ export const DeleteBunModalComp = ({ ytb, refetchTimeline, cancelEdit } : Delete
 
     //State
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [hukumuData, setHukumuData] = useState<Array<HukumuData> | null>(null);
+    const [hukumuData, setHukumuData] = useState<HukumuData[] | null>(null);
 
     //Hook
     const { response, setParams } = useAxiosGet<RES_GET_HUKUMU, REQ_GET_HUKUMU>('/db/hukumu', true, null);
 
-    const { response : resDelete, setParams : setParamsDelete } = useAxiosDelete<null, REQ_DELETE_HUKUMU_BUN>('/db/hukumu/bun', true, null);
+    const { deleteBun } = useDeleteHukumuBun( videoId, ytb, refetchTimeline, cancelEdit );
 
     //Handle
     const showModal = () => {
@@ -50,10 +55,6 @@ export const DeleteBunModalComp = ({ ytb, refetchTimeline, cancelEdit } : Delete
         setIsModalOpen(false);
     };
 
-    const deleteBun = () => {
-        setParamsDelete({ videoId : videoId, ytBId : ytb.ytBId, jaBId : ytb.jaBId })
-    }
-
     //HotKeys
     useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
 
@@ -64,15 +65,6 @@ export const DeleteBunModalComp = ({ ytb, refetchTimeline, cancelEdit } : Delete
             setHukumuData(res.data);
         }
     }, [response])
-
-    useEffect( () => {
-        let res = resDelete;
-        if(res !== null){
-            refetchTimeline();
-            cancelEdit();
-        }
-    }, [resDelete, refetchTimeline, cancelEdit])
-
 
     return(
         <>

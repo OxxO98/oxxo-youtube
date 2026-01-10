@@ -9,6 +9,7 @@ import { useTimeStamp } from 'shared/lib/useTimeStamp';
 import { useAppSelector, useAppDispatch, reactPlayerActions } from 'shared/store';
 const { setStartTime, setEndTime, selectMarkerStart, selectMarkerEnd, unselectMarker, setMarkerTime } = reactPlayerActions;
 
+const DEBOUNCE_TIME_MS = 200;
 /**
  * 비디오 재생 컨트롤 Hook
  * 
@@ -29,8 +30,6 @@ function useVideoPlayHook(
     const { frameRate : frame } = useContext(VideoContext);
 
     //State
-    const DEBOUNCE_TIME_MS = 200;
-
     const [autoStop, setAutoStop] = useState<AutoStop>({
         set : false,
         startOffset : 0,
@@ -38,6 +37,7 @@ function useVideoPlayHook(
         loop : false
     });
 
+    //Redux
     const { selectMarker, startTime, endTime, markerTime } = useAppSelector((state) => state.reactPlayer);
 
     const dispatch = useAppDispatch();
@@ -50,6 +50,11 @@ function useVideoPlayHook(
     const debounce = useDebounce();
 
     //Handle
+    /**
+     * 원하는 시간으로 이동
+     * playBool로 재생상태 변경 가능
+     * playBool이 null일 경우는 재생상태 변경 없음
+     */
     const gotoTime = useCallback( (time : number, playBool : boolean | null) => {
         if(playedSeconds !== time){
             handleSeek(time);
@@ -59,6 +64,9 @@ function useVideoPlayHook(
         }
     }, [handleSeek, playedSeconds, setPlaying])
 
+    /**
+     * 자동으로 멈출 지점을 설정하고, startOffset으로 이동
+     */
     const setScratch = useCallback( (set : boolean, startOffset : number, endOffset : number, loop : boolean) => {
         //autoStop은 played*duration의 형식, seconds
         if(set === true){
@@ -84,6 +92,9 @@ function useVideoPlayHook(
         }
     }, [handleSeek, playing, setPlaying])
 
+    /**
+     * 반복 설정
+     */
     const loop = () => {
         if(startTime === null || endTime === null){
             return;
@@ -98,6 +109,9 @@ function useVideoPlayHook(
         }
     }
 
+    /**
+     * 재생 멈춤 및 재생 handle
+     */
     const pauseYT = () => {
         if(playing === true){
             //일단 markerTime 처럼 재생
@@ -109,7 +123,10 @@ function useVideoPlayHook(
         }
     }
 
-    //일단 현재 상태로는 play중에는 마커만 변경되서 그냥 두번 누를때 씹힐수 있음
+    /**
+     * 이전 프레임으로 이동
+     * 일단 현재 상태로는 play중에는 마커만 변경되서 그냥 두번 누를때 씹힐수 있음
+     */
     const prevFrame = useCallback( () => {
         if(playedSeconds - 1/frame < 0){
             return;
@@ -149,8 +166,14 @@ function useVideoPlayHook(
         }
     }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, frame, markerTime])
 
+    /**
+     * prevFrame의 debounce버전
+     */
     const debouncedPrev = debounce( prevFrame, DEBOUNCE_TIME_MS);
 
+    /**
+     * 다음 프레임으로 이동
+     */
     const nextFrame = useCallback( () => {
         if(playedSeconds + 1/frame > duration){
             return;
@@ -191,8 +214,15 @@ function useVideoPlayHook(
         }
     }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, frame, duration, markerTime])
 
+    /**
+     * nextFrame의 debounce버전
+     */
     const debouncedNext = debounce( nextFrame, DEBOUNCE_TIME_MS);
 
+    /**
+     * range범위에서 오디오가 앞뒤에 비해 작은 지점을 반환
+     * range범위 안에 없으면 현재 시간 반환
+     */
     const getPrevAutoMarkerPoint = useCallback( (time : number, range : number) => {
         let rangePointIndex = floorFrame(time, frame)*frame;
         let rangePrevIndex = rangePointIndex - range*frame;
@@ -202,13 +232,17 @@ function useVideoPlayHook(
             
             for( let i = 1; i < _r.length-1; i++ ){
                 if( _r[i-1] > _r[i] && _r[i+1] > _r[i] ){
-                return floorFrame(time - i/frame, frame);
+                    return floorFrame(time - i/frame, frame);
                 }
             }
         }
         return time;
     }, [filteredData, floorFrame, frame])
 
+    /**
+     * range범위에서 오디오가 앞뒤에 비해 작은 지점을 반환
+     * range범위 안에 없으면 현재 시간 반환
+     */
     const getNextAutoMarkerPoint = useCallback( (time : number, range : number) => {
         let rangePointIndex = floorFrame(time, frame)*frame;
         let rangeNextIndex = rangePointIndex + range*frame;
@@ -218,7 +252,7 @@ function useVideoPlayHook(
 
             for( let i = 1; i < _r.length-1; i++ ){
                 if( _r[i-1] > _r[i] && _r[i+1] > _r[i] ){
-                return floorFrame(time + i/frame, frame);
+                    return floorFrame(time + i/frame, frame);
                 }
             }
         }
@@ -226,6 +260,9 @@ function useVideoPlayHook(
         return time;
     }, [filteredData, floorFrame, frame])
 
+    /**
+     * 1초전으로 이동
+     */
     const prevSec = useCallback( () => {
         let sec = playedSeconds;
 
@@ -266,6 +303,9 @@ function useVideoPlayHook(
         }
     }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, getPrevAutoMarkerPoint, markerTime])
 
+    /**
+     * 1초 후로 이동
+     */
     const nextSec = useCallback( () => {
         let sec = playedSeconds;
 
@@ -306,6 +346,10 @@ function useVideoPlayHook(
         }
     }, [autoStop.set, autoStop.startOffset, endTime, floorFrame, frame, gotoTime, playedSeconds, playing, selectMarker, setScratch, startTime, duration, getNextAutoMarkerPoint, markerTime])
 
+    /**
+     * marker를 startTime으로 지정
+     * 다시 지정시 marker해제
+     */
     const selectStartTime = () => {
         if(selectMarker !== 'startTime' && startTime !== null){
             gotoTime(startTime, null);
@@ -316,6 +360,10 @@ function useVideoPlayHook(
         }
     }
 
+    /**
+     * marker를 endTime으로 지정
+     * 다시 지정시 marker해제
+     */
     const selectEndTime = () => {
         if(selectMarker !== 'endTime' && endTime !== null){
             gotoTime(endTime, null);
@@ -326,17 +374,30 @@ function useVideoPlayHook(
         }
     }
 
+    /**
+     * 현재 시간을 startTime으로 설정
+     * frame perfect time
+     */
     const markStart = () => {
         dispatch( setStartTime( floorFrame( playedSeconds, frame) ) );
     }
 
+    /**
+     * 현재 시간을 endTime으로 설정
+     * frame perfect time
+     */
     const markEnd = () => {
         dispatch( setEndTime( floorFrame( playedSeconds, frame) ) );
     }
 
+    /**
+     * marker를 현재 시간으로 설정한 뒤 재생
+     * marker는 prev, next의 형태로 이동 가능
+     * 멈췄을 경우에는 초기화
+     */
     const markerPlay = () => {
         dispatch( unselectMarker() );
-        //멈췄을 경우는 새로 marker를 찍고 play 재생중일 경우는 marker로 가서 재생
+        
         if(playing === false){
             //pause
             dispatch( setMarkerTime(playedSeconds) );
@@ -349,6 +410,10 @@ function useVideoPlayHook(
         }
     }
 
+    /**
+     * 현재 endTime을 starTime으로 설정한뒤 재생
+     * 다시 사용할 경우, endTime을 설정한 뒤 멈춤
+     */
     const nextMarkerPlay = () => {
         if(playing === false){
             if(endTime !== null){
@@ -371,6 +436,9 @@ function useVideoPlayHook(
         }
     }
 
+    /**
+     * marker로 설정된 시간으로 이동 후 멈춤
+     */
     const markerStop = () => {
         if(markerTime !== null){
             gotoTime(markerTime, false);
@@ -378,6 +446,9 @@ function useVideoPlayHook(
         setPlaying(false);
     }
 
+    /**
+     * autoStop범위를 넘었는지 체크
+     */
     const checkAutoStop = useCallback( ( playedSeconds : number ) => {
         if(autoStop.set === true){
             if(playedSeconds > autoStop.endOffset){
@@ -392,6 +463,8 @@ function useVideoPlayHook(
         }
     }, [handleSeek, setScratch, autoStop.set, autoStop.startOffset, autoStop.endOffset, autoStop.loop])
 
+
+    //Effect
     useEffect(()=>{
         checkAutoStop(playedSeconds);
     }, [checkAutoStop, playedSeconds]);

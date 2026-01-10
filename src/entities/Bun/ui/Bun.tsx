@@ -15,7 +15,7 @@ const Bun = ({ bId, bIdRef } : BunProps ) => {
 
     //State
     const [bunData, setBunData] = useState('');
-    const [hukumuData, setHukumuData] = useState<Array<TextData>>([]);
+    const [hukumuData, setHukumuData] = useState<TextData[]>([]);
 
     //Hook
     const { response : resBun, loading : resBunLoad, fetch : fetchBun } = useAxiosGet<RES_GET_BUN, REQ_GET_BUN>('/db/bun', false, { bId : bId });
@@ -25,7 +25,7 @@ const Bun = ({ bId, bIdRef } : BunProps ) => {
         if(res !== null){
             setBunData(res.data.jaText);
 
-            let textData : Array<TextData> = [];
+            let textData : TextData[] = [];
             let endIndex = 0;
             for(let key in res.data.hukumuArr){
                 let _data = res.data.hukumuArr[key];

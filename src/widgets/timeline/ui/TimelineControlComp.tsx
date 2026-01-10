@@ -33,7 +33,7 @@ const { setStartTime, setEndTime, selectMarkerStart, selectMarkerEnd, unselectMa
 interface TimelineControlCompProps {
     value : string;
     setInputText : ( value : string) => void;
-    bunIds : Array<RES_TIMELINE> | null;
+    bunIds : RES_TIMELINE[] | null;
     refetchTimeline : () => void;
     currentBunId : number | null;
     editYtbId : string | null;

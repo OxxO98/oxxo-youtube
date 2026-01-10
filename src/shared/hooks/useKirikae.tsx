@@ -24,6 +24,11 @@ function useKirikae(value : string, handleChange : (e : React.ChangeEvent<any>) 
 
     const { isAllHangul, isAllHira, koNFCToHira } = useJaText();
 
+    /**
+     * 확장된 onChange함수
+     * 
+     * @param e
+     */
     const handleKrikae = (e : React.ChangeEvent) => {
         if( isKirikae === true ){
             setIsKirikae(false);
@@ -33,6 +38,13 @@ function useKirikae(value : string, handleChange : (e : React.ChangeEvent<any>) 
         }
     }
 
+    /**
+     * 내부 함수
+     * 모두 한글일 경우 히라가나로 변환
+     * 
+     * @param value 
+     * @returns 
+     */
     const changeHira = (value : string) => {
         if( isAllHangul(value) === true && isAllHira(value) === false ){
             return koNFCToHira(value);
@@ -74,13 +86,19 @@ function useKirikae(value : string, handleChange : (e : React.ChangeEvent<any>) 
  * @returns concatMultiInput 히라가나로 변환한 배열을 모두 합친 값
  * @returns handleChange 변환이 추가된 onChange함수
  */
-function useMultiKirikae(dependancy : string | null, multiValue : Array<string>, handleMultiChange : (e : React.ChangeEvent<any>, index : number) => void ){
+function useMultiKirikae(dependancy : string | null, multiValue : string[], handleMultiChange : (e : React.ChangeEvent<any>, index : number) => void ){
 
-    const [value, setValue] = useState<Array<string>>([]); //변환된 히라가나 배열
+    const [value, setValue] = useState<string[]>([]); //변환된 히라가나 배열
     const [isKirikae, setIsKirikae] = useState<boolean>(false);
 
     const { isAllHangul, isAllHira, koNFCToHira } = useJaText();
 
+    /**
+     * 확장된 onChange함수
+     * 
+     * @param e 
+     * @param index 
+     */
     const handleChange = (e : React.ChangeEvent, index : number) => {
         if( isKirikae === true){
             setIsKirikae(false);
@@ -90,6 +108,13 @@ function useMultiKirikae(dependancy : string | null, multiValue : Array<string>,
         }
     }
 
+    /**
+     * 내부 함수
+     * 모두 한글일 경우 히라가나로 변환
+     * 
+     * @param value 
+     * @returns 
+     */
     const changeHira = (value : string) => {
         if( isAllHangul(value) === true && isAllHira(value) === false ){
             return koNFCToHira(value);
@@ -99,6 +124,10 @@ function useMultiKirikae(dependancy : string | null, multiValue : Array<string>,
         }
     }
 
+    /**
+     * 내부함수
+     * 배열을 모두 changeHira를 통해 히라가나로 변환
+     */
     const changeMultiHira = () => {
         let kirikaeTmp = [...value];
         for(let key in multiValue){
@@ -107,6 +136,11 @@ function useMultiKirikae(dependancy : string | null, multiValue : Array<string>,
         setValue(kirikaeTmp);
     }
 
+    /**
+     * 배열의 문자열을 모두 합친뒤 반환
+     * 
+     * @returns join된 string
+     */
     const concatMultiInput = () => {
         let retStr = '';
         for(let key in multiValue){
@@ -152,7 +186,7 @@ function useMultiKirikae(dependancy : string | null, multiValue : Array<string>,
  */
 function useMultiInput(dependancy : string | null, defaultInput? : string | undefined, edit? : boolean ){
 
-    const [multiValue, setMultiValue] = useState<Array<string>>([]);
+    const [multiValue, setMultiValue] = useState<string[]>([]);
 
     const [multiInputData, setMultiInputData] = useState([{data : '', inputBool : false}]);
 
@@ -161,12 +195,24 @@ function useMultiInput(dependancy : string | null, defaultInput? : string | unde
     const kanjiRegex = useContext<UnicodeContext>(UnicodeContext).kanji;
     const hiraganaRegex = useContext<UnicodeContext>(UnicodeContext).hiragana;
 
+    /**
+     * 여러 input을 관리하는 onChange함수
+     * 
+     * @param e 
+     * @param index 
+     */
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>, index : number) => {
         let tmp = [...multiValue];
         tmp[index] = e.target.value;
         setMultiValue(tmp);
     }
 
+    /**
+     * 입력된 단어 문자열을 바탕으로 input이 위치할 곳을 multiInputData형태로 반환
+     * 
+     * @param tango 
+     * @returns 
+     */
     const multiInput = (tango : string) => {
         let arrKanji = tango.match(kanjiRegex);
         let arrOkuri = tango.match(hiraganaRegex);
@@ -225,6 +271,11 @@ function useMultiInput(dependancy : string | null, defaultInput? : string | unde
         return tmp;
     }
 
+    /**
+     * input에 들어갈 기본 값을 반환
+     * 
+     * @returns 
+     */
     const getDefaultInput = () => {
         if(defaultInput !== null && defaultInput !== undefined && dependancy){
             let huriArr = yomiToHuri(dependancy, defaultInput);
@@ -245,7 +296,7 @@ function useMultiInput(dependancy : string | null, defaultInput? : string | unde
 
             setMultiInputData(tmp);
 
-            let ret : Array<string> = [];
+            let ret : string[] = [];
             for(let key in tmp){
                 if(tmp[key]['inputBool'] === false){
                     ret[key] = tmp[key]['data'];

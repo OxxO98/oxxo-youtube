@@ -6,8 +6,10 @@ import { VideoContext } from 'shared/contexts/VideoContext';
 
 //Hook
 import { useTimeStamp } from 'shared/lib/useTimeStamp';
-import { useTranscript } from 'shared/hooks/useTranscript';
-import { useCaptionData } from 'shared/hooks/useCaptionData';
+
+//api
+import { useTranscript } from '../api/useTranscript';
+import { useCaptionData } from '../api/useCaptionData';
 
 //CSS@antD
 import { Button, List, Flex, Modal, Spin, theme, Tabs, Empty, Tag } from 'antd';

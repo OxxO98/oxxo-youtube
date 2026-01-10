@@ -2,7 +2,7 @@ import { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next'
 import { useHotkeys } from 'react-hotkeys-hook';
 
-//Hook
+//api
 import { useMerge } from '../api/useMerge';
 
 //CSS@antD
@@ -11,7 +11,7 @@ import { MergeCellsOutlined } from '@ant-design/icons'
 import { VideoContext } from 'shared/contexts/VideoContext';
 
 interface HeigouTimelineCompProps {
-    bunIds : Array<RES_TIMELINE> | null;
+    bunIds : RES_TIMELINE[] | null;
     ytb : RES_TIMELINE;
     refetchTimeline : () => void;
     refetchHandles : RefetchHandles;

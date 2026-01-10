@@ -9,8 +9,8 @@ import { Input } from 'antd';
 import type { InputRef } from 'antd';
 
 interface AutoMultiInputProps {
-    multiInputData : Array<MultiInput>;
-    multiValue : Array<string>;
+    multiInputData : MultiInput[];
+    multiValue : string[];
     handleMultiChange : (e : React.ChangeEvent, index : number) => void;
     handleHighlight? : () => void;
 }

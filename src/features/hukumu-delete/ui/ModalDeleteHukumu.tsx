@@ -1,8 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-//Hook
-import { useAxiosDelete } from 'shared/hooks/useAxios'
 
 //entities
 import { ComplexText } from 'entities/ComplexText/index'
@@ -12,6 +9,7 @@ import { Button, Modal } from 'antd';
 
 //Redux
 import { useAppSelector } from 'shared/store';
+import { useDeleteHukumu } from '../api/useDeleteHukumu';
 
 interface ModalDeleteHukumuProps {
     handleRefetch : (opt? : string[]) => void;
@@ -26,10 +24,10 @@ export const ModalDeleteHukumu = ({ handleRefetch } : ModalDeleteHukumuProps ) =
 
     //Redux
     const { selectedBun, hukumuData } = useAppSelector( (_state ) => _state.selection );
+    
+    const { handleDelete } = useDeleteHukumu( handleRefetch, setIsModalOpen );
 
-    //Hook
-    const { response, setParams } = useAxiosDelete<null, REQ_DELETE_HUKUMU>('/db/hukumu', true, null);
-
+    //Effect
     const handleOpen = () => {
         setIsModalOpen(true);
     }
@@ -37,24 +35,6 @@ export const ModalDeleteHukumu = ({ handleRefetch } : ModalDeleteHukumuProps ) =
     const handleCancel = () => {
         setIsModalOpen(false);
     }
-
-    const handleDelete = () => {
-        if(hukumuData === null){ return }
-
-        setParams({
-            jaBId : selectedBun,
-            startOffset : hukumuData.startOffset, endOffset : hukumuData.endOffset,
-            hyId : hukumuData.hyId
-        })
-    }
-
-    useEffect( () => {
-        let res = response;
-        if(res !== null){
-            handleRefetch();
-            setIsModalOpen(false);
-        }
-    }, [response, handleRefetch])
 
     return(
         <>
@@ -68,7 +48,7 @@ export const ModalDeleteHukumu = ({ handleRefetch } : ModalDeleteHukumuProps ) =
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={[
-                    <Button onClick={handleDelete}>
+                    <Button onClick={ () => handleDelete(hukumuData, selectedBun) }>
                         {t('BUTTON.DELETE')}
                     </Button>,
                     <Button onClick={handleCancel}>

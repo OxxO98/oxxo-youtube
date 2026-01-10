@@ -30,7 +30,7 @@ function useHuri(){
         let arrOkuri : RegExpMatchArray | null = hyouki.match(hiraganaRegex);
         let exHiraPattern = arrOkuri !== null ? arrOkuri.join('(.+)') : null;
 
-        let arrHuri : Array<string> = [];
+        let arrHuri : string[] = [];
         
         if( exHiraPattern === null ){
             return [yomi];
@@ -102,7 +102,7 @@ function useHuri(){
         let okuriIndex = 0;
         let tmpOffset = offset;
 
-        let tmp : Array<TextData> = [];
+        let tmp : TextData[] = [];
         
         for(let i = 0; i < arrKanji.length + arrOkuri.length; i++){
             if(startBool === false){

@@ -35,8 +35,8 @@ export const TangoInfo = () => {
     const navigate = useNavigate();
 
     //State
-    const [tangoBunList, setTangoBunList] = useState<Array<TangoBunListData>>([]);
-    const [kanjiList, setKanjiList] = useState<Array<KanjiData>>();
+    const [tangoBunList, setTangoBunList] = useState<TangoBunListData[]>([]);
+    const [kanjiList, setKanjiList] = useState<KanjiData[]>();
 
     const [defaultData, setDefaultData] = useState<TangoBunListData | null>(null);
 

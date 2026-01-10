@@ -8,9 +8,9 @@ import { TangoListComp } from 'widgets/list-tango/index';
 import { useAppSelector } from 'shared/store';
 
 interface CompoundListCompProps {
-    hukumuList : Array<HukumuList> | null;
-    osusumeList : Array<OsusumeList> | null;
-    tangoList : Array<TangoList> | null;
+    hukumuList : HukumuList[] | null;
+    osusumeList : OsusumeList[] | null;
+    tangoList : TangoList[] | null;
     refetchHukumuList : () => void;
     refetchOsusumeList : () => void;
     refetchTangoList : () => void;

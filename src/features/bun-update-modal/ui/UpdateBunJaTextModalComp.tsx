@@ -6,7 +6,6 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import { useAxiosGet, useAxiosPut } from 'shared/hooks/useAxios';
 import { useJaText } from 'shared/lib/useJaText';
 import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
-import { useHuri } from 'shared/lib/useHuri';
 
 //entities
 import { Bun } from 'entities/Bun/index';
@@ -14,6 +13,7 @@ import { ComplexText } from 'entities/ComplexText/index';
 
 //CSS@antD
 import { Input, Button, Flex, Modal, Card, Tooltip, InputRef } from 'antd';
+import { useUpdateHukumuBun } from '../api/useUpdateHukumuBun';
 
 interface UpdateBunJaTextModalCompProps {
     ytb : RES_TIMELINE;
@@ -34,20 +34,18 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
     //State
     const [newJaText, setNewJaText] = useState<string>('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [hukumuData, setHukumuData] = useState<Array<HukumuData> | null>(null);
+    const [hukumuData, setHukumuData] = useState<HukumuData[] | null>(null);
 
-    const [searchedList, setSearchedList] = useState<Array<tracedHukumu> | null>(null);
-    const [modifiedList, setModifiedList] = useState<Array<tracedHukumu> | null>(null);
-    const [deletedList, setDeletedList] = useState<Array<tracedHukumu> | null>(null);
+    const [searchedList, setSearchedList] = useState<tracedHukumu[] | null>(null);
+    const [modifiedList, setModifiedList] = useState<tracedHukumu[] | null>(null);
+    const [deletedList, setDeletedList] = useState<tracedHukumu[] | null>(null);
 
     //Hook
-    const { traceHukumu, convertObjKey, getHyoukiQuery, getYomiQuery } = useJaText();
-
-    const { complexArr } = useHuri();
+    const { traceHukumu } = useJaText();
 
     const { response, setParams } = useAxiosGet<RES_GET_HUKUMU, REQ_GET_HUKUMU>('/db/hukumu', true, null);
 
-    const { response : resUpdate, setParams : setParamsUpdate } = useAxiosPut<null, REQ_PUT_HUKUMU_BUN>('/db/hukumu/bun', true, null );
+    const { modifyBun } = useUpdateHukumuBun( ytb, setIsModalOpen, refetchHandles, refetchTimeline, cancelEdit );
 
     //Handle
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
@@ -67,47 +65,12 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
     };
     
     const handleOk = () => {
-        modifyBun();
+        modifyBun(modifiedList, deletedList, hukumuData, newJaText);
     };
 
     const handleCancel = () => {
         setIsModalOpen(false);
     };
-
-    const modifyBun = () => {
-        if( newJaText === '' ){ return }
-        if( modifiedList === null || deletedList === null || hukumuData === null ){ 
-            return;
-        }
-
-        let _modifiedList = modifiedList
-            .map( (v) => {
-                let textData = complexArr(v.find!.str, v.yomi, 0);
-                let multiInputData = textData.map( (t) => {
-                    return {
-                        data : t.data,
-                        inputBool : !(t.ruby === null || t.ruby === undefined)
-                    }
-                })
-                let multiValue = textData.map( (t) => {
-                    return t.ruby ?? ''
-                })
-
-                return {
-                    ...v,
-                    find : {
-                        ...v.find,
-                        hyouki : getHyoukiQuery(multiInputData),
-                        yomi : getYomiQuery(multiInputData, multiValue)
-                    }
-                }
-            });
-
-        let modifiedObj = convertObjKey(_modifiedList);
-        let deletedObj = convertObjKey(deletedList);
-
-        setParamsUpdate({ jaBId : ytb.jaBId, jaText : newJaText, modifiedObj : modifiedObj, deletedObj : deletedObj })
-    }
 
     const getList = useCallback( () => {
         if(hukumuData === null){ return }
@@ -123,6 +86,7 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
         setDeletedList(deleted);
     }, [hukumuData, newJaText, traceHukumu, ytb.jaText]);
 
+
     //HotKeys
     const loaded = isModalOpen && (modifiedList !== null && deletedList !== null && hukumuData !== null);
 
@@ -131,6 +95,7 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
     const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : loaded }, [loaded] )
     useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
 
+    
     //Effect
     useDebounceEffect( () => getList(), 1000, [newJaText]);
 
@@ -146,15 +111,6 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
             getList();
         }
     }, [hukumuData, getList])
-
-    useEffect( () => {
-        if( resUpdate ){
-            refetchHandles.refetch(ytb.jaBId)
-            refetchTimeline();
-            cancelEdit();
-            setIsModalOpen(false);
-        }
-    }, [resUpdate, refetchTimeline, cancelEdit, refetchHandles, ytb.jaBId])
 
     useEffect( () => {
         if(inputRef.current !== null && isModalOpen === true){

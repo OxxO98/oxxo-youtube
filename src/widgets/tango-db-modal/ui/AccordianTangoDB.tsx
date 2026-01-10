@@ -5,10 +5,12 @@ import VirtualList from 'rc-virtual-list';
 //ui
 import { TangoDB } from './TangoDB';
 
+//model
+import { useSearchedArr } from '../model/useSearchedArr';
+
 //Css@antD
 import { Tabs, List } from 'antd';
 import type { TabsProps } from 'antd';
-import { useSearchedArr } from '../model/useSearchedArr';
 
 const ListCompStyle : CSSProperties = {
     padding : '16px',

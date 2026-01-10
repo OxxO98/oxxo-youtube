@@ -24,8 +24,8 @@ import { useAppSelector } from 'shared/store';
 import { Button, Modal } from 'antd';
 
 interface ModalTangoDBProps {
-    multiInputData : Array<MultiInput>;
-    multiValue : Array<string>;
+    multiInputData : MultiInput[];
+    multiValue : string[];
     value : string;
     handleRefetch : (opt? : string[]) => void;
 }

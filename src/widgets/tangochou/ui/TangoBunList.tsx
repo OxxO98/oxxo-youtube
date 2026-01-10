@@ -18,7 +18,7 @@ export const TangoBunList = ({ hyId } : TangoBunListProps )=> {
     const { videoId } = useContext(VideoContext);
 
     //State
-    const [list, setList] = useState<Array<TangoBunData>>();
+    const [list, setList] = useState<TangoBunData[]>();
 
     //Hook
     const { response, setParams } = useAxiosGet<RES_GET_TANGOCHOU_TANGO_LIST, REQ_GET_TANGOCHOU_TANGO_LIST>('/db/tangochou/tango/list', false, { videoId : videoId, hyId : hyId } );

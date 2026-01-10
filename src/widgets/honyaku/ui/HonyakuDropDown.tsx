@@ -12,7 +12,7 @@ import { Select } from 'antd'
 interface HonyakuTLDropDownProps {
     ytBId : ytBId;
     koBun : koBun;
-    koList : Array<koBun>;
+    koList : koBun[];
     fetch : () => void;
 }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactPlayer from 'react-player';
 
-//Hook
+//api
 import { usePostVideo } from '../api/usePostVideo';
 
 //CSS@AntD

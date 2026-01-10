@@ -2,8 +2,10 @@ import React, { useEffect, useState, CSSProperties, RefObject } from 'react';
 import Markdown from 'marked-react';
 import { useTranslation } from 'react-i18next';
 
-//Hook
+//api
 import { useChat } from '../api/useChatAi';
+
+//lib
 import { useReplace } from '../lib/useReplace';
 
 //CSS@antd

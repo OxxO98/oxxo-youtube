@@ -1,9 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-//Hook
-import { useAxiosPut } from 'shared/hooks/useAxios'
-import { useJaText } from 'shared/lib/useJaText';
 
 //entities
 import { ComplexText } from 'entities/ComplexText/index'
@@ -13,11 +9,12 @@ import { Button, Modal } from 'antd';
 
 //Redux
 import { useAppSelector } from 'shared/store';
+import { useUpdateHukumu } from '../api/useUpdateHukumu';
 
 interface ModalUpdateHukumuProps {
     handleRefetch : (opt? : string ) => void;
-    multiInputData : Array<MultiInput>;
-    multiValue : Array<string>;
+    multiInputData : MultiInput[];
+    multiValue : string[];
     newYomi : string;
 }
 
@@ -31,11 +28,9 @@ const ModalUpdateHukumu = ({ handleRefetch, multiInputData, multiValue, newYomi 
     //Redux
     const { selectedBun, hukumuData } = useAppSelector( (_state ) => _state.selection );
 
-    //Hook
-    const { getHyoukiQuery, getYomiQuery } = useJaText();
+    const { handleUpdate } = useUpdateHukumu(handleRefetch, setIsModalOpen, multiInputData, multiValue);
 
-    const {response : res, setParams } = useAxiosPut<null, REQ_PUT_HUKUMU>('/db/hukumu', true, null);
-
+    //Handle
     const handleOpen = () => {
         setIsModalOpen(true);
     }
@@ -43,28 +38,6 @@ const ModalUpdateHukumu = ({ handleRefetch, multiInputData, multiValue, newYomi 
     const handleCancel = () => {
         setIsModalOpen(false);
     }
-
-    const handleUpdate = () => {
-        if(hukumuData === null){ return }
-        
-        let _hyouki = getHyoukiQuery(multiInputData);
-        let _yomi = getYomiQuery(multiInputData, multiValue);
-
-        setParams({
-            jaBId : selectedBun,
-            startOffset : hukumuData.startOffset, endOffset : hukumuData.endOffset,
-            hyId : hukumuData.hyId, 
-            hyouki : _hyouki, yomi : _yomi,
-            hyoukiStr : hukumuData.hyouki, yomiStr : newYomi
-        })
-    }
-
-    useEffect( () => {
-        if(res !== null){
-            handleRefetch();
-            setIsModalOpen(false);
-        }
-    }, [res, handleRefetch])
 
     return(
         <>
@@ -79,7 +52,7 @@ const ModalUpdateHukumu = ({ handleRefetch, multiInputData, multiValue, newYomi 
                 onCancel={handleCancel}
                 width={'80%'}
                 footer={[
-                    <Button onClick={handleUpdate}>
+                    <Button onClick={ () => handleUpdate(hukumuData, selectedBun, newYomi) }>
                         {t('BUTTON.MODIFY')}
                     </Button>,
                     <Button onClick={handleCancel}>
