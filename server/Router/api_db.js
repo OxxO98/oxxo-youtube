@@ -68,7 +68,8 @@ async function getVideo(req, res){
             }
 
             return 0;
-        });
+        })
+        .filter( (v) => v.disabled == undefined || v.disabled == false );
 
         res.send({
             data : videos,
@@ -94,9 +95,9 @@ async function postVideo(req, res){
 
 async function editVideo(req, res){
     await db_connection(req, res, async (db) => {
-        let { videoId, newTitle, newTagsQuery } = req.body;
+        let { videoId, newTitle, newTagsQuery, disabled } = req.body;
         
-        logger.info( db_module.logVideoUpdate( videoId, newTitle, newTagsQuery) )
+        logger.info( db_module.logVideoUpdate( videoId, newTitle, newTagsQuery, disabled) )
         let video = db.data.videos.find( (v) => v.src == videoId );
 
         if( newTitle != undefined ){
@@ -104,6 +105,9 @@ async function editVideo(req, res){
         }
         if( newTagsQuery != undefined ){
             video.tags = newTagsQuery.split("@");
+        }
+        if( disabled != undefined ){
+            video.disabled = disabled == 1 ? true : false;
         }
 
         await db.write();

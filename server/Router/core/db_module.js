@@ -413,8 +413,8 @@ function logVideoInsert(title, src) {
     return "VIDEO \uCD94\uAC00 TITLE ".concat(_logText(title), " SRC ").concat(_logText(src));
 }
 exports.logVideoInsert = logVideoInsert;
-function logVideoUpdate(src, newTitle, newTags) {
-    return "VIDEO VIDEOID ".concat(_logId(src), " \uC218\uC815 TITLE ").concat(_logText(newTitle), " TAG ").concat(newTags.replace(/@/g, ', '));
+function logVideoUpdate(src, newTitle, newTags, disabled) {
+    return "VIDEO VIDEOID ".concat(_logId(src), " \uC218\uC815 TITLE ").concat(_logText(newTitle), " TAG ").concat(newTags.replace(/@/g, ', '), " ").concat(disabled == 1 ? 'SET DISABLED' : '');
 }
 exports.logVideoUpdate = logVideoUpdate;
 function logVideoDelete(src) {

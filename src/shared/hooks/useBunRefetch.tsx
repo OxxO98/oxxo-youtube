@@ -1,13 +1,17 @@
 import { useCallback, useRef } from 'react';
 
+import { useAppDispatch, refetchActions } from 'shared/store';
+const { setRefetchChecking } = refetchActions
+
 /**
  * 문장 Refetch를 위한 Hook
  * 
- * @param fetchInHR 드래그된 범위 Hukumu 체크 실행
  * @returns bIdRef, refetchHandles
  */
-function useBunRefetch( fetchInHR : () => void ){
+function useBunRefetch(){
     const bIdRef = useRef<BIdRef>([]);
+
+    const dispatch = useAppDispatch();
 
     /**
      * 전체 Refetch
@@ -15,19 +19,16 @@ function useBunRefetch( fetchInHR : () => void ){
     const refetchAll = useCallback( () => {
         for(let key in bIdRef.current ){
             let fetchBUN = bIdRef.current[key]?.fetchBun;
-            let fetchHUKUMU = bIdRef.current[key]?.fetchHukumu;
             let fetchTL = bIdRef.current[key]?.fetchTL;
 
             if(fetchBUN !== null && fetchBUN !== undefined){
                 fetchBUN();
             }
-            if(fetchHUKUMU !== null && fetchHUKUMU !== undefined){
-                fetchHUKUMU();
-            }
             if(fetchTL !== null && fetchTL !== undefined){
                 fetchTL();
             }
         }
+        dispatch( setRefetchChecking() )
     }, [])
 
     /**
@@ -49,20 +50,17 @@ function useBunRefetch( fetchInHR : () => void ){
         let key : string = 'bId'.concat(bId.toString());
 
         let fetchBUN = bIdRef.current[key]?.fetchBun;
-        let fetchHUKUMU = bIdRef.current[key]?.fetchHukumu;
         let fetchTL = bIdRef.current[key]?.fetchTL;
 
         if(fetchBUN !== null && fetchBUN !== undefined){
             fetchBUN();
         }
-        if(fetchHUKUMU !== null && fetchHUKUMU !== undefined){
-            fetchHUKUMU();
-        }
         if(fetchTL !== null && fetchTL !== undefined){
             fetchTL();
         }
-        fetchInHR();
-    }, [refetchAll, fetchInHR])
+        dispatch( setRefetchChecking() )
+
+    }, [refetchAll])
 
     /**
      * bIdRef 리셋

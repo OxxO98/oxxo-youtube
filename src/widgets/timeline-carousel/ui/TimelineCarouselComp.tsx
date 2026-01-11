@@ -15,7 +15,7 @@ import { UpdateBunJaTextModalComp } from 'features/bun-update-modal/index';
 import { Bun } from 'entities/Bun/index';
 
 //Redux
-import { useAppSelector, useAppDispatch, reactPlayerActions, selectionActions, timelineActions } from 'shared/store';
+import { useAppSelector, useAppDispatch, reactPlayerActions, timelineActions } from 'shared/store';
 
 //CSS@antD
 import { Input, Button, Flex, Tooltip, InputRef } from 'antd';
@@ -23,7 +23,6 @@ import { StepBackwardOutlined, StepForwardOutlined, RollbackOutlined } from '@an
 
 //Redux
 const { setStartTime, setEndTime } = reactPlayerActions;
-const { clear } = selectionActions;
 const { setCurrentBunId, setCurrentBunIdNext, setCurrentBunIdPrev } = timelineActions;
 
 interface TimelineCarouselCompProps {
@@ -116,7 +115,6 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
             return;
         }
 
-        dispatch(clear());
         deselect();
 
         if (currentBunId > 0) {
@@ -132,7 +130,6 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
             return;
         }
 
-        dispatch(clear());
         deselect();
 
         if (currentBunId + 1 < bunIds.length) {

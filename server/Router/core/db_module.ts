@@ -344,8 +344,8 @@ function logVideoInsert( title : string, src : string ){
     return `VIDEO 추가 TITLE ${_logText(title)} SRC ${_logText(src)}`;
 }
 
-function logVideoUpdate( src : string, newTitle : string, newTags : string ){
-    return `VIDEO VIDEOID ${_logId(src)} 수정 TITLE ${_logText(newTitle)} TAG ${newTags.replace(/@/g, ', ')}`
+function logVideoUpdate( src : string, newTitle : string, newTags : string, disabled : number ){
+    return `VIDEO VIDEOID ${_logId(src)} 수정 TITLE ${_logText(newTitle)} TAG ${newTags.replace(/@/g, ', ')} ${disabled == 1 ? 'SET DISABLED' : ''}`
 }
 
 function logVideoDelete( src : string ){

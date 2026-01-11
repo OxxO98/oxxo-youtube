@@ -10,10 +10,10 @@ export function useUpdateVideo(
     //Hook
     const { response, setParams } = useAxiosPut<null, REQ_PUT_VIDEO>('/db/video', true, null);
 
-    const editVideo = ( data : RES_VIDEO, input : string, tags : string[]) => {
+    const editVideo = ( data : RES_VIDEO, input : string, tags : string[], disabled : boolean ) => {
         if(input === '') return;
 
-        setParams({ videoId : data.src, newTitle : input, newTagsQuery : tags.join('@') });
+        setParams({ videoId : data.src, newTitle : input, newTagsQuery : tags.join('@'), disabled : Number(disabled) });
     }
 
     useEffect( () => {

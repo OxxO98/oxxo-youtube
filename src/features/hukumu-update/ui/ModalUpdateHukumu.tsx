@@ -12,7 +12,7 @@ import { useAppSelector } from 'shared/store';
 import { useUpdateHukumu } from '../api/useUpdateHukumu';
 
 interface ModalUpdateHukumuProps {
-    handleRefetch : (opt? : string ) => void;
+    handleRefetch : () => void;
     multiInputData : MultiInput[];
     multiValue : string[];
     newYomi : string;

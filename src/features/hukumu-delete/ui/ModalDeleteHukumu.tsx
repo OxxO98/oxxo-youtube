@@ -12,7 +12,7 @@ import { useAppSelector } from 'shared/store';
 import { useDeleteHukumu } from '../api/useDeleteHukumu';
 
 interface ModalDeleteHukumuProps {
-    handleRefetch : (opt? : string[]) => void;
+    handleRefetch : () => void;
 }
 
 export const ModalDeleteHukumu = ({ handleRefetch } : ModalDeleteHukumuProps ) => {

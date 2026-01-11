@@ -20,9 +20,6 @@ function useTangoList(videoId : string){
         if(res !== null){
             setTangoList(res.data);
         }
-        else{
-            //setTangoList(null);
-        }
     }, [response])
 
     useEffect( () => {

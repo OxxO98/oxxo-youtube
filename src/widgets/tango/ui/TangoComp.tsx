@@ -61,7 +61,7 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
     const dispatch = useAppDispatch();
 
     //Hook
-    const { refetch, refetchAll } = refetchHandles;
+    const { refetch } = refetchHandles;
 
     const { multiValue, multiInputData, handleChange : handleMultiChange } = useMultiInput(selection);
 
@@ -72,17 +72,12 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
     const { kirikaeValue : editKirikaeValue, concatMultiInput : concatEditMultiInput, handleChange : handleEditMultiKirikae } = useMultiKirikae(hukumuData?.hyouki ?? null, editMultiValue, handleEditChange);
 
     //Handle
-    const handleRefetch = useCallback( (...props : any[]) => {
-        if( props[0] !== null && props[0] === 'all'){
-            refetchAll();
-        }
-        else{
-            refetch(selectedBun);
-        }
+    const handleRefetch = useCallback( () => {
+        refetch(selectedBun);
         refetchTangoList();
         dispatch( setStyled(null) );
         setEdit(false);
-    }, [refetchAll, refetch, selectedBun, refetchTangoList])
+    }, [refetch, selectedBun, refetchTangoList])
 
     useEffect( () => {
         setEdit(false);

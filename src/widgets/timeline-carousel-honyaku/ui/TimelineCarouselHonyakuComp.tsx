@@ -14,7 +14,7 @@ import { Bun } from 'entities/Bun/index';
 //Redux
 import { useAppSelector, useAppDispatch, reactPlayerActions, selectionActions, timelineActions } from 'shared/store';
 const { setStartTime, setEndTime } = reactPlayerActions;
-const { setSelectedBun, clear } = selectionActions;
+const { setSelectedBun } = selectionActions;
 const { setCurrentBunId, setCurrentBunIdNext, setCurrentBunIdPrev } = timelineActions;
 
 interface TimelineCarouselCompProps {
@@ -83,7 +83,6 @@ export const TimelineCarouselHonyakuComp = ({ state, bIdRef, videoPlayerHandles,
             return;
         }
 
-        dispatch(clear());
         deselect();
 
         if (currentBunId > 0) {
@@ -99,7 +98,6 @@ export const TimelineCarouselHonyakuComp = ({ state, bIdRef, videoPlayerHandles,
             return;
         }
 
-        dispatch(clear());
         deselect();
 
         if (currentBunId + 1 < bunIds.length) {

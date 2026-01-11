@@ -4,7 +4,7 @@ import { useAxiosPut } from 'shared/hooks/useAxios'
 import { useJaText } from 'shared/lib/useJaText';
 
 export function useUpdateHukumu(
-    handleRefetch : (opt? : string ) => void,
+    handleRefetch : () => void,
     setIsModalOpen : ( isOpen : boolean ) => void,
     multiInputData : MultiInput[],
     multiValue : string[]

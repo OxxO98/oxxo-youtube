@@ -70,9 +70,9 @@ const YoutubePage = () => {
     const { timelineHandles } = useTimeline(VIDEO_ID!);
     
     const { deselect } = useHandleSelection( document, "activeRange" );
-    const { fetchInHR } = useHukumu(deselect);
+    useHukumu(deselect);
 
-    const { bIdRef, refetchHandles } = useBunRefetch( fetchInHR );
+    const { bIdRef, refetchHandles } = useBunRefetch();
 
     const { hukumuList, fetch : refetchHukumuList } = useHukumuList(VIDEO_ID!);
     const { osusumeList, fetch : refetchOsusumeList } = useOsusumeList();

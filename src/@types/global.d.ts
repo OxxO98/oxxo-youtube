@@ -542,6 +542,7 @@ declare global {
     videoId : string;
     newTitle : string;
     newTagsQuery : string;
+    disabled : number;
   }
 
   export type REQ_DELETE_VIDEO = {
@@ -591,6 +592,7 @@ declare global {
   }
 
   export interface RES_HUKUMU_CHECK {
+    jaBId : jaBId;
     tId : tId;
     hyId : hyId;
     hyouki : string;
@@ -726,7 +728,6 @@ declare global {
 
   export interface RefetchObj {
     fetchBun : () => void;
-    fetchHukumu : () => void;
     fetchTL : () => void;
   }
   

@@ -8,7 +8,7 @@ import { ModalDeleteVideo } from './ModalDeleteVideo';
 import { useUpdateVideo } from '../api/useUpdateVideo';
 
 //CSS@AntD
-import { Button, Modal, Input, Select, Alert, Divider } from "antd";
+import { Button, Modal, Input, Select, Alert, Divider, Switch } from "antd";
 import { EllipsisOutlined, WarningOutlined } from '@ant-design/icons'
 import type { SelectProps } from 'antd'
 
@@ -27,6 +27,7 @@ export const ModalEditVideo = ({ data, refetch } : ModalEditVideoProps ) => {
 
     const [options, ] = useState<SelectProps['options']>([]);
     const [tags, setTags] = useState<string[]>(data.tags ?? []);
+    const [disabled, setDisabled] = useState<boolean>(false);
 
     const [input, setInput] = useState<string>(data.title);
 
@@ -44,6 +45,10 @@ export const ModalEditVideo = ({ data, refetch } : ModalEditVideoProps ) => {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
+
+    const handleSwitch = (checked: boolean) => {
+        setDisabled(checked)
+    };
     
     const handleSelectChange = (value: string[]) => {
         setTags(value);
@@ -54,7 +59,7 @@ export const ModalEditVideo = ({ data, refetch } : ModalEditVideoProps ) => {
     }
 
     const handleSubmit = () => {
-        editVideo(data, input, tags);
+        editVideo(data, input, tags, disabled);
     }
 
     return (
@@ -73,6 +78,8 @@ export const ModalEditVideo = ({ data, refetch } : ModalEditVideoProps ) => {
                 ]}
             >
                 <Input defaultValue={data.title} value={input} onChange={handleInputChange}/>
+                <Divider />
+                숨기기 <Switch value={disabled} onChange={handleSwitch} />
                 <Divider />
                 <Select
                     mode="tags"

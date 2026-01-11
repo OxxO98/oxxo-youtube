@@ -6,6 +6,10 @@ import { useAxiosGet } from 'shared/hooks/useAxios';
 //entities
 import { ComplexText } from 'entities/ComplexText/index';
 
+//Redux
+import { useAppDispatch, refetchActions } from 'shared/store';
+const { setRefetchDone } = refetchActions
+
 interface BunProps {
     bId : string;
     bIdRef? : React.RefObject<BIdRef>;
@@ -19,6 +23,9 @@ const Bun = ({ bId, bIdRef } : BunProps ) => {
 
     //Hook
     const { response : resBun, loading : resBunLoad, fetch : fetchBun } = useAxiosGet<RES_GET_BUN, REQ_GET_BUN>('/db/bun', false, { bId : bId });
+
+    //Redux
+    const dispatch = useAppDispatch();
 
     useEffect( () => {
         let res = resBun;
@@ -44,7 +51,6 @@ const Bun = ({ bId, bIdRef } : BunProps ) => {
             }
 
             setHukumuData(textData);
-
             
             if( bIdRef !== undefined ){
                 bIdRef.current[`bId${bId}`] = {
@@ -53,6 +59,8 @@ const Bun = ({ bId, bIdRef } : BunProps ) => {
                     jaText : res.data.jaText
                 };
             }
+
+            dispatch( setRefetchDone() );
         }
 
     }, [resBun, bId, bIdRef, fetchBun]);

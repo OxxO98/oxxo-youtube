@@ -27,7 +27,7 @@ interface ModalTangoDBProps {
     multiInputData : MultiInput[];
     multiValue : string[];
     value : string;
-    handleRefetch : (opt? : string[]) => void;
+    handleRefetch : () => void;
 }
 
 export const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch } : ModalTangoDBProps ) => {

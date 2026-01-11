@@ -5,7 +5,7 @@ import { useAxiosPost } from 'shared/hooks/useAxios';
 import { useJaText } from 'shared/lib/useJaText';
 
 export const usePostNewTango = (
-    handleRefetch : (opt? : string[]) => void
+    handleRefetch : () => void
 ) => {
     const { getHyoukiQuery, getYomiQuery } = useJaText();
 

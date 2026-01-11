@@ -57,13 +57,6 @@ export const selectionSlice = createSlice({
             state.styled = null;
             state.hukumuCheckLoading = false;
         },
-        clearSelection : (state) => {
-            state.selectedBun = '';
-            state.textOffset = { startOffset : 0, endOffset : 0 };
-            state.hukumuData = null;
-            state.styled = null;
-            state.hukumuCheckLoading = false;
-        },
         setHukumuCheckDone : (state) => {
             state.hukumuCheckLoading = false;
         },

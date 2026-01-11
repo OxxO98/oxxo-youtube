@@ -21,7 +21,7 @@ interface DynamicInputCompProps {
     multiInputData : MultiInput[];
     multiValue : string[];
     concatMultiInput : () => string;
-    handleRefetch : (opt? : string[]) => void; 
+    handleRefetch : () => void; 
 }
 
 const ColStyle : CSSProperties = {

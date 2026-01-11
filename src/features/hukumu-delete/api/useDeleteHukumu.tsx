@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useAxiosDelete } from 'shared/hooks/useAxios';
 
 export function useDeleteHukumu(
-    handleRefetch : (opt? : string[]) => void,
+    handleRefetch : () => void,
     setIsModalOpen : ( isOpen : boolean ) => void
 ){
     const { response, setParams } = useAxiosDelete<null, REQ_DELETE_HUKUMU>('/db/hukumu', true, null);

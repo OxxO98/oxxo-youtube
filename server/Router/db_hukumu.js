@@ -123,6 +123,7 @@ async function checkHukumu(req, res){
             res.send({
                 message : 'success',
                 data : [{
+                    jaBId : hukumu.jaBId,
                     tId : hukumu.tId,
                     hyId : hukumu.hyId,
                     hyouki : hyouki.hyouki,

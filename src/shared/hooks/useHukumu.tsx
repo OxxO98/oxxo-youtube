@@ -7,7 +7,7 @@ import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 
 //Redux
 import { useAppSelector, useAppDispatch, selectionActions } from 'shared/store';
-const { setHukumuData, setStyled, setHukumuChecking, setHukumuCheckDone, clear } = selectionActions;
+const { setHukumuData, setStyled, setHukumuChecking, setHukumuCheckDone } = selectionActions;
 
 const FETCH_HUKUMU_CHECK_DELAY = 100;
 
@@ -23,6 +23,7 @@ function useHukumu( deselect : () => void ){
 
     //Redux
     const { selectedBun, textOffset } = useAppSelector( (_state) => _state.selection );
+    const { refetchLoading } = useAppSelector( (_state) => _state.refetch );
 
     const dispatch = useAppDispatch(); 
 
@@ -33,13 +34,14 @@ function useHukumu( deselect : () => void ){
      * hukumu체크 refetch
      */
     const fetchInHR = useCallback( () => {
-        if(selectedBun !== null && selectedBun !== undefined && selectedBun !== '' ){
+        if( selectedBun !== null && selectedBun !== undefined && selectedBun !== '' && textOffset.startOffset - textOffset.endOffset !== 0 ){
             setParams({
                 startOffset : textOffset.startOffset, endOffset : textOffset.endOffset, 
                 jaBId : selectedBun
             });
+            dispatch( setHukumuChecking() )
         }
-    }, [selectedBun, setParams, textOffset.endOffset, textOffset.startOffset])
+    }, [selectedBun, textOffset.endOffset, textOffset.startOffset, setParams])
 
     useEffect( () => {
         let res = response;
@@ -51,7 +53,7 @@ function useHukumu( deselect : () => void ){
                 dispatch( setHukumuData(res.data[0]) );
 
                 dispatch( setStyled({ 
-                    bId : selectedBun, 
+                    bId : res.data[0].jaBId, 
                     startOffset : res.data[0].startOffset, endOffset : res.data[0].endOffset, 
                     opt : 'highlight' 
                 }) );
@@ -62,23 +64,24 @@ function useHukumu( deselect : () => void ){
         }
     }, [response, selectedBun])
 
+    useEffect( () => {
+        if( refetchLoading === false ){
+            fetchInHR();
+        }
+    }, [refetchLoading])
+
     useDebounceEffect( () => {
-        if(selectedBun !== null && selectedBun !== undefined && selectedBun !== ''){
-            if( textOffset.startOffset - textOffset.endOffset !== 0 ){
-                setParams({
-                    startOffset : textOffset.startOffset, endOffset : textOffset.endOffset, 
-                    jaBId : selectedBun
-                });
-                dispatch( setHukumuChecking() )
-            }
-            else{
-                deselect();
-            }
+        if( selectedBun !== null && selectedBun !== undefined && selectedBun !== '' && textOffset.startOffset - textOffset.endOffset !== 0 ){
+            setParams({
+                startOffset : textOffset.startOffset, endOffset : textOffset.endOffset, 
+                jaBId : selectedBun
+            });
+            dispatch( setHukumuChecking() )
         }
         else{
             deselect();
         }
-    }, FETCH_HUKUMU_CHECK_DELAY, [textOffset.startOffset, textOffset.endOffset, setParams, selectedBun]);
+    }, FETCH_HUKUMU_CHECK_DELAY, [selectedBun, textOffset.startOffset, textOffset.endOffset, setParams]);
 
     return { fetchInHR }
 }
