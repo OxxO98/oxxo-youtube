@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 //ui
 import { ModalEditVideo } from "./ModalEditVideo";
 
+//api
+import { useUpdateVideo } from '../api/useUpdateLastEdit';
+
 //config
 import { GET_IMG_SRC, span } from '../config/video-grid-config'
 
@@ -18,9 +21,12 @@ export const VideoCardListComp = ({ list, refetch } : VideoCardListCompProps ) =
 
     //Hook
     const navigate = useNavigate();
+
+    const { updateLastEdit } = useUpdateVideo();
     
     //Handle
     const handleCardClick = (videoId : string) => {
+        updateLastEdit(videoId);
         navigate(`/video/${videoId}`);
     }
 

@@ -9,8 +9,7 @@ import { useAppSelector } from 'shared/store';
 export function useUpdateTimelineTime(
     videoId : string,
     refetchTimeline : () => void,
-    cancelEdit : () => void,
-    refetchAll : () => void
+    cancelEdit : () => void
 ){
     //Redux
     const { startTime, endTime } = useAppSelector((state) => state.reactPlayer)
@@ -33,9 +32,8 @@ export function useUpdateTimelineTime(
         if(res !== null){
             cancelEdit();
             refetchTimeline();
-            refetchAll();
         }
-    }, [response, cancelEdit, refetchTimeline, refetchAll])
+    }, [response, cancelEdit, refetchTimeline])
 
     return { updateYTBunTime }
 }

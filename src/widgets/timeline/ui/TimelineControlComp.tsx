@@ -62,13 +62,11 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
         selectEditYtBId(null);
     }, [setInputText, selectEditYtBId])
 
-    const { refetchAll } = refetchHandles;
-
     //Hook
     const { timeToFrameStamp } = useTimeStamp();
 
     const { insertBun } = usePostTimeline(videoId, refetchTimeline, cancelEdit);
-    const { updateYTBunTime } = useUpdateTimelineTime(videoId, refetchTimeline, cancelEdit, refetchAll);
+    const { updateYTBunTime } = useUpdateTimelineTime(videoId, refetchTimeline, cancelEdit);
     const { response : resTransRange, setParams : setParamsTransRange } = useAxiosGet<RES_GET_TRANSCRIPT_RANGE, REQ_GET_TRANSCRIPT_RANGE>('/ai/transcript/range', true, null);
 
     //Redux

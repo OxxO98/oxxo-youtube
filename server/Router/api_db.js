@@ -213,6 +213,23 @@ async function searchVideo(req, res){
     });
 }
 
+async function updateLastEditVideo(req, res){
+    await db_connection( req, res, async (db) => {
+        let { videoId } = req.body;
+
+        let video = db.data.videos.find( (video) => video.src == videoId);
+
+        video.lastEditTime = Date.now();
+
+        await db.write();
+
+        res.send({
+            message : 'success',
+            data : []
+        })
+    });
+}
+
 async function getTimeline(req, res) {
     await db_connection(req, res, async (db) => {
         let { videoId } = req.query;
@@ -237,10 +254,6 @@ async function getTimeline(req, res) {
                     ...koBuns.find( (ko) => ko.koBId == v.koBId ) 
                 }
             }).toSorted( (a, b) => a.startTime - b.startTime );
-
-            video.lastEditTime = Date.now();
-
-            await db.write();
 
             if( joinText.length == 0){
                 res.send({
@@ -640,6 +653,8 @@ router.put('/video', editVideo);
 router.delete('/video', deleteVideo);
 
 router.get('/video/search', searchVideo);
+
+router.put('/video/lastEdit', updateLastEditVideo);
 
 router.get('/timeline', getTimeline);
 
