@@ -120,6 +120,7 @@ const YoutubePage = () => {
                                                                 hukumuList={hukumuList} osusumeList={osusumeList} tangoList={tangoList}
                                                                 refetchHukumuList={refetchHukumuList} refetchOsusumeList={refetchOsusumeList} refetchTangoList={refetchTangoList}
                                                                 refetchHandles={refetchHandles}
+                                                                refetchTimeline={timelineHandles.refetch}
                                                             />
                                                         </Splitter.Panel>
                                                         <Splitter.Panel  collapsible defaultSize="50%" min="30%">

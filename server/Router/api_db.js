@@ -263,7 +263,12 @@ async function transcriptToBuns(req, res){
     await db_connection(req, res, async(db) => {
         let { videoId } = req.body;
         
-        const json = await fs.readFileSync(`${assetPath}/transcript/${videoId}.wav.json`);
+        const videoPath = `${assetPath}/transcript/${videoId}.wav`;
+
+        let json = await fs.readFileSync(`${videoPath}.json`);
+        if( await fs.existsSync(`${videoPath}_revise.json`) == true ){
+            json = await fs.readFileSync(`${videoPath}_revise.json`);
+        }
         const transcript = JSON.parse(json).transcription;
 
         let timeline = db.data.videos.find( (video) => video.src == videoId ).timeline;
@@ -599,6 +604,7 @@ async function getDBAll(req, res){
     })
 }
 
+// 아마 문장 검색만들다 만듯?
 async function getDBJaBun(req, res){
     await db_connection(req, res, async(db) => {
         let { keyword, imiKeyword } = req.query;

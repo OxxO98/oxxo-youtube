@@ -54,7 +54,7 @@ export const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
     const isTitle = inputs.title !== '';
 
     //Hook
-    const resetEdit = () => { setInputs({ youtubeSrc : '', title : '' }) }
+    const resetEdit = () => { setInputs({ youtubeSrc : '', title : '' }); setCurrent(0); }
     const { postVideo } = usePostVideo( refetch, setIsModalOpen, resetEdit );
 
     //Handle
@@ -133,7 +133,7 @@ export const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                         <>
                             <ReactPlayer
                                 src={`https://youtu.be/${inputs.youtubeSrc}`}
-                                style={{ width: '80%', height: 'auto', aspectRatio: '16/9' }}
+                                style={{ width: '60%', height: 'auto', aspectRatio: '16/9' }}
                             />
                             <Space align='baseline'>
                                 <Form>

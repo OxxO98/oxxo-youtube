@@ -34,6 +34,11 @@ const SharedModalComp : Locale["SharedModalComp"] = {
 
 }
 
+const YoutubeGridComp : Locale["YoutubeGridComp"] = {
+    MESSAGE : "무결성 체크",
+    DESCRIPTION : "완료"
+}
+
 const NewVideoComp : Locale["NewVideoComp"] = {
     TITLE : '새 영상을 추가합니다',
     STEPS : ['유튜브 주소 입력', '제목 입력'],
@@ -50,7 +55,8 @@ const ModalEditVideo : Locale["ModalEditVideo"] = {
     TITLE : '영상을 편집하겠습니까?',
     BUTTON : {
         MODIFY : '수정',
-        CANCLE : '취소'
+        CANCLE : '취소',
+        SWITCH : '이 비디오를 숨기기'
     },
     ALERT : '경고 : 이 행동은 되돌릴 수 없습니다.'
 }
@@ -148,8 +154,17 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
         RE_TRANSCRIPT : '음성인식 재작성',
         DONE_TRANSCRIPT : '음성인식으로 작성',
         DONE_CAPTION : '자막으로 작성',
-        CANCLE : '닫기'
+        CANCLE : '닫기',
+        SWITCH : '텍스트로 보정'
     },
+    ALERT : {
+        MESSAGE : '경고',
+        DESCRIPTION : [
+            "OPEN AI를 사용합니다. 환경변수에 API_KEY가 있는 경우 사용됩니다.",
+            "텍스트는 완전한 대본에 가까워야 합니다. 불필요한 내용을 제거하고 사용해주십시오.",
+        ]
+    },
+    TAG : "병합됨",
     CONTENTS : ['자막', '음성인식', '비교']
 }
 
@@ -397,6 +412,72 @@ const AiComp : Locale['AiComp'] = {
     }
 }
 
+const TangoAutoModal : Locale['TangoAutoModal'] = {
+    TITLE : '단어를 자동 생성에 DB에 등록합니다',
+    BUTTON : {
+        TITLE : '단어 자동 생성',
+        CANCLE : '취소',
+        CONFIRM : '확인',
+        CONFIRM_WITH_AI : '뜻과 함께 생성',
+        DONE : '확인',
+    },
+    ALERT : {
+        MESSAGE : '경고',
+        DESCRIPTION : '이 행동은 끝날 때 까지 취소할 수 없습니다',
+    },
+    MESSAGE : {
+        DONE : '완료'
+    }
+}
+
+const TangoAutoControl : Locale['TangoAutoControl'] = {
+    BUTTON : {
+        SKIP : '나중에 등록하기'
+    }
+}
+
+const TangoCard : Locale['TangoCard'] = {
+    CONTENTS : {
+        IMI : '의미',
+        KANJI : '한자',
+        SIZE : '개'
+    }
+}
+
+const MatchedTangoList : Locale['MatchedTangoList'] = {
+    BUTTON : {
+        SAVE_NEW : '새로운 단어로 등록',
+        SAVE : '이 단어로 등록'
+    }
+}
+
+const DBTable : Locale['DBTable'] = {
+    ALL_COLUMNS : [
+        "표기",
+        "의미",
+        "표기 요약",
+        "갯수"
+    ],
+    COLUMNS : [
+        "표기",
+        "읽기",
+        "발음",
+        "한자"
+    ],
+    VIDEO_COLUMNS : [
+        "영상 제목",
+        "갯수"
+    ],
+    BUN_COLUMNS : [
+        "원문",
+        "번역문",
+        "해당 영상으로 이동"
+    ],
+    BUTTON : {
+      MOVE : '이돟'
+    }
+}
+
 //NOT_FOUND
 const NotFoundPage : Locale['NotFoundPage'] = {
     MESSAGE : {
@@ -412,6 +493,7 @@ export default {
     LayoutCompYoutube,
     
     SharedModalComp,
+    YoutubeGridComp,
     NewVideoComp,
     ModalEditVideo,
     ModalDeleteVideo,
@@ -460,6 +542,13 @@ export default {
     TimelineCarouselHonyakuComp,
 
     AiComp,
+
+    TangoAutoModal,
+    TangoAutoControl,
+    TangoCard,
+    MatchedTangoList,
+
+    DBTable,
 
     NotFoundPage,
 } as Locale

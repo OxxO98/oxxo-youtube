@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 //Hook
 import { useAxiosGet } from 'shared/hooks/useAxios';
@@ -19,6 +20,7 @@ const { clear } = selectionActions;
 type SearchProps = GetProps<typeof Input.Search>;
 
 const YoutubeGridComp = () => {
+    const { t } = useTranslation('YoutubeGridComp');
 
     //State
     const [videos, setVideos] = useState<RES_GET_VIDEO | null>(null);
@@ -78,14 +80,13 @@ const YoutubeGridComp = () => {
         }
     }, [response, fetch])
 
-    //무결성 체크
     useEffect( () => {
         let res = resIntegrity;
         if( res !== null ){
             if(res.message === 'done'){
                 messageApi['success']({
-                    message: '무결성 체크',
-                    description: '완료',
+                    message: t('MESSAGE'),
+                    description: t('DESCRIPTION'),
                     placement : 'bottomRight'
                 });
             }
@@ -118,6 +119,7 @@ const YoutubeGridComp = () => {
                     <Input.Search allowClear name="search" value={value} onChange={handleChange} autoComplete='off' onKeyDown={handleKeyDown} onSearch={onSearch}/>
                 </Flex>
             </Flex>
+            <div style={{ overflow : "scroll", height : "calc(100vh - 96px)"}}>
             {
                 list !== null ?
                     list.length !== 0 ?
@@ -133,6 +135,7 @@ const YoutubeGridComp = () => {
                 :
                 <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
             }
+            </div>
         </>
     )
 }

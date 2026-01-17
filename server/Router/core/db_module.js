@@ -184,42 +184,33 @@ function getExistHyouki(db, hyoukiStr, hyouki, yomi) {
 }
 exports.getExistHyouki = getExistHyouki;
 function makeTextData(hyouki, yomi) {
-    return __awaiter(this, void 0, void 0, function () {
-        var hyoukiArr, yomiArr, ret, acc, i;
-        return __generator(this, function (_a) {
-            hyoukiArr = hyouki.split('_');
-            yomiArr = yomi.split('_');
-            ret = [];
-            acc = 0;
-            for (i = 0; i < hyoukiArr.length; i++) {
-                ret.push({
-                    data: hyoukiArr[i],
-                    ruby: yomiArr[i] == '0' ? null : yomiArr[i],
-                    offset: acc
-                });
-                acc += hyoukiArr[i].length;
-            }
-            return [2 /*return*/, ret];
+    var hyoukiArr = hyouki.split('_');
+    var yomiArr = yomi.split('_');
+    var ret = [];
+    var acc = 0;
+    for (var i = 0; i < hyoukiArr.length; i++) {
+        ret.push({
+            data: hyoukiArr[i],
+            ruby: yomiArr[i] == '0' ? null : yomiArr[i],
+            offset: acc
         });
-    });
+        acc += hyoukiArr[i].length;
+    }
+    return ret;
 }
 exports.makeTextData = makeTextData;
 function updateHyouki(db, hyId, hyouki, yomi, hyoukiStr, yomiStr) {
     return __awaiter(this, void 0, void 0, function () {
         var textData, hy;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, makeTextData(hyouki, yomi)];
-                case 1:
-                    textData = _a.sent();
-                    hy = db.data.hyouki.find(function (v) { return v.hyId == hyId; });
-                    if (hy) {
-                        hy.textData = textData;
-                        hy.hyouki = hyoukiStr;
-                        hy.yomi = yomiStr;
-                    }
-                    return [2 /*return*/];
+            textData = makeTextData(hyouki, yomi);
+            hy = db.data.hyouki.find(function (v) { return v.hyId == hyId; });
+            if (hy) {
+                hy.textData = textData;
+                hy.hyouki = hyoukiStr;
+                hy.yomi = yomiStr;
             }
+            return [2 /*return*/];
         });
     });
 }
@@ -326,18 +317,13 @@ function getMoreExistTId(db, tId) {
 exports.getMoreExistTId = getMoreExistTId;
 //Kanji & Komu
 function getKanjiArr(hyouki) {
-    return __awaiter(this, void 0, void 0, function () {
-        var matched, arrKanji;
-        return __generator(this, function (_a) {
-            matched = hyouki.match(/[\u3400-\u9fff]/g);
-            //한자 중복 제거.
-            if (matched == null) {
-                return [2 /*return*/, []];
-            }
-            arrKanji = matched.filter(function (v, i) { return matched.indexOf(v) == i; });
-            return [2 /*return*/, arrKanji];
-        });
-    });
+    var matched = hyouki.match(/[\u3400-\u9fff]/g);
+    //한자 중복 제거.
+    if (matched == null) {
+        return [];
+    }
+    var arrKanji = matched.filter(function (v, i) { return matched.indexOf(v) == i; });
+    return arrKanji;
 }
 exports.getKanjiArr = getKanjiArr;
 function getKIds(db, hyId) {

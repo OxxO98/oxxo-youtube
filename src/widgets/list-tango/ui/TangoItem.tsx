@@ -17,29 +17,18 @@ import { useMoveTo } from '../api/useMoveTo';
 import { Card, Button } from 'antd';
 
 interface TangoProps {
-    tId : tId;
+    tangoData : TangoList;
 }
 
-const Tango = ({ tId } : TangoProps ) => {
+const Tango = ({ tangoData } : TangoProps ) => {
     //i18n
     const { t } = useTranslation('Tango');
-
-    const [tangoData, setTangoData] = useState<TangoData | null>(null);
 
     //Context
     const { videoId } = useContext(VideoContext);
 
     //Hook
-    const { response } = useAxiosGet<RES_GET_TANGO, REQ_GET_TANGO>('/db/tango', false, { tId : tId });
     const { handleToTango } = useMoveTo();
-
-    //Effect
-    useEffect( () => {
-        let res = response;
-        if(res !== null){
-            setTangoData(res.data);
-        }
-    }, [response])
 
     return(
         <>
@@ -48,7 +37,7 @@ const Tango = ({ tId } : TangoProps ) => {
             <Card
                 style={{ width : '100%' }}
                 actions={[
-                    <Button onClick={() => handleToTango(tId, videoId)}>{t('BUTTON.MOVE')}</Button>
+                    <Button onClick={() => handleToTango(tangoData.tId, videoId)}>{t('BUTTON.MOVE')}</Button>
                 ]}
             >
                 <Card.Meta

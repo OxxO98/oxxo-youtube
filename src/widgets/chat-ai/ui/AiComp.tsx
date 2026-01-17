@@ -22,13 +22,13 @@ const CompStyle : CSSProperties = {
 
 const ChatCompStyle : CSSProperties = {
     width : '100%',
-    height : 'calc(100% - 70px)',
+    height : 'calc(100% - 120px)',
     overflow : 'scroll'
 }
 
 const ChatInputStyle : CSSProperties = {
     width : '100%',
-    height : '70px'
+    height : '120px'
 }
 
 const ChatAiMessageStyle : CSSProperties = {
@@ -64,7 +64,7 @@ const AiComp = ({ bIdRef } : AiCompProps) => {
     useReplace( hukumuData, selectedBun, value, setValue, bIdRef );
 
     //Handle
-    const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e : React.ChangeEvent<HTMLTextAreaElement>) => {
         setValue(e.target.value);
     }
 
@@ -117,7 +117,7 @@ const AiComp = ({ bIdRef } : AiCompProps) => {
                 </div>
                 <div style={ChatInputStyle}>
                     <Space.Compact block>
-                        <Input value={value} onChange={handleChange}/>
+                        <Input.TextArea autoSize={{ minRows : 1, maxRows : 4 }} value={value} onChange={handleChange}/>
                         {
                             !loading ?
                                 <Button onClick={handleSubmit}>{t('BUTTON.DONE')}</Button>

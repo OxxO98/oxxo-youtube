@@ -5,7 +5,6 @@ import { useState } from 'react';
  * onMouseDown에 setActive를 설정해 드래그 하는 부분에서 사용가능하게 함. 
  * 
  * @returns 
- * @todo TimelineComp에서만 사용되는 기능
  */
 function useActive(){
     const [activeId, setActiveId] = useState<string>();

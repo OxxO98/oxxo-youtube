@@ -79,7 +79,7 @@ export const ModalEditVideo = ({ data, refetch } : ModalEditVideoProps ) => {
             >
                 <Input defaultValue={data.title} value={input} onChange={handleInputChange}/>
                 <Divider />
-                숨기기 <Switch value={disabled} onChange={handleSwitch} />
+                {t('BUTTON.SWITCH')} <Switch value={disabled} onChange={handleSwitch} />
                 <Divider />
                 <Select
                     mode="tags"

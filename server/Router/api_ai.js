@@ -2,6 +2,9 @@ import express from "express";
 const router = express.Router();
 
 import OpenAI from 'openai';
+import { zodTextFormat } from "openai/helpers/zod";
+import { z } from "zod";
+
 import { nodewhisper } from "nodejs-whisper";
 import fs from 'fs';
 import ffmpeg from 'fluent-ffmpeg';
@@ -12,12 +15,62 @@ import path, { resolve } from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+    
+const assetPath = path.join(__dirname, '../Asset');
 
-const openai = new OpenAI({
-    baseURL : 'http://localhost:11434/v1/',
-    apiKey : 'ollama',
-    dangerouslyAllowBrowser : false
-})
+async function _existApiKey(){
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+
+    if (typeof openaiApiKey !== "string" || openaiApiKey.trim() === "") {
+        return false;
+    }
+    return true;
+}
+
+async function getChatOpenAI( message, context ){
+
+    const client = new OpenAI();
+
+    const ai_res = await client.responses.create({
+        model : 'gpt-5-mini',
+        tools : [
+            { type: "web_search" },
+        ],
+        input : [
+            { role : 'system', content : '너는 일본어와 한국어에 능통한 번역가이고, 답변은 항상 한국어로 해줘'},
+            ...context,
+            { role : 'user', content : message },
+        ],
+        stream : true,
+        store : true,
+    })
+
+    return ai_res;
+}
+
+async function getChatLocal( message, context ){
+
+    const _openai = new OpenAI({
+        baseURL : 'http://localhost:11434/v1/',
+        model : 'ollama',
+        dangerouslyAllowBrowser : false
+    })
+
+    const ai_res = await _openai.chat.completions.create({
+        model : 'gpt-oss:20b',
+        web_search_options: {},
+        messages : [
+            { role : 'system', content : '너는 일본어와 한국어에 능통한 번역가이고, 답변은 항상 한국어로 해줘'},
+            ...context,
+            { role : 'user', content : message },
+        ],
+        stream : true,
+        store : true,
+        max_completion_tokens : 8,
+    })
+
+    return ai_res;
+}
 
 async function getChat(req, res){
     const { message, context } = req.query;
@@ -35,18 +88,7 @@ async function getChat(req, res){
         }
     }
 
-    const ai_res = await openai.chat.completions.create({
-        model : 'gpt-oss:20b',
-        web_search_options: {},
-        messages : [
-            { role : 'system', content : '너는 일본어와 한국어에 능통한 번역가이고, 답변은 항상 한국어로 해줘'},
-            ..._context,
-            { role : 'user', content : message },
-        ],
-        stream : true,
-        store : true,
-        max_completion_tokens : 8,
-    })
+    const ai_res = _existApiKey() ? await getChatOpenAI(message, _context) : await getChatLocal(message, _context);
 
     req.on('close', () => {
         ai_res.controller.abort();
@@ -54,26 +96,40 @@ async function getChat(req, res){
         res.end();
     })
 
-    for await ( const chunk of ai_res){
-        let data = chunk.choices[0]?.delta.content || '';
+    for await ( const chunk of ai_res ){
+        let data = _existApiKey() ? chunk?.delta || '' : chunk.choices[0]?.delta.content || '';
         res.write(`data: ${data.replaceAll('\n', '@@@@')}\n\n`);
     }
 
     res.end();
 }
 
-function _checkCudaStatus() {
-  try {
-    const result = execSync('nvidia-smi', { encoding: 'utf8' });
-    console.log("CUDA is installed");
-    return true;
-  } catch (error) {
-    console.log("CUDA is not installed");
-    return false;
-  }
+function _toTimestamp(time, separator = ','){
+    let hour = Math.floor(time/3600);
+    let min = Math.floor(time/60%60);
+    let sec = Math.floor(time%60);
+    let msec = Math.floor(time%1*1000);
+
+    let ts_hour = String(hour).padStart(2, '0');
+    let ts_min = String(min).padStart(2, '0');
+    let ts_sec = String(sec).padStart(2, '0');
+    let ts_msec = String(msec).padStart(3, '0');
+
+    return ts_hour+':'+ts_min+':'+ts_sec+separator+ ts_msec;
 }
 
-async function _sliceAudio( filePath, outFilePath, startTime, endTime, option ){
+function _checkCudaStatus() {
+    try {
+        const result = execSync('nvidia-smi', { encoding: 'utf8' });
+        console.log("CUDA is installed");
+        return true;
+    } catch (error) {
+        console.log("CUDA is not installed");
+        return false;
+    }
+}
+
+async function _sliceAudioLocal( filePath, outFilePath, startTime, endTime, option ){
 
     if(fs.existsSync(`${outFilePath}.json`) == true){
         console.log('exist.. skip');
@@ -115,35 +171,183 @@ async function _sliceAudio( filePath, outFilePath, startTime, endTime, option ){
     }    
 }
 
-function _toTimestamp(time, separator = ','){
-    let hour = Math.floor(time/3600);
-    let min = Math.floor(time/60%60);
-    let sec = Math.floor(time%60);
-    let msec = Math.floor(time%1*1000);
+async function _reviseWithAi( videoPath, transcription ){
 
-    let ts_hour = String(hour).padStart(2, '0');
-    let ts_min = String(min).padStart(2, '0');
-    let ts_sec = String(sec).padStart(2, '0');
-    let ts_msec = String(msec).padStart(3, '0');
+    let _revisePath = `${videoPath}_revise.json`;
+    let _txtPath = `${videoPath}_revise.txt`;
 
-    return ts_hour+':'+ts_min+':'+ts_sec+separator+ ts_msec;
+    if( await fs.existsSync(_txtPath) == false ){
+        return transcription;
+    }
+
+    if( await fs.existsSync(_revisePath) == true ){
+        let json_revise = await fs.readFileSync(_revisePath);
+        let revise_transcription = JSON.parse(json_revise).transcription.map( (v) => {
+            return {
+                startTime : v.offsets.from/1000,
+                endTime : v.offsets.to/1000,
+                text : v.text
+            }
+        })
+
+        return revise_transcription;
+    }
+
+    const tcData = z.object({ 
+        data : z.array( z.object({
+            original_id : z.string(),
+            original: z.string(),
+            modified_id : z.string(),
+            modified: z.string()
+        }) )
+    });
+
+    let refScript = await fs.readFileSync(_txtPath, 'utf-8');
+    let transcriptionWithId = transcription.map( (seg, idx) => ({ 
+        id : `W_${String(idx+1).padStart(4, "0")}`,
+        text : seg.text.trim()
+    }));
+    let transcriptionInput = transcriptionWithId
+        .map( v => `[${v.id}] ${v.text}`)
+        .join("\n");
+
+    const client = new OpenAI();
+
+    const prompt = `
+        아래는 음성 인식 결과이다. 각 줄은 고유한 ID를 가진다.
+
+        규칙 :
+        - ID는 절대 수정, 삭제, 추가하지 말 것
+        - 출력 배열 길이는 입력 줄 수와 반드시 같아야 함
+        - 각 줄은 동일 ID의 original만 수정할 것
+        - 다른 줄의 내용을 병합하거나 분리하지 말 것
+        - 문장이 어색해도 줄 경계를 유지할 것
+        - 참고 대본은 표현을 고칠 때만 참고하고 내용을 가져오지 말 것
+
+        [보정 대상]
+        ${transcriptionInput}
+
+        [참고 대본]
+        ${refScript}
+
+        출력은 반드시 지정된 JSON 포맷을 따를 것.
+    `
+
+    const ai_res = await client.responses.parse({
+        model : 'gpt-5-mini',
+        input : [
+            { role : 'user', content : prompt },
+        ],
+        text : {
+            format : zodTextFormat(tcData, 'transcription_data'),
+        }
+    })
+
+    let transcriptArr = transcription.map( (v, i) => {
+        return {
+            ...v,
+            text : ai_res.output_parsed.data[i].modified
+        }
+    })
+
+    let revise_transcription = transcriptArr.map( (v, i) => {
+        return {
+            timestamps : {
+                from : _toTimestamp(v.startTime),
+                to : _toTimestamp(v.endTime)
+            },
+            offsets : {
+                from : v.startTime*1000,
+                to : v.endTime*1000
+            },
+            text : v.text,
+            ...ai_res.output_parsed.data[i]
+        }
+    })
+
+    let _all = { transcription : revise_transcription }
+
+    await fs.writeFileSync(_revisePath, JSON.stringify( _all, null, 2) )
+
+    return transcriptArr;
 }
 
-async function getTranscipt(req, res){
-    let { videoId, reset, lang, model } = req.query;
+//local
+async function getRangeTranscript(req, res){
+    let { videoId, startOffset, endOffset } = req.query;
+    
+    let assetPath = path.join(__dirname, '../Asset');
+    let transcriptPath = path.join(assetPath, 'transcript');
+
+    //기존 option제거
+    let option = {
+        reset : false,
+        lang : 'ja',
+        model : 'medium'
+    }
+
+    let startTime = Number(startOffset);
+    let endTime = Number(endOffset);
+
+    let filePath = `${transcriptPath}/${videoId}.wav`;
+    if(fs.existsSync(`${transcriptPath}/${videoId}.wav`) == true){
+        
+        const outFilePath = path.join(transcriptPath, `${videoId}_${startOffset}_${endOffset}.wav`);
+
+        await ffmpeg({ source : filePath})
+        .setStartTime(startTime).setDuration(endTime-startTime)
+        .save(outFilePath).on(
+            'end', function(){
+                let _langObj = {}
+                if( option.lang !== 'auto' ){ _langObj.language = option.lang } 
+                nodewhisper(outFilePath, {
+                    modelName : option.model,
+                    autoDownloadModelName : option.model,
+                    withCuda : _checkCudaStatus(),
+                    whisperOptions : {
+                        translateToEnglish : false,
+                        wordTimestamps : true,
+                        timestamps_length : 17,
+                        splitOnWord : true,
+                        ..._langObj
+                    },
+                    removeWavFileAfterTranscription : true
+                }).then( (transcription) => {
+                    let arr = transcription.split('\r\n')
+                        .filter( (v) => v != '')
+                        .map( (v) => {
+                        let matched = v.match(/^\[.+\](.+)$/);
+                        return matched == null ? v.trim() : matched[1].replaceAll(/[「」]/g, '').trim();
+                    } )
+
+                    res.send({
+                        message : 'success',
+                        data : arr.join('')
+                    });
+                    return;
+                }).catch( (err) => {
+                    res.send({
+                        message : 'error',
+                        data : {}
+                    });
+                })
+            }
+        );        
+    }
+    else{
+        res.send({
+            message : 'error',
+            data : {}
+        });
+    }
+}
+
+async function getTransciptLocal( videoId, option ){
     
     let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
 
     let videoPath = path.join(transcriptPath, `${videoId}.wav`);
-
-    //model : small, medium, large...
-
-    let option = {
-        reset : reset ?? false,
-        lang : lang ?? 'ja',
-        model : model ?? 'medium'
-    }
 
     let _sliceSeconds = 300;
     await ffmpeg.ffprobe(videoPath, async (err, metadata ) => {
@@ -151,14 +355,14 @@ async function getTranscipt(req, res){
 
         let _indexs = Array.from({ length : Math.ceil(_duration/_sliceSeconds) }, (v, i) => i*_sliceSeconds )
         
-        if( fs.existsSync(`${videoPath}.json`) == false || reset === 'true' ){
+        if( fs.existsSync(`${videoPath}.json`) == false || option.reset === 'true' ){
             for await( let i of _indexs ){
                 console.log(`${i/_sliceSeconds+1} / ${_indexs.length}.. start`);
                 let _startTime = i;
                 let _endTime = Math.min( i + _sliceSeconds, _duration );
             
                 let outFilePath = path.join(transcriptPath, `${videoId}_${_startTime}_${_endTime}.wav`);
-                await _sliceAudio( videoPath, outFilePath, _startTime, _endTime, option )
+                await _sliceAudioLocal( videoPath, outFilePath, _startTime, _endTime, option )
                 console.log(`${i/_sliceSeconds+1} / ${_indexs.length}.. end`);
             }
 
@@ -219,11 +423,7 @@ async function getTranscipt(req, res){
                 }
             }
 
-            res.send({
-                message : 'success',
-                data : transcriptArr
-            });
-            return;
+            return transcriptArr;
         }
         else{
             const json = await fs.readFileSync(`${videoPath}.json`);
@@ -235,83 +435,116 @@ async function getTranscipt(req, res){
                 }
             });
 
-            res.send({
-                message : 'success',
-                data : transcription
-            });
-            return;
+            return transcription;
         }
     })
 }
 
-async function getRangeTranscript(req, res){
-    let { videoId, startOffset, endOffset, reset, lang, model } = req.query;
+async function getTranscriptOpenAI( videoId, option ){
     
     let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
 
-    let option = {
-        reset : reset ?? false,
-        lang : lang ?? 'ja',
-        model : model ?? 'medium'
-    }
-    //'auto'로 하려곤했었음
+    let videoPath = path.join(transcriptPath, `${videoId}.wav`);
 
-    let startTime = Number(startOffset);
-    let endTime = Number(endOffset);
+    if( fs.existsSync(`${videoPath}.json`) == false || option.reset === 'true' ){
+        const client = new OpenAI();
 
-    let filePath = `${transcriptPath}/${videoId}.wav`;
-    if(fs.existsSync(`${transcriptPath}/${videoId}.wav`) == true){
-        
-        const outFilePath = path.join(transcriptPath, `${videoId}_${startOffset}_${endOffset}.wav`);
+        const transcription = await client.audio.transcriptions.create({
+            file: fs.createReadStream(videoPath),
+            model: "whisper-1",
+            response_format : "verbose_json",
+            language : "ja",
+            timestamp_granularities : ["segment"]
+        })
 
-        await ffmpeg({ source : filePath})
-        .setStartTime(startTime).setDuration(endTime-startTime)
-        .save(outFilePath).on(
-            'end', function(){
-                let _langObj = {}
-                if( option.lang !== 'auto' ){ _langObj.language = option.lang } 
-                nodewhisper(outFilePath, {
-                    modelName : option.model,
-                    autoDownloadModelName : option.model,
-                    withCuda : _checkCudaStatus(),
-                    whisperOptions : {
-                        translateToEnglish : false,
-                        wordTimestamps : true,
-                        timestamps_length : 17,
-                        splitOnWord : true,
-                        ..._langObj
-                    },
-                    removeWavFileAfterTranscription : true
-                }).then( (transcription) => {
-                    let arr = transcription.split('\r\n')
-                        .filter( (v) => v != '')
-                        .map( (v) => {
-                        let matched = v.match(/^\[.+\](.+)$/);
-                        return matched == null ? v.trim() : matched[1].replaceAll(/[「」]/g, '').trim();
-                    } )
+        let _all = { transcription : [] };
+        let dataArr = [];
+        let transcriptArr = [];
 
-                    res.send({
-                        message : 'success',
-                        data : arr.join('')
-                    });
-                    return;
-                }).catch( (err) => {
-                    res.send({
-                        message : 'error',
-                        data : {}
-                    });
-                })
+        transcriptArr = transcription.segments.map( (v) => {
+            return {
+                startTime : v.start,
+                endTime : v.end,
+                text : v.text
             }
-        );        
+        })
+
+        dataArr = transcription.segments.map( (v) => {
+            return {
+                timestamps : {
+                    from : _toTimestamp(v.start),
+                    to : _toTimestamp(v.end)
+                },
+                offsets : {
+                    from : v.start*1000,
+                    to : v.end*1000
+                },
+                text : v.text
+            }
+        })
+
+        _all.transcription = dataArr;
+
+        await fs.writeFileSync(`${videoPath}.json`, JSON.stringify(_all, null, 2) );
+
+        return transcriptArr;
     }
     else{
-        res.send({
-            message : 'error',
-            data : {}
+        const json = await fs.readFileSync(`${videoPath}.json`);
+        let transcription = JSON.parse(json).transcription.map( (v) => {
+            return {
+                startTime : v.offsets.from/1000,
+                endTime : v.offsets.to/1000,
+                text : v.text
+            }
         });
+
+        return transcription;
     }
-} 
+}
+
+async function getTranscipt(req, res){
+    let { videoId, reviseText, reset } = req.query;
+    
+    let assetPath = path.join(__dirname, '../Asset');
+    let transcriptPath = path.join(assetPath, 'transcript');
+
+    let videoPath = path.join(transcriptPath, `${videoId}.wav`);
+
+    let _option = {
+        reset : reset ?? 'false',
+        lang : 'ja',
+        model : 'medium'
+    }
+
+    if( reviseText !== undefined && reviseText !== "" ){
+        await fs.writeFileSync(`${videoPath}_revise.txt`, reviseText);
+    }
+
+    if( await _existApiKey() == true ){
+
+        let transcription = await getTranscriptOpenAI( videoId, _option );
+
+        transcription = await _reviseWithAi( videoPath, transcription );
+
+        res.send({
+            message : 'success',
+            data : transcription
+        });
+        return;
+    }
+    else{
+        //local
+        let transcription = await getTransciptLocal( videoId, _option );
+
+        res.send({
+            message : 'success',
+            data : transcription
+        });
+        return;
+    }
+}
 
 router.get('/chat', getChat);
 router.get('/transcript', getTranscipt);

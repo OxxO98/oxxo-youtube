@@ -1,0 +1,1 @@
+export { TangoAutoModal } from "./ui/TangoAutoModal";

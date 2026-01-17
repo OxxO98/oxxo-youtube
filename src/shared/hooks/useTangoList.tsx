@@ -7,7 +7,6 @@ import { useAxiosGet } from 'shared/hooks/useAxios';
  * 
  * @param videoId 비디오 ID
  * @returns 
- * @todo 현재 렌더링시 과부하가 있기 떄문에, loadmore로 바꿀 예정
  */
 function useTangoList(videoId : string){
 

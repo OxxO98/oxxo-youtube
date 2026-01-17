@@ -8,7 +8,7 @@ import { useAxiosGet } from 'shared/hooks/useAxios';
 import { ComplexText } from 'entities/ComplexText/index'
 
 //Css@antD
-import { Button } from 'antd';
+import { Button, Flex } from 'antd';
 
 interface TangoDBProps {
     data : RES_SEARCH_TANGO;
@@ -31,7 +31,7 @@ export const TangoDB = ({ data, handleSubmit } : TangoDBProps ) => {
     }, [response])
 
     return(
-        <>
+        <Flex vertical>
             <div>
             {
                 tangoData !== null &&
@@ -62,6 +62,6 @@ export const TangoDB = ({ data, handleSubmit } : TangoDBProps ) => {
             <div>
                 <Button onClick={() => { handleSubmit(data.tId) }}>{t('BUTTON.DONE')}</Button>
             </div>
-        </>
+        </Flex>
     )
 }

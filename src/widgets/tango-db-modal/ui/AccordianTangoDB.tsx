@@ -9,13 +9,23 @@ import { TangoDB } from './TangoDB';
 import { useSearchedArr } from '../model/useSearchedArr';
 
 //Css@antD
-import { Tabs, List } from 'antd';
+import { Tabs, theme } from 'antd';
 import type { TabsProps } from 'antd';
+const { useToken } = theme; 
 
 const ListCompStyle : CSSProperties = {
-    padding : '16px',
     maxHeight : '60vh',
     overflow : 'scroll'
+}
+
+
+const ListItemStyle : CSSProperties = {
+    height: 64,
+    display: 'flex',
+    alignItems: 'center',
+    padding : '8px',    
+    margin : '8px 0',
+    boxSizing: 'border-box',
 }
 
 interface AccordianTangoDBProps {
@@ -29,26 +39,31 @@ export const AccordianTangoDB = ({ searchedList, handleSubmit } : AccordianTango
 
     const { getSearchedArr } = useSearchedArr();
     
+    const { token } = useToken();
+
     const items: TabsProps['items'] = useMemo( () => getSearchedArr(searchedList).map( (v, i) => { return {
         key : i.toString(),
         label : v.name,
         children : <div>
             <div>{t('CONTENTS.MESSAGE', {count : v.count})}</div>
-            <List style={ListCompStyle}>
+            <div style={ListCompStyle}>
                 <VirtualList
                     data={v.list}
-                    itemHeight={47}
+                    itemHeight={64}
                     itemKey="tId"
                 >
                 {
                     (data) => (
-                        <List.Item>
+                        <div style={{
+                            ...ListItemStyle,
+                            backgroundColor : token.colorBgContainer
+                        }}>
                             <TangoDB data={data} handleSubmit={handleSubmit}/>
-                        </List.Item>
+                        </div>
                     )
                 }
                 </VirtualList>
-            </List>
+            </div>
         </div>
     } }), [searchedList])
 

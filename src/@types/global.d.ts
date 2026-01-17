@@ -99,6 +99,9 @@ declare global {
     tId : tId;
     hyouki : string;
     yomi : string;
+    
+    list : ComplexText[];
+    imi : string[] | null;
   } //애매함 문제 RESPONSE인가??
 
   export interface OsusumeList {
@@ -134,6 +137,7 @@ declare global {
     yomi : string;
   }
 
+  //deprecated 사용 안함
   export interface TangoData {
     list : ComplexText[];
     imi : string[] | null;
@@ -240,9 +244,8 @@ declare global {
   export type RES_GET_TRANSCRIPT = RES_CAPTION[];
   export type REQ_GET_TRANSCRIPT = {
     videoId : string;
+    reviseText : string;
     reset? : 'true' | 'false';
-    lang? : lang;
-    offset? : OffsetObj;
   }
 
   export type RES_GET_TRANSCRIPT_RANGE = string;
@@ -412,6 +415,12 @@ declare global {
     jaBId : jaBId;
   }
 
+  export type REQ_GET_AUTO_DB = {
+    videoId : string;
+    text : string;
+    option? : string;
+  };
+
   //REQUEST : POST, PUT, DELETE
   export type REQ_POST_TRANSLATE = {
     videoId : string;
@@ -559,6 +568,11 @@ declare global {
 
   export type REQ_POST_USERID = {
     userId : string;
+  }
+
+  export type REQ_POST_AUTO_DB = {
+    videoId : string;
+    change : ObjKey;
   }
 
   //Response legacy
@@ -810,6 +824,7 @@ declare global {
     LayoutCompYoutube: LayoutCompYoutube;
 
     SharedModalComp : SharedModalComp;
+    YoutubeGridComp : YoutubeGridComp;
     NewVideoComp : NewVideoComp;
     ModalEditVideo : ModalEditVideo;
     ModalDeleteVideo : ModalDeleteVideo;
@@ -859,6 +874,13 @@ declare global {
 
     AiComp : AiComp;
 
+    TangoAutoModal : TangoAutoModal;
+    TangoAutoControl : TangoAutoControl;
+    TangoCard : TangoCard;
+    MatchedTangoList : MatchedTangoList;
+
+    DBTable : DBTable;
+
     NotFoundPage : NotFoundPage;
   }
 
@@ -895,6 +917,11 @@ declare global {
     LIGHT_OPTIONS : string[];
   }
 
+  export interface YoutubeGridComp {
+    MESSAGE : string;
+    DESCRIPTION : string;
+  }
+
   export interface NewVideoComp {
     TITLE : string;
     STEPS : string[];
@@ -912,6 +939,7 @@ declare global {
     BUTTON : {
       MODIFY : string;
       CANCLE : string;
+      SWITCH : string;
     }
     ALERT : string;
   }
@@ -1010,7 +1038,13 @@ declare global {
       DONE_TRANSCRIPT : string;
       DONE_CAPTION : string;
       CANCLE : string;
+      SWITCH : string;
     },
+    ALERT : {
+      MESSAGE : string;
+      DESCRIPTION : string[];
+    }
+    TAG : string;
     CONTENTS : string[];
   }
 
@@ -1217,6 +1251,55 @@ declare global {
       NEW_CHAT : string;
       DONE : string;
       CANCLE : string;
+    }
+  }
+
+  export interface TangoAutoModal {
+    TITLE : string;
+    BUTTON : {
+      TITLE : string;
+      CANCLE : string;
+      CONFIRM : string;
+      CONFIRM_WITH_AI : string;
+      DONE : string;
+    }
+    ALERT : {
+      MESSAGE : string;
+      DESCRIPTION : string;
+    }
+    MESSAGE : {
+      DONE : string;
+    }
+  }
+
+  export interface TangoAutoControl {
+    BUTTON : {
+      SKIP : string;
+    }
+  }
+
+  export interface TangoCard {
+    CONTENTS : {
+      KANJI : string;
+      SIZE : string;
+      IMI : string;
+    }
+  }
+
+  export interface MatchedTangoList {
+    BUTTON : {
+      SAVE_NEW : string;
+      SAVE : string;
+    }
+  }
+
+  export interface DBTable {
+    ALL_COLUMNS : string[];
+    COLUMNS : string[];
+    VIDEO_COLUMNS : string[];
+    BUN_COLUMNS : string[];
+    BUTTON : {
+      MOVE : string;
     }
   }
 

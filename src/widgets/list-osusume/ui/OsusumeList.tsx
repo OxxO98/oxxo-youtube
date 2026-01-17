@@ -9,7 +9,7 @@ import { OsusumeItem } from './OsusumeItem'
 import { useAppSelector } from 'shared/store';
 
 //CSS@antd
-import { List, Empty } from 'antd'
+import { Spin, Empty } from 'antd'
 
 interface OsusumeListCompProps {
     osusumeList : OsusumeList[];
@@ -18,8 +18,13 @@ interface OsusumeListCompProps {
     refetchHandles : RefetchHandles;
 }
 
-const ListCompStyle : CSSProperties = {
-    padding : '16px'
+const ListItemStyle : CSSProperties = {
+    height: 140,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 16px',
+    margin : '8px 0',
+    boxSizing: 'border-box',
 }
 
 export const OsusumeListComp = ({ osusumeList, refetchOsusumeList, refetchTangoList, refetchHandles } : OsusumeListCompProps ) => {
@@ -34,24 +39,24 @@ export const OsusumeListComp = ({ osusumeList, refetchOsusumeList, refetchTangoL
             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
             :
             <>
-            {
-                osusumeList !== null &&
-                <List style={ListCompStyle} loading={hukumuCheckLoading}>
+                <Spin spinning={hukumuCheckLoading}>
+                {
+                    osusumeList !== null &&
                     <VirtualList
                         data={osusumeList}
-                        itemHeight={47}
+                        itemHeight={140}
                         itemKey="tId"
                     >
                     {
                         (v) => (
-                            <List.Item>
+                            <div style={ListItemStyle}>
                                 <OsusumeItem osusume={v} refetchOsusumeList={refetchOsusumeList} refetchTangoList={refetchTangoList} refetchHandles={refetchHandles}/>
-                            </List.Item>
+                            </div>
                         )
                     }
                     </VirtualList>
-                </List>
-            }
+                }
+                </Spin>
             </>
         }
         </>

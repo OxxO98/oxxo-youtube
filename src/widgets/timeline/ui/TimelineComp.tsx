@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback, CSSProperties } from 'react';
 import VirtualList, { ListRef } from 'rc-virtual-list';
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -19,7 +19,7 @@ import { useActive } from '../lib/useActive';
 import { useAppSelector, useAppDispatch, reactPlayerActions } from 'shared/store';
 
 //CSS@antD
-import { List, Flex, theme } from 'antd';
+import { Flex, Spin, theme } from 'antd';
 const { useToken } = theme; 
 
 //Redux
@@ -33,6 +33,13 @@ interface TimelineCompProps {
     videoPlayerHandles : VideoPlayerHandles;
 }
 
+const TimelineBunStyle : CSSProperties = {
+    width : "100%",
+    height : 64,
+    border : "solid 0.1px",
+    padding : "16px",
+}
+
 const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPlayerHandles } : TimelineCompProps) => {
     
     //State
@@ -42,7 +49,7 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
 
     const currentTimelineBun = useRef<Array<HTMLDivElement | null>>([]);
         
-    const divBox = useRef<HTMLDivElement>(null); //canvas Div Box 크기
+    const divBox = useRef<HTMLDivElement>(null);
     const [divBoxHeight, setDivBoxHeight] = useState<number>(800);
     const virtualRef = useRef(null);
 
@@ -132,45 +139,47 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
                     state={state} videoPlayerHandles={videoPlayerHandles} refetchHandles={refetchHandles}
                 />
                 <div style={{ width : "100%", height : "100%", overflow : "scroll", padding : "8px" }} ref={divBox}>
-                {
-                    bunIds !== null ?
-                    <List bordered>
-                        <VirtualList
-                            data={bunIds}
-                            height={divBoxHeight - 2}
-                            itemHeight={47}
-                            itemKey="ytBId"
-                            ref={virtualRef}
-                        >
-                        {
-                            (timeline, index) => (
-                                <List.Item ref={(el) => {
-                                        currentTimelineBun.current[index] = el;
-                                    }}
-                                    style={currentBunId === index ? { background :  token.colorPrimaryBg} : undefined}
+                    {
+                        bunIds !== null ?
+                            <Spin spinning={timelineHandles.loading}>
+                                <VirtualList
+                                    data={bunIds}
+                                    height={divBoxHeight}
+                                    itemHeight={64}
+                                    itemKey="ytBId"
+                                    ref={virtualRef}
                                 >
-                                    <div style={{ width : "100%" }}>
-                                        <TimelineBun 
-                                            key={timeline.ytBId} bId={timeline.jaBId} ytbId={timeline.ytBId}
-                                            jaText={timeline.jaText}
-                                            startTimestamp={ timeline.startTime.toString() } endTimestamp={ timeline.endTime.toString() }
-                                            startTime={ timeline.startTime } endTime={ timeline.endTime }
-                                            setInputText={setInputText}
-                                            selectEditYtBId={selectEditYtBId}
-                                            setScratch={setScratch}
-                                            gotoTime={gotoTime}
-                                            bIdRef={bIdRef}
-                                            getActive={getActive} setActive={setActive}
-                                        />
-                                    </div>
-                                </List.Item>
-                            )
-                        }
-                        </VirtualList>
-                    </List>
-                    :
-                    <MakeDrftComp refetch={timelineHandles.refetch} gotoTime={gotoTime} loading={timelineHandles.loading}/>
-                }
+                                {
+                                    (timeline, index) => (
+                                        <div
+                                            ref={(el) => {
+                                                currentTimelineBun.current[index] = el;
+                                            }}
+                                            style={currentBunId === index ? 
+                                                { ...TimelineBunStyle, background : token.colorPrimaryBg, borderColor : token.colorBgContainer } : 
+                                                { ...TimelineBunStyle, borderColor : token.colorBgContainer } 
+                                            }
+                                        >
+                                            <TimelineBun 
+                                                key={timeline.ytBId} bId={timeline.jaBId} ytbId={timeline.ytBId}
+                                                jaText={timeline.jaText}
+                                                startTimestamp={ timeline.startTime.toString() } endTimestamp={ timeline.endTime.toString() }
+                                                startTime={ timeline.startTime } endTime={ timeline.endTime }
+                                                setInputText={setInputText}
+                                                selectEditYtBId={selectEditYtBId}
+                                                setScratch={setScratch}
+                                                gotoTime={gotoTime}
+                                                bIdRef={bIdRef}
+                                                getActive={getActive} setActive={setActive}
+                                            />
+                                        </div>
+                                    )
+                                }
+                                </VirtualList>
+                            </Spin>
+                        :
+                        <MakeDrftComp refetch={timelineHandles.refetch} gotoTime={gotoTime} loading={timelineHandles.loading}/>
+                    }
                 </div>
             </Flex>
         </>

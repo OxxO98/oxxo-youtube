@@ -5,6 +5,7 @@ import db_connection from './core/db_connection.js';
 import * as db_module from "./core/db_module.js";
 import _ from 'lodash'
 
+// deprecated 사용하지 않음
 async function getTango(req, res){
     await db_connection(req, res, async(db) => {
         let { tId } = req.query;
@@ -43,7 +44,7 @@ async function searchTangoList(req, res){
     await db_connection(req, res, async(db) => {
         let { hyouki, yomi, hyoukiQuery, yomiQuery } = req.query;
 
-        let _td = await db_module.makeTextData(hyoukiQuery, yomiQuery)
+        let _td = db_module.makeTextData(hyoukiQuery, yomiQuery)
         let _core = _td.filter( (t) => t.ruby != null ).map( (t) => t.data ).join('');
 
         let condition = ( _joined ) => {

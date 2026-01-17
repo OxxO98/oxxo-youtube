@@ -14,15 +14,13 @@ function useTranscript(){
     const { response, loading, setParams } = useAxiosGet<RES_GET_TRANSCRIPT, REQ_GET_TRANSCRIPT>('/ai/transcript', true, null);
     const { response : resPost, loading : loadingPost, setParams : setParamsPost } = useAxiosPost<null, REQ_POST_TRANSCRIPT_TO_BUNS>('/db/transcriptToBuns', true, null);
     
-    const handleTranscript = ( _videoId : string, _reset? : boolean, _lang? : lang, _offset? : OffsetObj ) => {
+    const handleTranscript = ( _videoId : string, _reviseText? : string, _option? : TranscriptOption ) => {
         let option : TranscriptOption = {};
-        if( _reset !== undefined ){ option.reset = _reset ? 'true' : 'false' }
-        if( _lang !== undefined ){ option.lang = _lang }
-        if( _offset !== undefined ){ option.offset = _offset }
+        if( _option?.reset !== undefined ){ option.reset = _option.reset ? 'true' : 'false' }
 
         if( loading === true ){ return }
 
-        setParams({ videoId : _videoId, ...option });
+        setParams({ videoId : _videoId, reviseText : _reviseText ?? "", ...option });
     }
 
     const postTranscript = ( _videoId : string ) => {

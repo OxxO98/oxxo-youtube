@@ -1,6 +1,6 @@
 {
   "name": "oxxo_youtube",
-  "version": "0.4.3",
+  "version": "1.0.0",
   "private": true,
   "proxy": "http://localhost:3000",
   "dependencies": {
@@ -28,6 +28,7 @@
     "lodash": "^4.17.21",
     "lowdb": "^2.1.0",
     "marked-react": "^3.0.1",
+    "mecab-async": "^0.1.2",
     "nanoid": "^5.1.5",
     "nodejs-whisper": "^0.2.9",
     "nodemon": "^3.1.10",
@@ -49,7 +50,8 @@
     "web-vitals": "^2.1.4",
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^5.0.0",
-    "youtubei.js": "^16.0.1"
+    "youtubei.js": "^16.0.1",
+    "zod": "^3.25.76"
   },
   "scripts": {
     "server": "tsc ./server/Router/core/db_module.ts && nodemon ./server/server.js",

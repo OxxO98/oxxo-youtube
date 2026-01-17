@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next'
 
 //entities
@@ -51,7 +51,7 @@ const TimelineBun = ({ bId, ytbId, jaText, startTimestamp, endTimestamp, startTi
     }
     
     return(
-        <Flex justify="space-between" style={{ width : "100%" }}>
+        <Flex justify="space-between">
             {
                 props?.getActive ?
                     props.getActive(bId) ?

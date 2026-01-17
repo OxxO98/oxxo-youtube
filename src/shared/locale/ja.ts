@@ -34,6 +34,11 @@ const SharedModalComp : Locale["SharedModalComp"] = {
     LIGHT_OPTIONS : ['全部', '日本語だけ', '韓国語だけ']
 }
 
+const YoutubeGridComp : Locale["YoutubeGridComp"] = {
+    MESSAGE : "無欠性チェック",
+    DESCRIPTION : "完了"
+}
+
 const NewVideoComp : Locale["NewVideoComp"] = {
     TITLE : '新しい動画を登録します',
     STEPS : ['Youtube URL入力する', 'タイトルを入力する'],
@@ -50,7 +55,8 @@ const ModalEditVideo : Locale["ModalEditVideo"] = {
     TITLE : '動画情報を編集しますか',
     BUTTON : {
         MODIFY : '修正',
-        CANCLE : '取り消し'
+        CANCLE : '取り消し',
+        SWITCH : 'このビデオを隠す'
     },
     ALERT : '警告 : この行動は後戻りできません。'
 }
@@ -148,8 +154,17 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
         RE_TRANSCRIPT : '音声認識をやり直す',
         DONE_TRANSCRIPT : '音声認識で作成',
         DONE_CAPTION : '字幕で作成',
-        CANCLE : '取り消し'
+        CANCLE : '取り消し',
+        SWITCH : 'テキストで補正する'
     },
+    ALERT : {
+        MESSAGE : '警告',
+        DESCRIPTION : [
+            "OPEN AIを使っています。環境変数にAPI_KEYがある場合、使えます。",
+            "テキストは完全な台本に近い文章にしてください。不必要な内容は除いて入力してください。",
+        ]
+    },
+    TAG : "結合テキスト",
     CONTENTS : ['字幕', '音声認識', '比較']
 }
 
@@ -397,6 +412,72 @@ const AiComp : Locale['AiComp'] = {
     }
 }
 
+const TangoAutoModal : Locale['TangoAutoModal'] = {
+    TITLE : '単語を自動で作成してDBに登録します',
+    BUTTON : {
+        TITLE : '単語を自動で作成',
+        CANCLE : '取り消し',
+        CONFIRM : '確認',
+        CONFIRM_WITH_AI : '韓国語の意味と一緒に作成',
+        DONE : '確認',
+    },
+    ALERT : {
+        MESSAGE : '警告',
+        DESCRIPTION : 'この行動は終わるまで取り消しできません',
+    },
+    MESSAGE : {
+        DONE : '完了'
+    }
+}
+
+const TangoAutoControl : Locale['TangoAutoControl'] = {
+    BUTTON : {
+        SKIP : '後で登録する'
+    }
+}
+
+const TangoCard : Locale['TangoCard'] = {
+    CONTENTS : {
+        IMI : '韓国語の意味',
+        KANJI : '漢字',
+        SIZE : '個'
+    }
+}
+
+const MatchedTangoList : Locale['MatchedTangoList'] = {
+    BUTTON : {
+        SAVE_NEW : '新しい単語で登録',
+        SAVE : 'この単語で登録'
+    }
+}
+
+const DBTable : Locale['DBTable'] = {
+    ALL_COLUMNS : [
+        "表記",
+        "意味",
+        "表記まとめ",
+        "個",
+    ],
+    COLUMNS : [
+        "表記",
+        "読み",
+        "発音",
+        "漢字",
+    ],
+    VIDEO_COLUMNS : [
+        "動画のタイトル",
+        "個",
+    ],
+    BUN_COLUMNS : [
+        "原文",
+        "翻訳文",
+        "該当の動画へ移動",
+    ],
+    BUTTON : {
+      MOVE : '動画へ移動'
+    }
+}
+
 //NOT_FOUND
 const NotFoundPage : Locale['NotFoundPage'] = {
     MESSAGE : {
@@ -412,6 +493,7 @@ export default {
     LayoutCompYoutube,
     
     SharedModalComp,
+    YoutubeGridComp,
     NewVideoComp,
     ModalEditVideo,
     ModalDeleteVideo,
@@ -460,6 +542,13 @@ export default {
     TimelineCarouselHonyakuComp,
 
     AiComp,
+
+    TangoAutoModal,
+    TangoAutoControl,
+    TangoCard,
+    MatchedTangoList,
+
+    DBTable,
 
     NotFoundPage,
 } as Locale

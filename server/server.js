@@ -25,6 +25,9 @@ import db_tangochou from './Router/db_tangochou.js';
 
 import db_integrity from './Router/db_integrity.js';
 
+//test
+import db_auto from './Router/api_auto.js';
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended : false }));
@@ -45,6 +48,8 @@ app.use("/db/list", db_list);
 app.use("/db/tangochou", db_tangochou);
 
 app.use("/db/integrity", db_integrity);
+
+app.use("/db/auto", db_auto);
 
 const port = 5000;
 

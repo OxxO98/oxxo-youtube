@@ -1,5 +1,6 @@
 
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 //Hook
 import { useJaText } from 'shared/lib/useJaText';
@@ -36,6 +37,8 @@ interface BunExpendedDataType extends db_hukumu_data {
 }
 
 export const DBTable = ({ list, pageSize } : DBTableProps) => {
+    const { t } = useTranslation('DBTable');
+
     const { page } = useParams();
 
     const navigate = useNavigate();
@@ -44,53 +47,55 @@ export const DBTable = ({ list, pageSize } : DBTableProps) => {
 
     const allColumns : TableColumnsType<AllDataType> = [
         { 
-            title : '표기', key : 'hyouki', 
+            title : t('ALL_COLUMNS.0'), key : 'hyouki', 
             render : (v) => <ComplexText bId={null} data={v.hukumus[0][0][0].hyouki} ruby={v.hukumus[0][0][0].yomi} offset={0}/>,
         },
         { 
-            title : '의미', key : 'imi', 
+            title : t('ALL_COLUMNS.1'), key : 'imi', 
             render : (v) => v.hukumus[0][0][0].imi ?? '',
         },
         { 
-            title : '표기 요약', key : 'sum', 
+            title : t('ALL_COLUMNS.2'), key : 'sum', 
             render : (v) => <Space>{ 
                 v.hukumus.map( (hu : db_hukumu_data[][]) => <ComplexText bId={null} data={hu[0][0].hyouki} ruby={hu[0][0].yomi} offset={0}/> )
             }</Space>,
         },
         { 
-            title : '갯수', key : 'sum',
+            title : t('ALL_COLUMNS.3'), key : 'sum',
             render : (v) => v.hukumus.length.toString(),
         }
     ]
 
     const columns : TableColumnsType<DataType> = [
         { 
-            title : '표기', key : 'hyouki', 
+            title : t('COLUMNS.0'), key : 'hyouki', 
             render : (v) => <ComplexText bId={null} data={v.hyouki} ruby={v.yomi} offset={0}/>,
         },
-        { title : '읽기', dataIndex : 'yomi', key : 'yomi' },
         { 
-            title : '발음', key : 'pronc',
+            title : t('COLUMNS.1'), dataIndex : 'yomi', key : 'yomi' 
+        },
+        { 
+            title : t('COLUMNS.2'), key : 'pronc',
             render : (v) => HiraToKoNFC(v.yomi)
         },
         { 
-            title : '한자', key : 'kanji', 
+            title : t('COLUMNS.3'), key : 'kanji', 
             render : (v) => v.kanjis.map( (k : db_kanji_data ) => k.jaText ).join(', '),
         },
     ]
 
     const videoColumns : TableColumnsType<VideoExpendedDataType> = [
         { 
-            title : '영상 제목', dataIndex : 'title', key : 'title'
+            title : t('VIDEO_COLUMNS.0'), dataIndex : 'title', key : 'title'
         },
         { 
-            title : '갯수', dataIndex : 'length', key : 'sum'
+            title : t('VIDEO_COLUMNS.1'), dataIndex : 'length', key : 'sum'
         }
     ]
 
     const bunColumns : TableColumnsType<BunExpendedDataType> = [
         { 
-            title : '원문', key : 'jaText',
+            title : t('BUN_COLUMNS.0'), key : 'jaText',
             render : (v) => <div>
                         {v.jaText.substring(0, v.startOffset)}
                         <span className="bold highlight">
@@ -99,9 +104,12 @@ export const DBTable = ({ list, pageSize } : DBTableProps) => {
                         {v.jaText.substring(v.endOffset)}
                     </div>
         },
-        { title : '번역문', dataIndex : 'koText', key : 'koText' },
-        { title : '해당 영상으로 이동', key : 'src',
-            render : (v) => <Button onClick={ () => navigate(`/video/${v.src}`) }>이돟</Button>
+        { 
+            title : t('BUN_COLUMNS.1'), dataIndex : 'koText', key : 'koText' 
+        },
+        { 
+            title : t('BUN_COLUMNS.2'), key : 'src',
+            render : (v) => <Button onClick={ () => navigate(`/video/${v.src}`) }>{t('BUTTON.MOVE')}</Button>
         }
     ]
 

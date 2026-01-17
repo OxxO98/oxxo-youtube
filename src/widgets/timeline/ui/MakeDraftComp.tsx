@@ -12,9 +12,10 @@ import { useTranscript } from '../api/useTranscript';
 import { useCaptionData } from '../api/useCaptionData';
 
 //CSS@antD
-import { Button, List, Flex, Modal, Spin, theme, Tabs, Empty, Tag } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons'
+import { Button, List, Flex, Modal, Spin, theme, Tabs, Empty, Tag, Input, Divider, Switch, Alert } from 'antd';
+import { LoadingOutlined, WarningOutlined, OpenAIOutlined } from '@ant-design/icons'
 const { useToken } = theme; 
+const { TextArea } = Input;
 
 interface MakeDraftCompProps {
     refetch : () => void;
@@ -31,6 +32,9 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
     const { videoId } = useContext(VideoContext);
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+    const [isRevise, setIsRevise] = useState<boolean>(false);
+    const [value, setValue] = useState<string>('');
 
     //Hook
     const { timeToTS } = useTimeStamp();
@@ -79,7 +83,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
     }
 
     const reHandleTranscript = () => {
-        handleTranscript(videoId!, true, 'ja');
+        handleTranscript(videoId!, value, { reset : "true" });
     }
     
     const handlePostTranscript = () => {
@@ -95,6 +99,14 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
     const handleCancel = () => {
         setIsModalOpen(false);
     }
+    
+    const handleChangeTextArea = (e : React.ChangeEvent<HTMLTextAreaElement>) => {
+        setValue(e.target.value);
+    }
+
+    const handleSwitch = (checked: boolean) => {
+        setIsRevise(checked)
+    };
 
     //Effect
     useEffect( () => {
@@ -209,13 +221,31 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                 {state.transcript.done === false &&
                                     <>
                                         <Button 
-                                            onClick={() => handleTranscript(videoId)}
+                                            onClick={() => handleTranscript(videoId, value)}
                                             loading={state.transcript.loading}
                                             iconPosition="end"
                                             disabled={state.transcript.loading}
                                         >
                                             {t('BUTTON.TRANSCRIPT')}
                                         </Button>
+                                        <Divider/>
+                                        <Flex gap={8} style={{ marginBottom : '16px' }}>
+                                            {t('BUTTON.SWITCH')}
+                                            <Switch value={isRevise} onChange={handleSwitch}/>
+                                            {isRevise && <OpenAIOutlined />}
+                                        </Flex>
+                                        {
+                                            isRevise &&
+                                            <>
+                                                <Alert style={{ width : '100%' }} message={t('ALERT.MESSAGE')} description={
+                                                    <>
+                                                        <div>{t('ALERT.DESCRIPTION.0')}</div>
+                                                        <div>{t('ALERT.DESCRIPTION.1')}</div>
+                                                    </>
+                                                } type="error" showIcon icon={<WarningOutlined />} closable/>
+                                                <TextArea disabled={state.transcript.loading} autoSize={{ minRows : 10, maxRows : 20}} id="inputHonyaku" style={{ marginTop : '8px'}} value={value} onChange={handleChangeTextArea} autoComplete='off'/>
+                                            </>
+                                        }
                                     </>
                                 }
                                 {state.transcript.done === true &&  state.transcript.loading === false && transcriptData !== null && (
@@ -279,7 +309,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                                         }}>{data.text}</div>
                                                         <>{
                                                             data.merged !== undefined && 
-                                                            <Tag color='warning'>병합됨</Tag>
+                                                            <Tag color='warning'>{t('TAG')}</Tag>
                                                         }</>
                                                         <Tag color='default'>{data.tag}</Tag>
                                                     </Flex>

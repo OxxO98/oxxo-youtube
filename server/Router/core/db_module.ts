@@ -165,7 +165,7 @@ async function deleteYTBun( db : db, videoId : string, ytBId : string ) : Promis
 //Tango
 
 //Hyouki
-async function getExistHyouki( db : db, hyoukiStr : string, hyouki : queryHyouki, yomi : string ) : Promise<Hyouki | null>{
+async function getExistHyouki( db : db, hyoukiStr : string, hyouki : queryHyouki, yomi : queryYomi ) : Promise<Hyouki | null>{
     let _hyouki = db.data.hyouki
         .filter( (v : Hyouki ) => v.hyouki == hyoukiStr)
         .filter( 
@@ -181,7 +181,7 @@ async function getExistHyouki( db : db, hyoukiStr : string, hyouki : queryHyouki
     return _hyouki[0];
 }
 
-async function makeTextData( hyouki : queryHyouki, yomi : queryYomi ) : Promise<Array<TextData>>{
+function makeTextData( hyouki : queryHyouki, yomi : queryYomi ) : Array<TextData>{
     let hyoukiArr = hyouki.split('_');
     let yomiArr = yomi.split('_');
 
@@ -199,7 +199,7 @@ async function makeTextData( hyouki : queryHyouki, yomi : queryYomi ) : Promise<
 }
 
 async function updateHyouki( db : db, hyId : string, hyouki : queryHyouki, yomi : queryYomi, hyoukiStr : string, yomiStr : string ) : Promise<void>{
-    let textData = await makeTextData(hyouki, yomi);
+    let textData = makeTextData(hyouki, yomi);
 
     let hy = db.data.hyouki.find( (v) => v.hyId == hyId);
     if( hy ){
@@ -278,7 +278,7 @@ async function getMoreExistTId( db : db, tId : string ) : Promise<boolean>{
 }
 
 //Kanji & Komu
-async function getKanjiArr( hyouki : string ) : Promise<string[]> {
+function getKanjiArr( hyouki : string ) : string[] {
     let matched = hyouki.match(/[\u3400-\u9fff]/g);
 
     //한자 중복 제거.

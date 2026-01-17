@@ -2,6 +2,9 @@ import { CSSProperties } from 'react';
 
 import VirtualList from 'rc-virtual-list';
 
+//widget
+import { TangoAutoModal } from 'widgets/tango-auto-modal/index';
+
 //ui
 import { Tango } from './TangoItem';
 
@@ -9,17 +12,24 @@ import { Tango } from './TangoItem';
 import { useAppSelector } from 'shared/store';
 
 //CSS@antd
-import { List, Empty } from 'antd'
+import { Spin } from 'antd'
 
 interface TangoListCompProps {
     tangoList : TangoList[] | null;
+    refetchTangoList : () => void;
+    refetchTimeline : () => void;
 }
 
-const ListCompStyle : CSSProperties = {
-    padding : '16px'
+const ListItemStyle : CSSProperties = {
+    height: 160,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 16px',             
+    margin : '8px 0',
+    boxSizing: 'border-box',
 }
 
-export const TangoListComp = ({ tangoList } : TangoListCompProps ) => {
+export const TangoListComp = ({ tangoList, refetchTangoList, refetchTimeline } : TangoListCompProps ) => {
 
     //Redux
     const { hukumuCheckLoading } = useAppSelector((state) => state.selection);
@@ -27,28 +37,28 @@ export const TangoListComp = ({ tangoList } : TangoListCompProps ) => {
     return(
         <>
         {
-            tangoList === null ?
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            ( tangoList === null || tangoList.length == 0 ) ?
+            <TangoAutoModal refetchTangoList={refetchTangoList} refetchTimeline={refetchTimeline}/>
             :
             <>
-            {
-                tangoList !== null &&
-                <List style={ListCompStyle} loading={hukumuCheckLoading}>
+                <Spin spinning={hukumuCheckLoading}>
+                {
+                    tangoList !== null &&
                     <VirtualList
                         data={tangoList}
-                        itemHeight={47}
+                        itemHeight={160}
                         itemKey="tId"
                     >
                     {
                         (tango) => (
-                            <List.Item>
-                                <Tango tId={tango.tId}/>
-                            </List.Item>
+                            <div style={ListItemStyle}>
+                                <Tango tangoData={tango}/>
+                            </div>
                         )
                     }
                     </VirtualList>
-                </List>
-            }
+                }
+                </Spin>
             </>
         }
         </>

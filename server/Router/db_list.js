@@ -103,6 +103,33 @@ async function getTangoList(req, res){
             }
         });
 
+        joinList = joinList.map( (v) => {
+            let joinHukumu = db.data.hukumu.filter( (h) => h.tId == v.tId ) 
+                .map( (h) => {
+                    return {
+                        ...h,
+                        ...db.data.hyouki.find( (hy) => h.hyId == hy.hyId )
+                    }
+                })
+                .filter( (h, i, arr) => arr.indexOf(h) == i )
+                .map( (h) => {
+                    return {
+                        hyouki : h.hyouki,
+                        yomi : h.yomi
+                    }
+                })
+            joinHukumu = _.uniqBy(
+                joinHukumu
+                , 'hyouki'
+            )
+
+            return {
+                ...v,
+                list : joinHukumu,
+                imi : db.data.imi.filter( (t) => t.tId == v.tId ).map( (t) => t.koText )
+            }
+        })
+
         res.send({
             message : 'success',
             data : _.uniqBy(joinList, 'tId')

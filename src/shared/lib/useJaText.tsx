@@ -1017,7 +1017,7 @@ function useJaText(){
      * @example '申し込み', 'もうしこみ' => 'もう_0_こ_0'
      */
     const getYomiQuery = ( multiInputData : MultiInput[], multiValue : string[] ) : string => {
-        return multiInputData.map( (v, i) => v.inputBool === false ? '0' : koNFCToHira(multiValue[i]) ).join('_');
+        return multiInputData.map( (v, i) => v.inputBool === false ? '0' : koNFCToHira(multiValue[i])).join('_');
     }
   
     /**

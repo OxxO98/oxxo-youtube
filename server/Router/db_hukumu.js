@@ -34,7 +34,7 @@ async function postHukumu(req, res){
             logger.info( db_module.logHyoukiInsert(_HYID, yomiStr, hyoukiStr, _TID) )
             db.data.hyouki.push({
                 hyId : _HYID,
-                textData : [ ...await db_module.makeTextData(hyouki, yomi)],
+                textData : [ ...db_module.makeTextData(hyouki, yomi)],
                 yomi : yomiStr,
                 hyouki : hyoukiStr,
                 tId : _TID
@@ -55,7 +55,7 @@ async function postHukumu(req, res){
         })
 
         console.log('한자 생성');
-        let arrKanji = await db_module.getKanjiArr(hyoukiStr);
+        let arrKanji = db_module.getKanjiArr(hyoukiStr);
         for( let kanji of arrKanji ){
             let _KID = await db_module.getExistKId(db, kanji);
             
@@ -161,7 +161,7 @@ async function updateHukumu(req, res){
             logger.info( db_module.logHyoukiInsert(_HYID, yomiStr, hyoukiStr) );
             db.data.hyouki.push({
                 hyId : _HYID,
-                textData : [ ...await db_module.makeTextData(hyouki, yomi)],
+                textData : [ ...db_module.makeTextData(hyouki, yomi)],
                 yomi : yomiStr,
                 hyouki : hyoukiStr
             })
@@ -275,13 +275,13 @@ async function updateHukumuBun(req, res){
                         logger.info( db_module.logHyoukiInsert(_HYID, obj.yomi, obj.find.str, obj.tId) );
                         db.data.hyouki.push({
                             hyId : _HYID,
-                            textData : [ ...await db_module.makeTextData(obj.find.hyouki, obj.find.yomi) ],
+                            textData : [ ...db_module.makeTextData(obj.find.hyouki, obj.find.yomi) ],
                             yomi : obj.yomi,
                             hyouki : obj.find.str,
                             tId : obj.tId
                         })
 
-                        let arrKanji = await db_module.getKanjiArr(obj.find.str);
+                        let arrKanji = db_module.getKanjiArr(obj.find.str);
                         for( let kanji of arrKanji ){
                             let _KID = await db_module.getExistKId(db, kanji);
 
@@ -316,11 +316,8 @@ async function updateHukumuBun(req, res){
                 if( hukumu != null ){
                     console.log('HUKUMU 오프셋 변경');
                     logger.info( db_module.logHukumuUpdateOffsets(hukumu, obj.find.startOffset, obj.find.endOffset) );
-                    hukumu = {
-                        ...hukumu,
-                        startOffset : obj.find.startOffset,
-                        endOffset : obj.find.endOffset
-                    }
+                    hukumu.startOffset = obj.find.startOffset;
+                    hukumu.endOffset = obj.find.endOffset;
                 } 
             }
         }
