@@ -349,12 +349,12 @@ function getExistKId(db, kanji) {
     });
 }
 exports.getExistKId = getExistKId;
-function getMoreExistKanji(db, kId) {
+function getMoreExistKanji(db, hyId, kId) {
     return __awaiter(this, void 0, void 0, function () {
         var komu;
         return __generator(this, function (_a) {
-            komu = db.data.komu.filter(function (v) { return v.kId == kId; });
-            return [2 /*return*/, komu.length > 1];
+            komu = db.data.komu.filter(function (v) { return v.hyId != hyId && v.kId == kId; });
+            return [2 /*return*/, komu.length > 0];
         });
     });
 }

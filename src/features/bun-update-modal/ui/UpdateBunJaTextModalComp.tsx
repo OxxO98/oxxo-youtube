@@ -153,8 +153,6 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
                     modifiedList.map( (v) => 
                         <Card>
                             <ComplexText bId={null} data={v.hyouki} ruby={v.yomi} offset={0}/>
-                            <div>{v.startOffset} : {v.endOffset}</div>
-                            <div>{v.find?.startOffset} : {v.find?.endOffset}</div>
                         </Card>
                     )
                 }

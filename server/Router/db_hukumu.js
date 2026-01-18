@@ -199,17 +199,19 @@ async function deleteHukumu(req, res){
             logger.info( db_module.logHyoukiDelete(hyId) );
             await db_module.deleteHyouki( db, hyId );
 
-            logger.info( db_module.logKomuDelete(hyId) );
-            await db_module.deleteKomu( db, hyId );
-
             let kIds = await db_module.getKIds(db, hyId);
+            console.log(hyId, kIds);
             for( let kId of kIds ){
-                let moreExistKanji = await db_module.getMoreExistKanji(db, kId);
+                let moreExistKanji = await db_module.getMoreExistKanji(db, hyId, kId);
                 if( !moreExistKanji ){
                     logger.info( db_module.logKanjiDelete(kId) );
                     await db_module.deleteKanji(db, kId);
                 }
             }
+
+            logger.info( db_module.logKomuDelete(hyId) );
+            await db_module.deleteKomu( db, hyId );
+            
             let _hukumu = await db_module.getExistHukumu( db, jaBId, start, end);
             if( await db_module.getMoreExistTId( db, _hukumu.tId ) == false ){
                 logger.info( db_module.logTangoDelete(_hukumu.tId) );
@@ -256,17 +258,17 @@ async function updateHukumuBun(req, res){
                             logger.info( db_module.logHyoukiDelete(obj.hyId) );
                             await db_module.deleteHyouki( db, obj.hyId );
 
-                            logger.info( db_module.logKomuDelete(obj.hyId) );
-                            await db_module.deleteKomu( db, obj.hyId );
-
                             let kIds = await db_module.getKIds(db, obj.hyId);
                             for( let kId of kIds ){
-                                let moreExistKanji = await db_module.getMoreExistKanji(db, kId);
+                                let moreExistKanji = await db_module.getMoreExistKanji(db, obj.hyId, kId);
                                 if( !moreExistKanji ){
                                     logger.info( db_module.logKanjiDelete(kId) );
                                     await db_module.deleteKanji(db, kId);
                                 }
                             }
+
+                            logger.info( db_module.logKomuDelete(obj.hyId) );
+                            await db_module.deleteKomu( db, obj.hyId );
                         }
                         console.log('hyId없음 : 새로운 HYOUKI생성');
                         let _HYID = nanoid(10);
@@ -331,17 +333,17 @@ async function updateHukumuBun(req, res){
                     logger.info( db_module.logHyoukiDelete(obj.hyId) );
                     await db_module.deleteHyouki( db, obj.hyId );
 
-                    logger.info( db_module.logKomuDelete(obj.hyId) );
-                    await db_module.deleteKomu( db, obj.hyId );
-
                     let kIds = await db_module.getKIds(db, obj.hyId);
                     for( let kId of kIds ){
-                        let moreExistKanji = await db_module.getMoreExistKanji(db, kId);
+                        let moreExistKanji = await db_module.getMoreExistKanji(db, obj.hyId, kId);
                         if( !moreExistKanji ){
                             logger.info( db_module.logKanjiDelete(kId) );
                             await db_module.deleteKanji(db, kId);
                         }
                     }
+
+                    logger.info( db_module.logKomuDelete(obj.hyId) );
+                    await db_module.deleteKomu( db, obj.hyId );
                 }
                 if( await db_module.getMoreExistTId( db, obj.tId ) == false ){
                     console.log('더이상 쓰이지 않는 단어 : 삭제');
@@ -382,17 +384,17 @@ async function deleteHukumuBun(req, res){
                 logger.info( db_module.logHyoukiDelete(hukumu.hyId) );
                 await db_module.deleteHyouki(db, hukumu.hyId);
 
-                logger.info( db_module.logKomuDelete(hukumu.hyId) );
-                await db_module.deleteKomu( db, hukumu.hyId );
-
                 let kIds = await db_module.getKIds(db, hukumu.hyId);
                 for( let kId of kIds ){
-                    let moreExistKanji = await db_module.getMoreExistKanji(db, kId);
+                    let moreExistKanji = await db_module.getMoreExistKanji(db, hukumu.hyId, kId);
                     if( !moreExistKanji ){
                         logger.info( db_module.logKanjiDelete(kId) );
                         await db_module.deleteKanji(db, kId);
                     }
                 }
+
+                logger.info( db_module.logKomuDelete(hukumu.hyId) );
+                await db_module.deleteKomu( db, hukumu.hyId );
             }
             if( await db_module.getMoreExistTId( db, hukumu.tId ) == false ){
                 console.log('더이상 쓰이지 않는 단어 : 삭제');

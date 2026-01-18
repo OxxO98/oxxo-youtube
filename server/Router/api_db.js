@@ -140,17 +140,17 @@ async function deleteVideo(req, res){
                     logger.info( db_module.logHyoukiDelete(hukumu.hyId) );
                     await db_module.deleteHyouki(db, hukumu.hyId);
 
-                    logger.info( db_module.logKomuDelete(hukumu.hyId) );
-                    await db_module.deleteKomu( db, hukumu.hyId );
-
                     let kIds = await db_module.getKIds(db, hukumu.hyId);
                     for( let kId of kIds ){
-                        let moreExistKanji = await db_module.getMoreExistKanji(db, kId);
+                        let moreExistKanji = await db_module.getMoreExistKanji(db, hukumu.hyId, kId);
                         if( !moreExistKanji ){
                             logger.info( db_module.logKanjiDelete(kId) );
                             await db_module.deleteKanji(db, kId);
                         }
                     }
+
+                    logger.info( db_module.logKomuDelete(hukumu.hyId) );
+                    await db_module.deleteKomu( db, hukumu.hyId );
                 }
                 if( await db_module.getMoreExistTId( db, hukumu.tId ) == false ){
                     console.log('더이상 쓰이지 않는 단어 : 삭제');

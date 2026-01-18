@@ -303,11 +303,10 @@ async function getExistKId( db : db, kanji : string ) : Promise<string | null>{
     return find.kId;
 }
 
-async function getMoreExistKanji( db : db, kId : string ) : Promise<boolean>{
-    // kId가 사라지면 kanji도 사라져야 하는지 확인
-    let komu = db.data.komu.filter( (v) => v.kId == kId );
+async function getMoreExistKanji( db : db, hyId : string, kId : string ) : Promise<boolean>{
+    let komu = db.data.komu.filter( (v) => v.hyId != hyId && v.kId == kId );
 
-    return komu.length > 1;
+    return komu.length > 0;
 }
 
 async function deleteKanji( db : db, kId : string ) : Promise<void> {
