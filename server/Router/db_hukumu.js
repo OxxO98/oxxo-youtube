@@ -156,15 +156,24 @@ async function updateHukumu(req, res){
             await db_module.updateHyouki(db, hyId, hyouki, yomi, hyoukiStr, yomiStr);
         }
         else{
-            let _HYID = nanoid(10);
+            //이미 있는지 확인
+            let existHyouki = await db_module.getExistHyouki(db, hyoukiStr, hyouki, yomi);
 
-            logger.info( db_module.logHyoukiInsert(_HYID, yomiStr, hyoukiStr) );
-            db.data.hyouki.push({
-                hyId : _HYID,
-                textData : [ ...db_module.makeTextData(hyouki, yomi)],
-                yomi : yomiStr,
-                hyouki : hyoukiStr
-            })
+            let _HYID;
+            if( existHyouki != null ){
+                _HYID = existHyouki.hyId;
+            }
+            else{
+                _HYID = nanoid(10);
+
+                logger.info( db_module.logHyoukiInsert(_HYID, yomiStr, hyoukiStr) );
+                db.data.hyouki.push({
+                    hyId : _HYID,
+                    textData : [ ...db_module.makeTextData(hyouki, yomi)],
+                    yomi : yomiStr,
+                    hyouki : hyoukiStr
+                })
+            }
 
             let _hukumu = db.data.hukumu.find( (v) => 
                 v.jaBId == jaBId && v.startOffset == start && v.endOffset == end
