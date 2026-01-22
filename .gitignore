@@ -28,4 +28,3 @@ server/Asset/transcript/*
 server/Asset/db/*
 
 #run
-start.bat
