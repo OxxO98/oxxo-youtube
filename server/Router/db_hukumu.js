@@ -70,11 +70,15 @@ async function postHukumu(req, res){
                 })
             }
 
-            logger.info( db_module.logKomuInsert(_HYID, _KID) );
-            db.data.komu.push({
-                hyId : _HYID,
-                kId : _KID
-            })
+            let _existKomu = await db_module.getExistKomu(db, _HYID, _KID);
+            if( _existKomu == false ){
+                logger.info( db_module.logKomuInsert(_HYID, _KID) );
+                db.data.komu.push({
+                    hyId : _HYID,
+                    kId : _KID
+                })
+            }
+
         }
         
         await db.write();
@@ -301,17 +305,21 @@ async function updateHukumuBun(req, res){
                                 _KID = nanoid(10);
                             }
 
-                            logger.info( db_module.logKomuInsert(_HYID, _KID) );
-                            db.data.komu.push({
-                                hyId : _HYID,
-                                kId : _KID
-                            })
-
                             logger.info( db_module.logKanjiInsert(_KID, kanji) );
                             db.data.kanji.push({
                                 kId : _KID,
                                 jaText : kanji
                             })
+
+                            //순서 변경 > 괜찮은지 확인
+                            let _existKomu = await db_module.getExistKomu(db, _HYID, _KID);
+                            if( _existKomu == false ){
+                                logger.info( db_module.logKomuInsert(_HYID, _KID) );
+                                db.data.komu.push({
+                                    hyId : _HYID,
+                                    kId : _KID
+                                })
+                            }
                         }
 
                         logger.info( db_module.logHukumuUpdateHyId(hukumu, _HYID) );

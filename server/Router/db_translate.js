@@ -131,7 +131,7 @@ async function getRepresentive(req, res){
         let timeline = await db_module.getTimeline(db, videoId);
         let ytb = await db_module.getYTBun(timeline, ytBId);
         
-        if(ytb.koBId == null){
+        if(ytb == null || ytb?.koBId == null){
             res.send({
                 message : 'empty',
                 data : {}

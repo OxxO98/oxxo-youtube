@@ -167,6 +167,14 @@ npm run serve
 
 - 오디오 파형 선택 부분이 슬라이더 형식으로 바뀌었습니다.
 
+- 음성 인식을 번역하도록 변경하였습니다.
+
+- 단어를 mecab을 이용해 반자동 입력기능 추가.
+
+- 음성 인식을 길이가 길어도 가능하게 변경하였습니다.
+
+- 읽기 입력시 mecab를 통해 읽기를 추천합니다.
+
 # Legacy repository
 
 [OxxO](https://github.com/OxxO98/OxxO)

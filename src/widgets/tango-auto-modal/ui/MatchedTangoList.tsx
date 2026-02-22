@@ -38,7 +38,6 @@ export const MatchedTangoList = ({ tIdList, handleCommit } : MatchedTangoListPro
                                     }
                                     description={
                                         <Flex justify="space-between">
-                                            <div>{v[0].tId}</div>
                                             <div>
                                                 {v.map( (t) => t.hyouki ).join(', ')}
                                             </div>

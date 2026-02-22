@@ -144,7 +144,12 @@ async function _sliceAudioLocal( filePath, outFilePath, startTime, endTime, opti
     else{
         return new Promise( (resolve, reject) => {
             ffmpeg({ source : filePath })
-                .setStartTime(startTime).setDuration(endTime-startTime)
+                .setStartTime(startTime)
+                .setDuration(endTime-startTime)
+                .audioCodec("pcm_s16le")
+                .audioChannels(1)
+                .audioFrequency(16000)
+                .format("wav")
                 .save(outFilePath).on(
                     'end', async () => {
                         let _langObj = {}
@@ -169,6 +174,59 @@ async function _sliceAudioLocal( filePath, outFilePath, startTime, endTime, opti
                 );
         })
     }    
+}
+
+async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime ){
+
+    if(fs.existsSync(`${outFilePath}.json`) == true){
+        console.log('exist.. skip');
+
+        const json = await fs.readFileSync(`${outFilePath}.json`);
+        const transcription = JSON.parse(json).transcription;
+
+        let data = transcription.map( (v) => `${v.timestamps.from} ${v.timestamps.to} ${v.text}`).join('\n')
+
+        return data;
+    }
+
+    await new Promise( (resolve, reject) => {
+        ffmpeg({ source : filePath })
+            .setStartTime(startTime)
+            .setDuration(endTime-startTime)
+            .audioCodec("pcm_s16le")
+            .audioChannels(1)
+            .audioFrequency(16000)
+            .format("wav")
+            .save(outFilePath)
+            .on("end", resolve)
+            .on("error", reject); 
+    });
+
+    const client = new OpenAI();
+
+    const _transcription = await client.audio.transcriptions.create({
+        file: fs.createReadStream(outFilePath),
+        model: "whisper-1",
+        response_format : "verbose_json",
+        language : "ja",
+        timestamp_granularities : ["segment"]
+    })
+
+    let _all = { transcription : [] };
+
+    let dataArr = _transcription.segments.map( (v) => {
+        return {
+            start : v.start,
+            end : v.end,
+            text : v.text
+        }
+    } )
+
+    _all.transcription = dataArr;
+
+    await fs.writeFileSync(`${outFilePath}.json`, JSON.stringify(_all, null, 2) );
+
+    return _transcription;
 }
 
 async function _reviseWithAi( videoPath, transcription ){
@@ -270,6 +328,109 @@ async function _reviseWithAi( videoPath, transcription ){
     await fs.writeFileSync(_revisePath, JSON.stringify( _all, null, 2) )
 
     return transcriptArr;
+}
+
+async function _translateWithAi( videoPath, transcription ){
+
+    let _revisePath = `${videoPath}_revise.json`;
+
+    if( await fs.existsSync(_revisePath) == true ){
+        let json_revise = await fs.readFileSync(_revisePath);
+        let _transcription = JSON.parse(json_revise).transcription;
+        
+        if( _transcription[0].koText !== undefined ){
+            let revise_transcription = _transcription.map( (v) => {
+                return {
+                    startTime : v.offsets.from/1000,
+                    endTime : v.offsets.to/1000,
+                    text : v.text,
+                    koText : v.koText
+                }
+            })
+
+            return revise_transcription;
+        }
+    }
+
+    const tcData = z.object({ 
+        data : z.array( z.object({
+            id : z.string(),
+            text : z.string(),
+            koText: z.string()
+        }) )
+    });
+
+    let transcriptionWithId = transcription.map( (seg, idx) => ({ 
+        id : `W_${String(idx+1).padStart(4, "0")}`,
+        text : seg.text.trim()
+    }));
+    let transcriptionInput = transcriptionWithId
+        .map( v => `[${v.id}] ${v.text}`)
+        .join("\n");
+
+    const client = new OpenAI();
+
+    const prompt = `
+        아래는 음성 인식 결과이다. 각 줄은 고유한 ID를 가진다.
+
+        규칙 :
+        - ID는 절대 수정, 삭제, 추가하지 말 것
+        - koText에 각 줄을 한국어로 번역한 결과를 넣을 것
+
+        [보정 대상]
+        ${transcriptionInput}
+
+        출력은 반드시 지정된 JSON 포맷을 따를 것.
+    `
+
+    const ai_res = await client.responses.parse({
+        model : 'gpt-5-mini',
+        input : [
+            { role : 'user', content : prompt },
+        ],
+        text : {
+            format : zodTextFormat(tcData, 'translateData'),
+        }
+    })
+
+    let translateArr = transcription.map( (v, i) => {
+        return {
+            ...v,
+            koText : ai_res.output_parsed.data[i].koText
+        }
+    })
+
+    let revise_transcription = translateArr.map( (v, i) => {
+        return {
+            timestamps : {
+                from : _toTimestamp(v.startTime),
+                to : _toTimestamp(v.endTime)
+            },
+            offsets : {
+                from : v.startTime*1000,
+                to : v.endTime*1000
+            },
+            text : v.text,
+            ...ai_res.output_parsed.data[i]
+        }
+    })
+
+    let _all = { transcription : revise_transcription }
+
+    await fs.writeFileSync(_revisePath, JSON.stringify( _all, null, 2) )
+
+    return translateArr;
+}
+
+async function _getDuration(filePath) {
+    const metadata = await new Promise((resolve, reject) => {
+        ffmpeg.ffprobe(filePath, (err, data) => {
+            if (err) return reject(err);
+            resolve(data);
+        });
+    });
+
+    return metadata.format.duration;
 }
 
 //local
@@ -440,57 +601,15 @@ async function getTransciptLocal( videoId, option ){
     })
 }
 
-async function getTranscriptOpenAI( videoId, option ){
+async function getTranscriptOpenAI( videoId ){
     
     let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
 
     let videoPath = path.join(transcriptPath, `${videoId}.wav`);
 
-    if( fs.existsSync(`${videoPath}.json`) == false || option.reset === 'true' ){
-        const client = new OpenAI();
-
-        const transcription = await client.audio.transcriptions.create({
-            file: fs.createReadStream(videoPath),
-            model: "whisper-1",
-            response_format : "verbose_json",
-            language : "ja",
-            timestamp_granularities : ["segment"]
-        })
-
-        let _all = { transcription : [] };
-        let dataArr = [];
-        let transcriptArr = [];
-
-        transcriptArr = transcription.segments.map( (v) => {
-            return {
-                startTime : v.start,
-                endTime : v.end,
-                text : v.text
-            }
-        })
-
-        dataArr = transcription.segments.map( (v) => {
-            return {
-                timestamps : {
-                    from : _toTimestamp(v.start),
-                    to : _toTimestamp(v.end)
-                },
-                offsets : {
-                    from : v.start*1000,
-                    to : v.end*1000
-                },
-                text : v.text
-            }
-        })
-
-        _all.transcription = dataArr;
-
-        await fs.writeFileSync(`${videoPath}.json`, JSON.stringify(_all, null, 2) );
-
-        return transcriptArr;
-    }
-    else{
+    
+    if( fs.existsSync(`${videoPath}.json`) == true ){
         const json = await fs.readFileSync(`${videoPath}.json`);
         let transcription = JSON.parse(json).transcription.map( (v) => {
             return {
@@ -502,10 +621,85 @@ async function getTranscriptOpenAI( videoId, option ){
 
         return transcription;
     }
+
+    let _sliceSeconds = 300;
+
+    let _duration = await _getDuration(videoPath)
+
+    let _indexs = Array.from({ length : Math.ceil(_duration/_sliceSeconds) }, (v, i) => i*_sliceSeconds )
+
+    for await( let i of _indexs ){
+        console.log(`${i/_sliceSeconds+1} / ${_indexs.length}.. start`);
+        let _startTime = i;
+        let _endTime = Math.min( i + _sliceSeconds, _duration );
+    
+        let outFilePath = path.join(transcriptPath, `${videoId}_${_startTime}_${_endTime}.wav`);
+        await _sliceAudioOpenAI( videoPath, outFilePath, _startTime, _endTime )
+        console.log(`${i/_sliceSeconds+1} / ${_indexs.length}.. end`);
+    }
+
+    console.log('all slice end');
+
+    let _all = { transcription : [] };
+    let dataArr = [];
+    let transcriptArr = [];
+    for await( let i of _indexs ){
+        let _startTime = i;
+        let _endTime = Math.min( i + _sliceSeconds, _duration );
+
+        let outFilePath = path.join(transcriptPath, `${videoId}_${_startTime}_${_endTime}.wav`);
+        if( fs.existsSync(`${outFilePath}.json`) == true ){
+            const json = await fs.readFileSync(`${outFilePath}.json`);
+            const transcription = JSON.parse(json).transcription;
+
+            transcriptArr = transcriptArr.concat( ...transcription.map( (v) => {
+                return {
+                    startTime : v.start + i,
+                    endTime : v.end + i,
+                    text : v.text
+                }
+            }) )
+
+            dataArr.push( transcription.map( (v) => {
+                return {
+                    timestamps : {
+                        from : _toTimestamp(v.start + i),
+                        to : _toTimestamp(v.end + i)
+                    },
+                    offsets : {
+                        from : v.start*1000 + i*1000,
+                        to : v.end*1000 + i*1000,
+                    },
+                    text : v.text
+                }
+            } ))
+        }
+    }
+
+    _all.transcription = dataArr.flat();
+
+    await fs.writeFileSync(`${videoPath}.json`, JSON.stringify(_all, null, 2) );
+
+    for await( let i of _indexs ){
+        let _startTime = i;
+        let _endTime = Math.min( i + _sliceSeconds, _duration );
+
+        let outFilePath = path.join(transcriptPath, `${videoId}_${_startTime}_${_endTime}.wav`);
+
+        if( fs.existsSync(`${outFilePath}.json`) == true ){
+            fs.unlinkSync(`${outFilePath}.json`);
+        }
+
+        if( fs.existsSync(`${outFilePath}`) == true ){
+            fs.unlinkSync(`${outFilePath}`);
+        }
+    }
+
+    return transcriptArr;
 }
 
 async function getTranscipt(req, res){
-    let { videoId, reviseText, reset } = req.query;
+    let { videoId, reviseText, reset, translate } = req.query;
     
     let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
@@ -524,9 +718,13 @@ async function getTranscipt(req, res){
 
     if( await _existApiKey() == true ){
 
-        let transcription = await getTranscriptOpenAI( videoId, _option );
+        let transcription = await getTranscriptOpenAI( videoId );
 
         transcription = await _reviseWithAi( videoPath, transcription );
+
+        if(transcription !== undefined && translate !== undefined && translate === 'true'){
+            transcription = await _translateWithAi( videoPath, transcription );
+        }
 
         res.send({
             message : 'success',

@@ -297,12 +297,13 @@ async function transcriptToBuns(req, res){
 
             let _YTBID = nanoid(10);
             let _JABID = nanoid(10);
+            let _KOBID = v.koText !== undefined ? nanoid(10) : null;
 
-            logger.info( db_module.logYTBInsert(_YTBID, _JABID, startTime, endTime) );
+            logger.info( db_module.logYTBInsert(_YTBID, _JABID, startTime, endTime, _KOBID) );
             timeline.push({
                 "ytBId" : _YTBID,
                 "jaBId" : _JABID,
-                "koBId" : null,
+                "koBId" : _KOBID,
                 "startTime" : startTime,
                 "endTime" : endTime
             })
@@ -313,6 +314,17 @@ async function transcriptToBuns(req, res){
                 "jaText" : jaText,
                 "ytBId" : _YTBID
             })
+            if( v.koText !== undefined && _KOBID !== null ){
+                let koText = v.koText.trim();
+                let koBuns = db.data.koBuns;
+                logger.info( db_module.logKoBunInsert(_KOBID, koText, _YTBID) );
+                koBuns.push({
+                    "koBId" : _KOBID,
+                    "koText" : koText,
+                    "ytBId" : _YTBID
+                })
+            }
+            
         })
         await db.write();
 

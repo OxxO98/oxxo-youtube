@@ -155,7 +155,8 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
         DONE_TRANSCRIPT : '음성인식으로 작성',
         DONE_CAPTION : '자막으로 작성',
         CANCLE : '닫기',
-        SWITCH : '텍스트로 보정'
+        SWITCH : '텍스트로 보정',
+        SWITCH_TRANSLATE : '번역 포함'
     },
     ALERT : {
         MESSAGE : '경고',

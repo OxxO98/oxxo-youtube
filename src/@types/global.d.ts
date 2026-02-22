@@ -214,6 +214,7 @@ declare global {
       reset? : 'true' | 'false';
       lang? : lang;
       offset? : OffsetObj;
+      translate? : 'true' | 'false';
   }
 
   export interface ChatHistory {
@@ -225,6 +226,7 @@ declare global {
       startTime : number;
       endTime : number;
       text : string;
+      koText? : string;
       tag : string;
   }
 
@@ -232,6 +234,7 @@ declare global {
       startTime : number;
       endTime : number;
       text : string;
+      koText? : string;
       tag : string;
   }
 
@@ -1039,6 +1042,7 @@ declare global {
       DONE_CAPTION : string;
       CANCLE : string;
       SWITCH : string;
+      SWITCH_TRANSLATE : string;
     },
     ALERT : {
       MESSAGE : string;

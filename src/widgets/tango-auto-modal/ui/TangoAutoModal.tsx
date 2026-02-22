@@ -53,7 +53,7 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
     const { bunIds } = useAppSelector( (state) => state.timeline );
 
     //Hook
-    const { commitData, handleAutoCommit } = useAutoCommit(videoId, refetchTangoList, refetchTimeline);
+    const { commitData, index, handleAutoCommit, moreTIdList } = useAutoCommit(videoId, refetchTangoList, refetchTimeline);
 
     const { response, loading, setParams } = useAxiosGet<auto_db, REQ_GET_AUTO_DB>('/db/auto', true, null);
     
@@ -67,16 +67,26 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
     const handleCommit = useCallback( (tId : string | null, skip : boolean) => {
         if( dbData === null || commitData.current === null ){ return }
         let ids = dbData[curr].map( (v) => v.id );
-        
+
+        let _v = index.current.toString().padStart(4, '0');
         for( let id of ids ){
-            commitData.current[id].tId = tId;
+            commitData.current[id].tId = tId == null ? `T${_v}` : tId;
             commitData.current[id].skip = skip;
         }
+        let _currData = dbData[curr][0];
+        moreTIdList.current.push([{
+            hyId : `HY${_v}`,
+            textData : _currData.textData,
+            yomi : _currData.yomi,
+            hyouki : _currData.hyouki,
+            tId : `T${_v}`
+        }])
+        index.current++;
         setCurr(curr+1);
     }, [dbData, curr]);
 
     const handleSkip = () => {
-        if( dbData !== null && curr < dbData.length-1 ){
+        if( dbData !== null && curr < dbData.length ){
             handleCommit(null, true);
         }
     }
@@ -130,11 +140,11 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
                         </>
                     }</>,
                     <>{
-                        step === 1 && dbData !== null && curr < dbData.length-1 &&
+                        step === 1 && dbData !== null && curr < dbData.length &&
                         <div>{curr+1}/{dbData?.length}</div>
                     }</>,
                     <>{
-                        step === 1 && dbData !== null && curr >= dbData.length-1 &&
+                        step === 1 && dbData !== null && curr >= dbData.length &&
                         <Button type="primary" onClick={handleSubmit}>{t('BUTTON.DONE')}</Button>
                     }</>
                 ]}
@@ -155,11 +165,16 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
                     step === 1 && 
                     <Spin spinning={loading}>
                     {
-                        dbData !== null && curr < dbData.length-1 ?
+                        dbData !== null && curr < dbData.length ?
                         <>
                             <Flex justify="space-around" style={{ height : '60vh' }}>
                                 <TangoCard data={dbData[curr]}/>
-                                <MatchedTangoList tIdList={dbData[curr][0].tIdList} handleCommit={handleCommit}/>
+                                <MatchedTangoList tIdList={
+                                    [
+                                        ...dbData[curr][0].tIdList,
+                                        ...moreTIdList.current.filter( (v) => v[0].hyouki == dbData[curr][0].hyouki || v[0].yomi == dbData[curr][0].yomi )
+                                    ]
+                                } handleCommit={handleCommit}/>
                             </Flex>
                             <TangoAutoControl handleSkip={handleSkip}/>
                         </>
@@ -167,7 +182,7 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
                         <div style={{ height : '60vh' }}>
                             <Flex style={{ height : '60vh', justifyContent : 'center', alignItems : 'center' }}>
                             {
-                                dbData !== null && curr >= dbData?.length-1 &&
+                                dbData !== null && curr >= dbData?.length &&
                                 <div>{t('MESSAGE.DONE')}</div>
                             }
                             </Flex>

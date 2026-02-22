@@ -47,8 +47,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.logHyoukiDelete = exports.logHyoukiUpdateHyoukiYomi = exports.logHyoukiInsert = exports.logHukumuDelete = exports.logHukumuUpdateHyId = exports.logHukumuUpdateOffsets = exports.logHukumuUpdateJaBIdOffsets = exports.logHukumuUpdateIId = exports.logHukumuInsert = exports.logYTBDelete = exports.logYTBUpdateTime = exports.logYTBUpdateKoBId = exports.logYTBInsert = exports.logJaBunDeleteYtBId = exports.logJaBunDelete = exports.logJaBunUpdateJaText = exports.logJaBunInsert = exports.logKoBunDeleteYtBId = exports.logKoBunDelete = exports.logKoBunUpdateYtBId = exports.logKoBunUpdateKoText = exports.logKoBunInsert = exports.logVideoDelete = exports.logVideoUpdate = exports.logVideoInsert = exports.deleteKomu = exports.deleteKanji = exports.getMoreExistKanji = exports.getExistKId = exports.getKIds = exports.getKanjiArr = exports.getMoreExistTId = exports.getMoreExistHyId = exports.getExistHukumu = exports.deleteHukumu = exports.updateHukumHyouki = exports.getHukumu = exports.deleteHyouki = exports.updateHyouki = exports.makeTextData = exports.getExistHyouki = exports.deleteYTBun = exports.getYTBun = exports.deleteKoBun = exports.getKoBun = exports.deleteJaBun = exports.getJaBun = exports.getKoBuns = exports.getJaBuns = exports.getTimeline = void 0;
-exports.logKanjiDelete = exports.logKanjiInsert = exports.logKomuDelete = exports.logKomuInsert = exports.logTangoDelete = exports.logTangoInsert = exports.logImiDelete = exports.logImiInsert = void 0;
+exports.logHyoukiInsert = exports.logHukumuDelete = exports.logHukumuUpdateHyId = exports.logHukumuUpdateOffsets = exports.logHukumuUpdateJaBIdOffsets = exports.logHukumuUpdateIId = exports.logHukumuInsert = exports.logYTBDelete = exports.logYTBUpdateTime = exports.logYTBUpdateKoBId = exports.logYTBInsert = exports.logJaBunDeleteYtBId = exports.logJaBunDelete = exports.logJaBunUpdateJaText = exports.logJaBunInsert = exports.logKoBunDeleteYtBId = exports.logKoBunDelete = exports.logKoBunUpdateYtBId = exports.logKoBunUpdateKoText = exports.logKoBunInsert = exports.logVideoDelete = exports.logVideoUpdate = exports.logVideoInsert = exports.deleteKomu = exports.getExistKomu = exports.deleteKanji = exports.getMoreExistKanji = exports.getExistKId = exports.getKIds = exports.getKanjiArr = exports.getExistImi = exports.getMoreExistTId = exports.getMoreExistHyId = exports.getExistHukumu = exports.deleteHukumu = exports.updateHukumHyouki = exports.getHukumu = exports.deleteHyouki = exports.updateHyouki = exports.makeTextData = exports.getExistHyouki = exports.deleteYTBun = exports.getYTBun = exports.deleteKoBun = exports.getKoBun = exports.deleteJaBun = exports.getJaBun = exports.getKoBuns = exports.getJaBuns = exports.getTimeline = void 0;
+exports.logKanjiDelete = exports.logKanjiInsert = exports.logKomuDelete = exports.logKomuInsert = exports.logTangoDelete = exports.logTangoInsert = exports.logImiDelete = exports.logImiInsert = exports.logHyoukiDelete = exports.logHyoukiUpdateHyoukiYomi = void 0;
 /*
     delete의 경우 Id(primary key)로만 제거하는 방식
 */
@@ -315,6 +315,17 @@ function getMoreExistTId(db, tId) {
     });
 }
 exports.getMoreExistTId = getMoreExistTId;
+//imi
+function getExistImi(db, tId, koText) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _existImi;
+        return __generator(this, function (_a) {
+            _existImi = db.data.imi.find(function (v) { return v.koText == koText && v.tId == tId; });
+            return [2 /*return*/, _existImi != undefined];
+        });
+    });
+}
+exports.getExistImi = getExistImi;
 //Kanji & Komu
 function getKanjiArr(hyouki) {
     var matched = hyouki.match(/[\u3400-\u9fff]/g);
@@ -368,6 +379,16 @@ function deleteKanji(db, kId) {
     });
 }
 exports.deleteKanji = deleteKanji;
+function getExistKomu(db, hyId, kId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var komu;
+        return __generator(this, function (_a) {
+            komu = db.data.komu.filter(function (v) { return v.hyId == hyId && v.kId == kId; });
+            return [2 /*return*/, komu.length > 0];
+        });
+    });
+}
+exports.getExistKomu = getExistKomu;
 function deleteKomu(db, hyId) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {

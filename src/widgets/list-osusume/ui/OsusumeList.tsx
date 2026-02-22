@@ -19,7 +19,7 @@ interface OsusumeListCompProps {
 }
 
 const ListItemStyle : CSSProperties = {
-    height: 140,
+    height: 200,
     display: 'flex',
     alignItems: 'center',
     padding: '0 16px',
@@ -44,7 +44,7 @@ export const OsusumeListComp = ({ osusumeList, refetchOsusumeList, refetchTangoL
                     osusumeList !== null &&
                     <VirtualList
                         data={osusumeList}
-                        itemHeight={140}
+                        itemHeight={200}
                         itemKey="tId"
                     >
                     {

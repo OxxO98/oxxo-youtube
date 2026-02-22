@@ -17,6 +17,7 @@ import { Button, Flex, Col, Row } from 'antd';
 
 //Redux
 import { useAppSelector, useAppDispatch, selectionActions } from 'shared/store';
+import { useGetYomi } from '../api/getYomi';
 const { setStyled } = selectionActions;
 
 //Props
@@ -71,6 +72,8 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
 
     const { kirikaeValue : editKirikaeValue, concatMultiInput : concatEditMultiInput, handleChange : handleEditMultiKirikae } = useMultiKirikae(hukumuData?.hyouki ?? null, editMultiValue, handleEditChange);
 
+    const { kirikaeValueAuto } = useGetYomi(selection, hukumuData?.yomi, hukumuCheckLoading, kirikaeValue); //임시 방편
+    
     //Handle
     const handleRefetch = useCallback( () => {
         refetch(selectedBun);
@@ -137,7 +140,7 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
             <div style={TangoCompStyle}>
                 <DynamicInputComp
                     handleMultiChange={handleMultiKirikae}
-                    multiInputData={multiInputData} multiValue={kirikaeValue} concatMultiInput={concatMultiInput}
+                    multiInputData={multiInputData} multiValue={kirikaeValueAuto} concatMultiInput={concatMultiInput}
                     handleRefetch={handleRefetch}
                 />
             </div>

@@ -34,6 +34,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
     const [isRevise, setIsRevise] = useState<boolean>(false);
+    const [isTranslate, setIsTranslate] = useState<boolean>(false);
     const [value, setValue] = useState<string>('');
 
     //Hook
@@ -106,6 +107,10 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
 
     const handleSwitch = (checked: boolean) => {
         setIsRevise(checked)
+    };
+
+    const handleTranslateSwitch = (checked: boolean) => {
+        setIsTranslate(checked)
     };
 
     //Effect
@@ -221,13 +226,19 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                 {state.transcript.done === false &&
                                     <>
                                         <Button 
-                                            onClick={() => handleTranscript(videoId, value)}
+                                            onClick={() => handleTranscript(videoId, value, { translate : isTranslate ? 'true' : 'false' })}
                                             loading={state.transcript.loading}
                                             iconPosition="end"
                                             disabled={state.transcript.loading}
                                         >
                                             {t('BUTTON.TRANSCRIPT')}
                                         </Button>
+                                        <Divider/>
+                                        <Flex gap={8} style={{ marginBottom : '16px' }}>
+                                            {t('BUTTON.SWITCH_TRANSLATE')}
+                                            <Switch value={isTranslate} onChange={handleTranslateSwitch}/>
+                                            {isTranslate && <OpenAIOutlined />}
+                                        </Flex>
                                         <Divider/>
                                         <Flex gap={8} style={{ marginBottom : '16px' }}>
                                             {t('BUTTON.SWITCH')}
@@ -262,7 +273,10 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                                     <Flex gap={16}>
                                                         <div>{ timeToTS(data.startTime) }</div>
                                                         <div>{ timeToTS(data.endTime) }</div>
-                                                        <div>{data.text}</div>
+                                                        <div>
+                                                            <div>{data.text}</div>
+                                                            <div>{data?.koText ?? ''}</div>
+                                                        </div>
                                                     </Flex>
                                                 </List.Item>
                                             )

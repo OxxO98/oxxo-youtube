@@ -277,6 +277,13 @@ async function getMoreExistTId( db : db, tId : string ) : Promise<boolean>{
     return hukumu.length > 1;
 }
 
+//imi
+async function getExistImi( db: db, tId : string, koText : string ) : Promise<boolean>{
+    let _existImi = db.data.imi.find( (v) => v.koText == koText && v.tId == tId );
+
+    return _existImi != undefined;
+}
+
 //Kanji & Komu
 function getKanjiArr( hyouki : string ) : string[] {
     let matched = hyouki.match(/[\u3400-\u9fff]/g);
@@ -311,6 +318,12 @@ async function getMoreExistKanji( db : db, hyId : string, kId : string ) : Promi
 
 async function deleteKanji( db : db, kId : string ) : Promise<void> {
     db.data.kanji = db.data.kanji.filter( (v) => v.kId != kId );
+}
+
+async function getExistKomu( db : db, hyId : string, kId : string ) : Promise<boolean> {
+    let komu = db.data.komu.filter( (v) => v.hyId == hyId && v.kId == kId );
+
+    return komu.length > 0;
 }
 
 async function deleteKomu( db : db, hyId : string ) : Promise<void> {
@@ -507,11 +520,15 @@ export {
     
     getMoreExistTId,
 
+    getExistImi,
+
     getKanjiArr,
     getKIds,
     getExistKId,
     getMoreExistKanji,
     deleteKanji,
+
+    getExistKomu,
     deleteKomu,
 
     logVideoInsert,

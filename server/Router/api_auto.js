@@ -200,9 +200,8 @@ function _kataToHira(str){
 
 function _prefilter(tokens){
     return tokens.filter(t =>
-        kanjiRegex.test(t.surface)
+        t.surface.match(kanjiRegex) !== null
     );
-    //&& ["名詞", "動詞", "形容詞"].includes(t.pos)
 }
 
 function _analyzeWithMeCab( textObj ){
@@ -311,8 +310,6 @@ async function getAutoDB(req, res){
 
         const { videoId, text, option } = req.query; // text.join('\n')
 
-        console.log(option);
-
         if( await _checkMecabInstalled() === false ){
             res.send({
                 message : 'error',
@@ -368,26 +365,58 @@ async function getAutoDB(req, res){
             return _textData.filter( (t) => t.ruby != null ).map( (t) => t.data).join('');
         }
 
+        let _score = ( compare, tango ) => {
+            let _hy_complete = Number( compare.hyouki === tango.hyouki )
+            let _hy_include = Number( compare.hyouki.includes( tango.hyouki ) );
+            let _y_complete = Number( compare.yomi === tango.yomi );
+            let _y_include = Number( compare.yomi.includes( tango.yomi ) );
+
+            return _hy_complete+_hy_include+_y_complete+_y_include;
+        }
+
         //단어 그룹화
         let _accIndex = 0;
         const groupRevised =  _.toArray( _.groupBy(revised, tango => {
             return `${tango.base}`
         }) ).map( (tangoArr) => {
             let index = _accIndex;
-            let _hyoukis = tangoArr.map( (v) => v.hyouki ).concat([ tangoArr[0].base ]);
-            let _cores = tangoArr.map( (v) => v.textData ).map( (v) => getCore(v) );
+            let _hyoukis = _.uniq( tangoArr.map( (v) => v.hyouki ).concat([ tangoArr[0].base ]) );
+            let _yomis = _.uniq( tangoArr.map( (v) => v.yomi ) );
+            let _cores = _.uniq( tangoArr.map( (v) => v.textData ).map( (v) => getCore(v) ) );
 
             let _tIds = _.countBy( db.data.hyouki.filter( (v) => 
                 _hyoukis.includes(v.hyouki) || _cores.includes( getCore(v.textData) )
             ).map( (v) => v.tId ) );
             let _tIdsObjArr = Object.keys(_tIds).map(key => ({ key, size: _tIds[key] }))
-                .sort( (a, b) => a.size-b.size);
-            
+                .sort( (a, b) => b.size-a.size);
+
             let tIdList = _tIdsObjArr.map( (v) => 
-                _.partition( 
-                    _.uniqBy( db.data.hyouki.filter( (t) => v.key == t.tId ), 'hyId') 
-                , s => _hyoukis.includes(s.hyouki) ).flat() 
-            );
+                _.uniqBy( db.data.hyouki.filter( (t) => v.key == t.tId ).map( (t) => { return { ...t, size : v.size }}), 'hyId')
+            ).map( (t) => {
+                return t.map( (tt) => {
+                    return {
+                        ...tt,
+                        score : _score( tt, tangoArr[0])
+                    }
+                })
+            })
+
+            tIdList = _.orderBy( tIdList, [(v) => {
+                let _maxScore = Math.max( ...v.map( (t) => t.score) );
+                return _maxScore;
+            }, (v) => v[0].size], ['desc', 'desc'])
+            // score는 max로 정렬, size는 후순위 정렬
+
+            let _debug = {
+                debug : {
+                    index : index,
+                    _hyoukis : _hyoukis,
+                    _yomis : _yomis,
+                    _cores : _cores,
+                    _tIds : _tIds,
+                    _tIdsObjArr : _tIdsObjArr
+                }
+            } //..._debug
 
             _accIndex += tangoArr.length;
             return tangoArr.map( (v, i) => { 
@@ -428,6 +457,9 @@ async function postAutoDB(req, res){
 
         let arr = jsonData.flat().flat();
 
+        let regexTID = new RegExp('^T[0-9]{4}$');
+        let TIDObject = {};
+
         for(const [key, value] of Object.entries(change)){
             if( value.skip === true || value.skip === 'true' ){ continue; }
 
@@ -436,12 +468,15 @@ async function postAutoDB(req, res){
             const { startOffset : start, endOffset : end, hyoukiQuery, yomiQuery, hyouki : hyoukiStr, yomi : yomiStr, imi } = arr.find( (v) => v.id === key ); 
 
             let _TID = tId;
-            if( tId == undefined ){
-                console.log('tId없음 : 새로운 TANGO생성');
-                _TID = nanoid(10);
+            if( regexTID.test(tId) == true ){
+                if( TIDObject[tId] == undefined ){
+                    console.log('tId없음 : 새로운 TANGO생성');
+                    TIDObject[tId] = nanoid(10);
 
-                logger.info( db_module.logTangoInsert(_TID) )
-                db.data.tango.push({ tId : _TID });
+                    logger.info( db_module.logTangoInsert( TIDObject[tId] ) )
+                    db.data.tango.push({ tId : TIDObject[tId] });
+                }
+                _TID = TIDObject[tId];
             }
 
             let _HYID;
@@ -508,11 +543,15 @@ async function postAutoDB(req, res){
                     })
                 }
 
-                logger.info( db_module.logKomuInsert(_HYID, _KID) );
-                db.data.komu.push({
-                    hyId : _HYID,
-                    kId : _KID
-                })
+                let _existKomu = await db_module.getExistKomu(db, _HYID, _KID);
+                if( _existKomu == false ){
+                    logger.info( db_module.logKomuInsert(_HYID, _KID) );
+                    db.data.komu.push({
+                        hyId : _HYID,
+                        kId : _KID
+                    })
+                } 
+                
             }
         }
 
@@ -527,7 +566,54 @@ async function postAutoDB(req, res){
     });
 }
 
+
+async function getYomi(req, res){
+    await db_connection(req, res, async(db) => {
+
+        const { text } = req.query;
+
+        if( await _checkMecabInstalled() === false ){
+            res.send({
+                message : 'error',
+                data : []
+            });
+            return;
+        }
+
+        await _ensureUtf8CodePage();
+
+        let tokens = await new Promise((resolve, reject) => {
+            mecab.parse(text, (err, result) => {
+                if (err) return reject(err);
+
+                const _tokens = result.map(t => {
+
+                    return {
+                        surface: t[0],
+                        pos: t[1],
+                        base: t[7] !== "*\r" ? t[7] : t[0],
+                        reading : t[8] !== "*\r" ? _kataToHira( t[8] ) : "",
+                    }
+                });
+
+                resolve(_tokens);
+            });
+        });
+
+        let yomi = tokens.map( (v) => v.reading ).join('');
+
+        res.send({
+            message : 'success',
+            data : {
+                yomi : yomi
+            }
+        });
+    })
+}
+
 router.get('/', getAutoDB);
 router.post('/', postAutoDB)
+
+router.get('/yomi', getYomi);
 
 export default router;

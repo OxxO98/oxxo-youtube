@@ -14,7 +14,7 @@ import type { TabsProps } from 'antd';
 const { useToken } = theme; 
 
 const ListCompStyle : CSSProperties = {
-    maxHeight : '60vh',
+    maxHeight : 'calc(60vh - 44px)',
     overflow : 'scroll'
 }
 

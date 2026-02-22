@@ -155,7 +155,8 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
         DONE_TRANSCRIPT : '音声認識で作成',
         DONE_CAPTION : '字幕で作成',
         CANCLE : '取り消し',
-        SWITCH : 'テキストで補正する'
+        SWITCH : 'テキストで補正する',
+        SWITCH_TRANSLATE : '翻訳文を含む'
     },
     ALERT : {
         MESSAGE : '警告',

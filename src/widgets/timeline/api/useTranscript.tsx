@@ -16,7 +16,8 @@ function useTranscript(){
     
     const handleTranscript = ( _videoId : string, _reviseText? : string, _option? : TranscriptOption ) => {
         let option : TranscriptOption = {};
-        if( _option?.reset !== undefined ){ option.reset = _option.reset ? 'true' : 'false' }
+        if( _option?.reset !== undefined ){ option.reset = _option.reset }
+        if( _option?.translate !== undefined ){ option.translate = _option.translate }
 
         if( loading === true ){ return }
 

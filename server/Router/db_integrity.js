@@ -49,6 +49,11 @@ async function checkIntegrity(req, res){
             if(_ruby != hy.yomi){
                 logger.error(`무결성 오류 : ${hy.hyId} 에서 TextData : ${_ruby}와 ${hy.yomi} 불일치`)
             }
+
+            //undefined가 있었던 적이 있음
+            if( hy.tId === undefined ){
+                logger.error(`무결성 오류 : ${hy.hyId} 에서 tId 없음`)
+            }
         })
 
         db.data.komu.map( (km) => {
@@ -59,7 +64,36 @@ async function checkIntegrity(req, res){
                 logger.error(`무결성 오류 : ${km.hyId} ${km.kId} 에서 ${_hyouki} ${kanji.jaText} 를 포함하지 않음`)
             }
         })
+
+        // komu 중복 fix
+        const _del = _.map( _.pickBy( _.countBy(db.data.komu, (v) => `${v.hyId}${v.kId}`), (v) => v > 1 ), (value, key) => { return { hyId: key.substring(0, 10), kId: key.substring(10), size : value } } ) 
         
+        console.log( _del.length > 0 ? 'komu 중복 fix 필요' : "" );
+        // _del.map( (d) => {
+        //     db.data.komu = db.data.komu.filter( (v) => !( d.hyId == v.hyId && d.kId == v.kId ) );
+        //     console.log(`중복 komu hyId : ${d.hyId}, kId : ${d.kId} size : ${d.size}삭제`)
+        //     db.data.komu.push({ hyId : d.hyId, kId : d.kId });
+        // })
+
+        // imi 중복 (tango)
+        // _.toArray( _.groupBy( db.data.imi, imi => { return `${imi.tId}` } ) ).map( (v) => {
+        //     let _uniq = _.uniqBy( v, 'koText');
+        //     if( _uniq.length !== v.length){
+        //         console.log(_uniq, v);
+        //     }
+        // });
+
+        //tango 중복 hyId는 같은데, tId가 다른 hukumu
+        // _.toArray( _.groupBy( db.data.hukumu, hu => { return `${hu.hyId}`}) ).map( (v) => {
+        //     let _uniq = _.uniqBy( v, 'tId');
+        //     let _find = db.data.hyouki.find( (hy) => hy.hyId == v[0].hyId );
+        //     if( _uniq.length !== 1 ){
+        //         console.log( _find !== undefined ? _find.hyouki : "" );
+        //         console.log( _uniq );
+        //     }
+        // })
+
+
         db.data.videos.map( (vd) => {
             let timeline = vd.timeline;
             timeline.map( (tl) => {
@@ -150,6 +184,8 @@ async function checkIntegrity(req, res){
                 fs.unlinkSync(_old);
             }
         }
+
+        await db.write();
 
         res.send({
             data : {},

@@ -26,14 +26,14 @@ export const TangoCard = ({ data } : TangoProps ) => {
         if( bunIds == null){ return <></> }
 
         let jaText = bunIds[Number(v.jaBId.slice(2))-1].jaText;
-
-        return <p>
+        
+        return <div style={{ margin : '16px 0'}}>
             {jaText.substring(0, v.startOffset)}
         <span className="bold highlight">
             {jaText.substring(v.startOffset, v.endOffset)}
         </span>
             {jaText.substring(v.endOffset)}
-        </p>
+        </div>
     }
 
     return(
@@ -42,7 +42,7 @@ export const TangoCard = ({ data } : TangoProps ) => {
         >
             <Card.Meta
                 title={
-                    <ComplexText bId={null} data={data[0].hyouki} ruby={data[0].yomi} offset={0}/>
+                    <ComplexText bId={'tango'} data={data[0].hyouki} ruby={data[0].yomi} offset={0}/>
                 }
                 description={
                     <>
@@ -56,16 +56,17 @@ export const TangoCard = ({ data } : TangoProps ) => {
                             {t('CONTENTS.KANJI')} : {data[0].kanjis.join(', ')}
                         </div>
                         <div>
-                        {
-                            bunIds !== null && 
-                            data.map( (v) => bunIds[Number(v.jaBId.slice(2))-1].jaBId ).join(', ')
-                        }
-                        {
-                            bunIds !== null &&
-                            data.map( (v) => 
-                                render(v)
-                            )
-                        }
+                            읽기 : {data[0].yomi}
+                        </div>
+                        <div>
+                            <div style={{ height : '324px', overflow : 'scroll'}}>
+                                {
+                                    bunIds !== null &&
+                                    data.map( (v) => 
+                                        render(v)
+                                    )
+                                }
+                            </div>
                         </div>
                         <Flex justify="flex-end">
                             <div>

@@ -1,9 +1,14 @@
 import { useEffect, useRef } from 'react';
 
+//type
+import type { auto_db_matched } from '../type';
+
 import { useAxiosPost } from 'shared/hooks/useAxios';
 
 export const useAutoCommit = ( videoId : string, refetchTangoList : () => void, refetchTimeline : () => void ) => {
     const commitData = useRef<ObjKey>(null);
+    const index = useRef<number>(0);
+    const moreTIdList = useRef<auto_db_matched[][]>([]);
 
     const { response, setParams } = useAxiosPost<null, REQ_POST_AUTO_DB>('/db/auto', true, null);
 
@@ -20,5 +25,5 @@ export const useAutoCommit = ( videoId : string, refetchTangoList : () => void, 
         }
     }, [response])
 
-    return { commitData, handleAutoCommit }
+    return { commitData, index, handleAutoCommit, moreTIdList }
 }
