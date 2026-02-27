@@ -6,8 +6,9 @@ import { useHuri } from 'shared/lib/useHuri';
 
 const DELAY = 300;
 
-export const useGetYomi = ( selection : string, hukumuDataYomi : string | undefined, hukumuCheckLoading : boolean, kirikaeValue : string[] ) => {
-    const [yomi, setYomi] = useState<string[]>(kirikaeValue);
+export const useGetYomi = ( selection : string, hukumuCheckLoading : boolean ) => {
+    const [yomi, setYomi] = useState<string>("");
+    const [autoBool, setAutoBool] = useState<boolean>(false);
 
     const { response, setParams } = useAxiosGet<any, any>('/db/auto/yomi', true, null)
 
@@ -25,7 +26,8 @@ export const useGetYomi = ( selection : string, hukumuDataYomi : string | undefi
     }
     
     useDebounceEffect( () => {
-        if(hukumuDataYomi == undefined && hukumuCheckLoading == false ){
+        if( hukumuCheckLoading == false ){
+            setAutoBool(false)
             setParams({ text : selection })
         }
     }, DELAY, [hukumuCheckLoading] )
@@ -33,20 +35,10 @@ export const useGetYomi = ( selection : string, hukumuDataYomi : string | undefi
     useEffect( () => {
         let res = response;
         if( res !== null ){
-            let def = getDefaultInput(res.data.yomi);
-
-            let huriIndex = 0;
-            let tmp = [...kirikaeValue];
-            for(let key in tmp){
-                if( tmp[key] === '' && def !== null && def !==  undefined && def[huriIndex] !== undefined ){
-                    tmp[key] = def[huriIndex];
-                    huriIndex++;
-                }
-            }
-
-            setYomi(tmp)
+            setYomi(res.data.yomi)
+            setAutoBool(true)
         }
     }, [response])
 
-    return { kirikaeValueAuto : yomi }
+    return { autoYomi : yomi, autoBool }
 }

@@ -64,7 +64,9 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
     //Hook
     const { refetch } = refetchHandles;
 
-    const { multiValue, multiInputData, handleChange : handleMultiChange } = useMultiInput(selection);
+    const { autoYomi, autoBool } = useGetYomi(selection, hukumuCheckLoading);
+
+    const { multiValue, multiInputData, handleChange : handleMultiChange } = useMultiInput(selection, autoYomi, autoBool );
 
     const { kirikaeValue, concatMultiInput, handleChange : handleMultiKirikae } = useMultiKirikae(selection, multiValue, handleMultiChange);
 
@@ -72,8 +74,6 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
 
     const { kirikaeValue : editKirikaeValue, concatMultiInput : concatEditMultiInput, handleChange : handleEditMultiKirikae } = useMultiKirikae(hukumuData?.hyouki ?? null, editMultiValue, handleEditChange);
 
-    const { kirikaeValueAuto } = useGetYomi(selection, hukumuData?.yomi, hukumuCheckLoading, kirikaeValue); //임시 방편
-    
     //Handle
     const handleRefetch = useCallback( () => {
         refetch(selectedBun);
@@ -140,7 +140,7 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
             <div style={TangoCompStyle}>
                 <DynamicInputComp
                     handleMultiChange={handleMultiKirikae}
-                    multiInputData={multiInputData} multiValue={kirikaeValueAuto} concatMultiInput={concatMultiInput}
+                    multiInputData={multiInputData} multiValue={kirikaeValue} concatMultiInput={concatMultiInput}
                     handleRefetch={handleRefetch}
                 />
             </div>
