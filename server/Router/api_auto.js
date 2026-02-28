@@ -308,7 +308,30 @@ async function _getImiWithAI( videoId, revised ){
 async function getAutoDB(req, res){
     await db_connection(req, res, async(db) => {
 
-        const { videoId, text, option } = req.query; // text.join('\n')
+        console.log('getAutoDB');
+        const { videoId, option } = req.query; // text.join('\n')
+
+        let video = db.data.videos.find( (video) => video.src == videoId);
+
+        let timeline = video.timeline;
+        if( !timeline ){ 
+            res.send({
+                message : 'error',
+                data : []
+            }) 
+            return;
+        }
+
+        let jaBuns = db.data.jaBuns;
+        let koBuns = db.data.koBuns;
+        let joinText = timeline.map( (v) => {
+            return { ...v, 
+                ...jaBuns.find( (ja) => ja.jaBId == v.jaBId ), 
+                ...koBuns.find( (ko) => ko.koBId == v.koBId ) 
+            }
+        }).toSorted( (a, b) => a.startTime - b.startTime );
+
+        let text = joinText.map( (v) => v.jaText ).join('\n');
 
         if( await _checkMecabInstalled() === false ){
             res.send({

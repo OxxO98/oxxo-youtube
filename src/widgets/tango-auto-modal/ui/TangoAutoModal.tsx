@@ -103,7 +103,7 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
     const handleComfirm = ( option_imi : boolean = false ) => {
         if( bunIds === null ){ return }
         setStep(1);
-        setParams({ videoId : videoId, text : bunIds.map( (v) => v.jaText ).join('\n'), option : option_imi ? 'true' : 'false' })
+        setParams({ videoId : videoId, option : option_imi ? 'true' : 'false' })
     }
 
     //Effect

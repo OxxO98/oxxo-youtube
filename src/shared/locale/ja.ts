@@ -156,7 +156,8 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
         DONE_CAPTION : '字幕で作成',
         CANCLE : '取り消し',
         SWITCH : 'テキストで補正する',
-        SWITCH_TRANSLATE : '翻訳文を含む'
+        SWITCH_TRANSLATE : '翻訳文を含む',
+        SWITCH_PROMPT : 'プロンプトで補正する'
     },
     ALERT : {
         MESSAGE : '警告',

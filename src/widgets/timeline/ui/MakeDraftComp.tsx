@@ -35,6 +35,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
 
     const [isRevise, setIsRevise] = useState<boolean>(false);
     const [isTranslate, setIsTranslate] = useState<boolean>(false);
+    const [isPrompt, setIsPrompt] = useState<boolean>(false);
     const [value, setValue] = useState<string>('');
 
     //Hook
@@ -83,8 +84,12 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
         handleCaption(videoId);
     }
 
+    const handleTranscriptWithOption = () => {
+        handleTranscript(videoId, value, { translate : isTranslate ? 'true' : 'false', prompt : isPrompt ? 'true' : 'false' })
+    }
+
     const reHandleTranscript = () => {
-        handleTranscript(videoId!, value, { reset : "true" });
+        handleTranscript(videoId!, value, { reset : "true", translate : isTranslate ? 'true' : 'false', prompt : isPrompt ? 'true' : 'false' });
     }
     
     const handlePostTranscript = () => {
@@ -107,6 +112,10 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
 
     const handleSwitch = (checked: boolean) => {
         setIsRevise(checked)
+    };
+
+    const handlePromptSwitch = (checked: boolean) => {
+        setIsPrompt(checked)
     };
 
     const handleTranslateSwitch = (checked: boolean) => {
@@ -226,7 +235,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                 {state.transcript.done === false &&
                                     <>
                                         <Button 
-                                            onClick={() => handleTranscript(videoId, value, { translate : isTranslate ? 'true' : 'false' })}
+                                            onClick={handleTranscriptWithOption}
                                             loading={state.transcript.loading}
                                             iconPosition="end"
                                             disabled={state.transcript.loading}
@@ -243,6 +252,13 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                         <Flex gap={8} style={{ marginBottom : '16px' }}>
                                             {t('BUTTON.SWITCH')}
                                             <Switch value={isRevise} onChange={handleSwitch}/>
+                                            {
+                                                isRevise && 
+                                                <>
+                                                    {t('BUTTON.SWITCH_PROMPT')}
+                                                    <Switch value={isPrompt} onChange={handlePromptSwitch}/>
+                                                </>
+                                            }
                                             {isRevise && <OpenAIOutlined />}
                                         </Flex>
                                         {
@@ -254,7 +270,12 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                                         <div>{t('ALERT.DESCRIPTION.1')}</div>
                                                     </>
                                                 } type="error" showIcon icon={<WarningOutlined />} closable/>
-                                                <TextArea disabled={state.transcript.loading} autoSize={{ minRows : 10, maxRows : 20}} id="inputHonyaku" style={{ marginTop : '8px'}} value={value} onChange={handleChangeTextArea} autoComplete='off'/>
+                                                {
+                                                    isPrompt ?
+                                                        <TextArea disabled={state.transcript.loading} autoSize={{ minRows : 10, maxRows : 20}} id="inputPrompt" style={{ marginTop : '8px'}} value={value} onChange={handleChangeTextArea} autoComplete='off' placeholder='word1, word2, word3, ...'/>
+                                                    :
+                                                        <TextArea disabled={state.transcript.loading} autoSize={{ minRows : 10, maxRows : 20}} id="inputHonyaku" style={{ marginTop : '8px'}} value={value} onChange={handleChangeTextArea} autoComplete='off' placeholder='script'/>
+                                                }
                                             </>
                                         }
                                     </>

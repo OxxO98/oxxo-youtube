@@ -176,7 +176,7 @@ async function _sliceAudioLocal( filePath, outFilePath, startTime, endTime, opti
     }    
 }
 
-async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime ){
+async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime, prompt ){
 
     if(fs.existsSync(`${outFilePath}.json`) == true){
         console.log('exist.. skip');
@@ -209,7 +209,8 @@ async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime ){
         model: "whisper-1",
         response_format : "verbose_json",
         language : "ja",
-        timestamp_granularities : ["segment"]
+        timestamp_granularities : ["segment"],
+        prompt : prompt
     })
 
     let _all = { transcription : [] };
@@ -250,6 +251,8 @@ async function _reviseWithAi( videoPath, transcription ){
 
         return revise_transcription;
     }
+
+    console.log('get revise with AI...')
 
     const tcData = z.object({ 
         data : z.array( z.object({
@@ -352,6 +355,8 @@ async function _translateWithAi( videoPath, transcription ){
         }
     }
 
+    console.log('get translation...')
+
     const tcData = z.object({ 
         data : z.array( z.object({
             id : z.string(),
@@ -359,44 +364,55 @@ async function _translateWithAi( videoPath, transcription ){
             koText: z.string()
         }) )
     });
-
-    let transcriptionWithId = transcription.map( (seg, idx) => ({ 
-        id : `W_${String(idx+1).padStart(4, "0")}`,
-        text : seg.text.trim()
-    }));
-    let transcriptionInput = transcriptionWithId
-        .map( v => `[${v.id}] ${v.text}`)
-        .join("\n");
-
     const client = new OpenAI();
 
-    const prompt = `
-        아래는 음성 인식 결과이다. 각 줄은 고유한 ID를 가진다.
+    const CHUNK_LENGTH = 100;
+    let _indexs = Array.from({ length : Math.ceil(transcription.length/CHUNK_LENGTH) }, (v, i) => i )
 
-        규칙 :
-        - ID는 절대 수정, 삭제, 추가하지 말 것
-        - koText에 각 줄을 한국어로 번역한 결과를 넣을 것
+    let output_arr = [];
+    for await(let i of _indexs){
+        console.log(`slice start ${i+1}/${_indexs.length}`)
+        let transcriptionWithId = transcription.slice(i*CHUNK_LENGTH, (i+1)*CHUNK_LENGTH).map( (seg, idx) => ({ 
+            id : `W_${String(i*CHUNK_LENGTH+idx+1).padStart(4, "0")}`,
+            text : seg.text.trim()
+        }));
+        let transcriptionInput = transcriptionWithId
+            .map( v => `[${v.id}] ${v.text}`)
+            .join("\n");
 
-        [보정 대상]
-        ${transcriptionInput}
+        const prompt = `
+            아래는 음성 인식 결과이다. 각 줄은 고유한 ID를 가진다.
 
-        출력은 반드시 지정된 JSON 포맷을 따를 것.
-    `
+            규칙 :
+            - ID는 절대 수정, 삭제, 추가하지 말 것
+            - koText에 각 줄을 한국어로 번역한 결과를 넣을 것
 
-    const ai_res = await client.responses.parse({
-        model : 'gpt-5-mini',
-        input : [
-            { role : 'user', content : prompt },
-        ],
-        text : {
-            format : zodTextFormat(tcData, 'translateData'),
-        }
-    })
+            [보정 대상]
+            ${transcriptionInput}
+
+            출력은 반드시 지정된 JSON 포맷을 따를 것.
+        `
+
+        const ai_res = await client.responses.parse({
+            model : 'gpt-5-mini',
+            input : [
+                { role : 'user', content : prompt },
+            ],
+            text : {
+                format : zodTextFormat(tcData, 'translateData'),
+            }
+        })
+
+        output_arr.push(ai_res.output_parsed.data)
+        console.log(`slice end ${i+1}/${_indexs.length}`)
+    }
+
+    output_arr = output_arr.flat()
 
     let translateArr = transcription.map( (v, i) => {
         return {
             ...v,
-            koText : ai_res.output_parsed.data[i].koText
+            koText : output_arr[i]?.koText ?? ""
         }
     })
 
@@ -411,7 +427,7 @@ async function _translateWithAi( videoPath, transcription ){
                 to : v.endTime*1000
             },
             text : v.text,
-            ...ai_res.output_parsed.data[i]
+            ...output_arr[i]
         }
     })
 
@@ -601,7 +617,7 @@ async function getTransciptLocal( videoId, option ){
     })
 }
 
-async function getTranscriptOpenAI( videoId ){
+async function getTranscriptOpenAI( videoId, prompt ){
     
     let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
@@ -622,6 +638,8 @@ async function getTranscriptOpenAI( videoId ){
         return transcription;
     }
 
+    console.log('get transcription...')
+
     let _sliceSeconds = 300;
 
     let _duration = await _getDuration(videoPath)
@@ -634,7 +652,7 @@ async function getTranscriptOpenAI( videoId ){
         let _endTime = Math.min( i + _sliceSeconds, _duration );
     
         let outFilePath = path.join(transcriptPath, `${videoId}_${_startTime}_${_endTime}.wav`);
-        await _sliceAudioOpenAI( videoPath, outFilePath, _startTime, _endTime )
+        await _sliceAudioOpenAI( videoPath, outFilePath, _startTime, _endTime, prompt )
         console.log(`${i/_sliceSeconds+1} / ${_indexs.length}.. end`);
     }
 
@@ -699,7 +717,9 @@ async function getTranscriptOpenAI( videoId ){
 }
 
 async function getTranscipt(req, res){
-    let { videoId, reviseText, reset, translate } = req.query;
+    let { videoId, reviseText, reset, translate, prompt } = req.query;
+
+    console.log("option", req.query)
     
     let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
@@ -712,15 +732,17 @@ async function getTranscipt(req, res){
         model : 'medium'
     }
 
-    if( reviseText !== undefined && reviseText !== "" ){
+    if( prompt !== 'true' && reviseText !== undefined && reviseText !== "" ){
         await fs.writeFileSync(`${videoPath}_revise.txt`, reviseText);
     }
 
     if( await _existApiKey() == true ){
 
-        let transcription = await getTranscriptOpenAI( videoId );
+        let transcription = await getTranscriptOpenAI( videoId, prompt );
 
-        transcription = await _reviseWithAi( videoPath, transcription );
+        if( prompt !== 'true' ){
+            transcription = await _reviseWithAi( videoPath, transcription );
+        }
 
         if(transcription !== undefined && translate !== undefined && translate === 'true'){
             transcription = await _translateWithAi( videoPath, transcription );

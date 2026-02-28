@@ -215,6 +215,7 @@ declare global {
       lang? : lang;
       offset? : OffsetObj;
       translate? : 'true' | 'false';
+      prompt? : 'true' | 'false';
   }
 
   export interface ChatHistory {
@@ -420,7 +421,6 @@ declare global {
 
   export type REQ_GET_AUTO_DB = {
     videoId : string;
-    text : string;
     option? : string;
   };
 
@@ -1043,6 +1043,7 @@ declare global {
       CANCLE : string;
       SWITCH : string;
       SWITCH_TRANSLATE : string;
+      SWITCH_PROMPT : string;
     },
     ALERT : {
       MESSAGE : string;

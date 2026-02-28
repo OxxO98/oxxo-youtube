@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 import { useAxiosGet } from 'shared/hooks/useAxios';
-import { useHuri } from 'shared/lib/useHuri';
 
 const DELAY = 300;
 
@@ -12,19 +11,6 @@ export const useGetYomi = ( selection : string, hukumuCheckLoading : boolean ) =
 
     const { response, setParams } = useAxiosGet<any, any>('/db/auto/yomi', true, null)
 
-    const { yomiToHuri } = useHuri();
-
-    const getDefaultInput = (yomi : string) => {
-        if(yomi !== null && yomi !== undefined && selection){
-            let huriArr = yomiToHuri(selection, yomi);
-
-            return huriArr;
-        }
-        else{
-            return null;
-        }
-    }
-    
     useDebounceEffect( () => {
         if( hukumuCheckLoading == false ){
             setAutoBool(false)
@@ -35,7 +21,12 @@ export const useGetYomi = ( selection : string, hukumuCheckLoading : boolean ) =
     useEffect( () => {
         let res = response;
         if( res !== null ){
-            setYomi(res.data.yomi)
+            if(res.message === 'success'){
+                setYomi(res.data.yomi)
+            }
+            else{
+                setYomi("")
+            }
             setAutoBool(true)
         }
     }, [response])
