@@ -164,8 +164,10 @@ async function updateHukumu(req, res){
             let existHyouki = await db_module.getExistHyouki(db, hyoukiStr, hyouki, yomi);
 
             let _HYID;
+            let _TID;
             if( existHyouki != null ){
                 _HYID = existHyouki.hyId;
+                _TID = existHyouki.tId;
             }
             else{
                 _HYID = nanoid(10);
@@ -175,7 +177,8 @@ async function updateHukumu(req, res){
                     hyId : _HYID,
                     textData : [ ...db_module.makeTextData(hyouki, yomi)],
                     yomi : yomiStr,
-                    hyouki : hyoukiStr
+                    hyouki : hyoukiStr,
+                    tId : _TID
                 })
             }
 

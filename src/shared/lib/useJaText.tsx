@@ -11,7 +11,7 @@ const hiraganaKumi = [
     ['さ', 'し', 'す', 'せ', 'そ', 'しゃ', 'しゅ', 'しょ'],
     ['ざ', 'じ', 'ず', 'ぜ', 'ぞ', 'じゃ', 'じゅ', 'じょ'],
     ['た', 'ち', 'つ', 'て', 'と', 'ちゃ', 'ちゅ', 'ちょ'],
-    ['だ', 'ぢ', 'づ', 'で', 'ど', 'ちゃ', 'ちゅ', 'ちょ'],
+    ['だ', 'ぢ', 'づ', 'で', 'ど', 'ぢゃ', 'ぢゅ', 'ぢょ'],
     ['な', 'に', 'ぬ', 'ね', 'の', 'にゃ', 'にゅ', 'にょ'],
     ['は', 'ひ', 'ふ', 'へ', 'ほ', 'ひゃ', 'ひゅ', 'ひょ'],
     ['ば', 'び', 'ぶ', 'べ', 'ぼ', 'びゃ', 'びゅ', 'びょ'],
@@ -20,7 +20,7 @@ const hiraganaKumi = [
     ['ら', 'り', 'る', 'れ', 'ろ', 'りゃ', 'りゅ', 'りょ']
 ]
 
-const hiraganaKumiRegex = new RegExp( `[${hiraganaKumi.flat().filter( (v) => v.length === 1).join('')}わをぁぃぅぇぉっん]{1}[ゃゅょ]?`, 'g' )
+const hiraganaKumiRegex = new RegExp( `[${hiraganaKumi.flat().filter( (v) => v.length === 1).join('')}わをぁぃぅぇぉっん-]{1}[ゃゅょ]?`, 'g' )
 
 //'ぅ'로 되는 경우의 모음은 아직 정해지지 않은 상태
 const hiraganaTokubetsuKumi = [
@@ -252,15 +252,32 @@ function useJaText(){
     const isAllKanjiRegex = useMemo( () => new RegExp(
         `^[${unicodeRange.kanji}]+$`
     ), [unicodeRange.kanji]);
+
     const isHiraRegex = useMemo( () => new RegExp(
         `[${unicodeRange.hiragana}]+`,
         'g'
     ), [unicodeRange.hiragana]);
+    const isKataRegex = useMemo( () => new RegExp(
+        `[${unicodeRange.katakana}]`,
+        'g'
+    ), [unicodeRange.katakana])
     const isKanjiRegex = useMemo( () => new RegExp(
         `[${unicodeRange.kanji}]+`,
         'g'
     ), [unicodeRange.kanji])
-
+    
+    /**
+     * 카타카나를 히라가나로 변환
+     */
+    const kataToHira = useCallback( ( str : string ) => {
+        if( str === undefined || str === null){ return "" }
+    
+        let _hirgana =  str.replace( 
+            isKataRegex, $0 => $0 !== 'ー' ? String.fromCharCode($0.charCodeAt(0) - 0x0060) : '-'
+        )
+    
+        return _hirgana
+    }, [isKataRegex])
     /**
      * 장음 '-'앞의 문자의 중성에 따라 알맞는 히라가나 반환
      * e단과 o단에만 변화
@@ -351,39 +368,50 @@ function useJaText(){
         if(char === 'っ'){
             return 'ㅅ';
         }
+        if(char === ' '){
+            return ' '
+        }
+
+        if( char === '-' && index !== 0){
+            let _prev = arr[index-1];
+            let _dan = hiraganaDanExpended[ _prev ];
+            
+            return '아이우에오아우오'[_dan];
+        }
 
         let _match = hiraAllMatch[ char ];
 
         if( _match !== undefined ){
 
-            if(char === 'う' && index !== 0){
-                // い => e단 일경우 '에'
-                let _prev = arr[index-1];
-                let _dan = hiraganaDanExpended[ _prev ];
+            // 한글에서는 아닌 듯, 장음기호라면 다를지도
+            // if(char === 'う' && index !== 0){
+            //     // い => e단 일경우 '에'
+            //     let _prev = arr[index-1];
+            //     let _dan = hiraganaDanExpended[ _prev ];
                 
-                return '우우우우오우우오'[_dan];
-            }
-            else if( char === 'い' && index !== 0 ){
-                let _prev = arr[index-1];
-                let _dan = hiraganaDanExpended[ _prev ];
+            //     return '우우우우오우우오'[_dan];
+            // }
+            // else if( char === 'い' && index !== 0 ){
+            //     let _prev = arr[index-1];
+            //     let _dan = hiraganaDanExpended[ _prev ];
 
-                return '이이이에이이이이'[_dan];
-            }
+            //     return '이이이에이이이이'[_dan];
+            // }
 
             return _match;
         }
         else{
             switch( char ){
                 case 'ぁ' :
-                    return '아'        
+                    return 'ㅏ'
                 case 'ぃ' :
-                    return '이'        
+                    return 'ㅣ'
                 case 'ぅ' :
-                    return '우'        
+                    return 'ㅜ'
                 case 'ぇ' :
-                    return '에'        
+                    return 'ㅔ'
                 case 'ぉ' :
-                    return '오'
+                    return 'ㅗ'
                 default :
                     return ''        
             }
@@ -407,14 +435,15 @@ function useJaText(){
     /**
      * 히라가나 (문자열)를 한글로 변환
      * 읽는 법으로 변환하기 위한 기능
+     * 공백은 무시
      * 
      * @example hangulToHira('しゃしん') : '샤신'
      * @example hangulToHira('そうぞう') : '소우조우'
      */
     const HiraToKoNFC = useCallback( (hira : string) => {
-        let hiraArr = hira.match(hiraganaKumiRegex);
+        let hiraArr = kataToHira(hira).match(hiraganaKumiRegex);
         if(hiraArr === null){
-            return '';
+            return hira;
         }
         let hangul = hiraArr.map( (v, index, arr) => HiraToHangul(v, index, arr) ).join('');
 

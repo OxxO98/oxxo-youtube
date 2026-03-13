@@ -8,6 +8,23 @@ import logger from "./core/logger.js";
 import fs from 'fs';
 import { nanoid } from "nanoid";
 
+import MeCab from "mecab-async";
+
+import { exec } from 'child_process';
+
+const mecab = new MeCab();
+
+/*
+    mecab by
+    and add path
+    https://shogo82148.github.io/mecab/
+*/
+
+const katakanaRegex = new RegExp(
+    `[\\u30A0-\\u30ff]`, 'g'
+)
+const kanjiRegex = new RegExp('[\u3400-\u9fff\u3005]+', 'g');
+
 import path, { join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -16,6 +33,104 @@ import _ from 'lodash'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const assetPath = path.join(__dirname, '../Asset');
+
+//중복
+function _getCurrentCodePage(){
+    return new Promise((resolve, reject) => {
+        exec('chcp', (err, stdout) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+
+            // 예: "Active code page: 949"
+            const match = stdout.match(/:\s*(\d+)/);
+            resolve(match?.[1] ?? '');
+        });
+    });
+}
+
+
+function _checkMecabInstalled(){
+    return new Promise((resolve) => {
+        exec('mecab --version', (error, stdout, stderr) => {
+            if (error) {
+                // mecab 명령을 찾지 못했거나 실행 실패
+                resolve(false);
+                return;
+            }
+
+            // 출력이 있으면 정상 설치로 판단
+            resolve(true);
+        });
+    });
+}
+
+async function _ensureUtf8CodePage(){
+
+    const currentCodePage = await _getCurrentCodePage();
+
+    if (currentCodePage !== '65001') {
+        await new Promise( (resolve, reject) => {
+            exec('chcp 65001 > nul', err => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                resolve();
+            });
+        });
+    }
+}
+
+function _kataToHira(str){
+    if( str === undefined || str === null){ return "" }
+
+    let _hirgana =  str.replace( 
+        katakanaRegex, $0 => String.fromCharCode($0.charCodeAt(0) - 0x0060)
+    )
+
+    return _hirgana
+}
+
+async function _getReading_mecab(text){
+
+    let _text = text.replace(/\s+/g, '、');
+    // console.log(_text);
+    let tokens = await new Promise((resolve, reject) => {
+        mecab.parse(_text, (err, result) => {
+            if (err) return reject(err);
+
+            const _tokens = result.map(t => {
+                if( t[1] == '記号'){
+                    return {
+                        space : true,
+                        reading : ''
+                    }
+                }
+
+                if( t[1] == '助詞'){
+                    // console.log(t[0], t[1], t[2]);
+                    return {
+                        space : t[2] == '接続助詞' ? false : true,
+                        reading : t[0] == 'は' ? 'わ' : _kataToHira(t[8])+''
+                    }
+                }
+                else{
+                    return {
+                        space : false,
+                        reading : t[0]
+                    }
+                }
+            });
+
+            resolve(_tokens);
+        });
+    });
+
+    return tokens;
+}
+//...
 
 async function saveUserId(req, res){
     await db_connection( req, res, async (db) => {
@@ -505,6 +620,30 @@ async function getExportJson(req, res){
                     textData : textData
                 }
             })
+
+            if( await _checkMecabInstalled() === true ){
+                await _ensureUtf8CodePage();
+
+                for await( let obj of joinText ){
+                    let yomi = await _getReading_mecab(obj.jaText);
+
+                    let _reading = [];
+                    let flag = false;
+                    for(let token of yomi){
+                        if( token.space == true ){
+                            _reading.push(token.reading)
+                            flag = true;
+                        }
+                        else{
+                            _reading.push(`${flag == true ? ' ' : ''}${token.reading}`);
+                            flag = false;
+                        }
+                    }
+                    obj.reading = _reading.join('');
+                }
+            }
+
+            
 
             res.send({
                 message : 'success',

@@ -96,7 +96,8 @@ const ShareModalComp = () => {
                     'endTime' : v.endTime,
                     'hurigana' : v.textData.map( (td) => td.ruby ?? '　' ).join('').trim(),
                     'jaText' : v.jaText,
-                    'koText' : v.koText ?? ''
+                    'koText' : v.koText ?? '',
+                    'reading' : v.reading ?? ''
                 }
             })
 

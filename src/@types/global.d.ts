@@ -725,6 +725,7 @@ declare global {
     jaText : string;
     textData : TextData[];
     koText? : string;
+    reading? : string;
   }
 
   export interface JSON_DATA {
@@ -733,6 +734,7 @@ declare global {
     hurigana : string;
     jaText : string;
     koText : string;
+    reading? : string;
   }
 
   //Bun

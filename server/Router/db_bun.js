@@ -143,13 +143,20 @@ async function bunkatsuJaText(req, res){
         let koBun = await db_module.getKoBun(db, ytb.koBId);
 
         let _isKoText = ytb.koBId != null;
-
-        //prev수정
+        
         let _prevJaText = jaBun.jaText.substring(0, critJaText);
         let _nextJaText = jaBun.jaText.substring(critJaText);
         let _prevKoText = _isKoText ? koBun.koText.substring(0, critKoText) : null;
         let _nextKoText = _isKoText ? koBun.koText.substring(critKoText) : null;
 
+        //trim
+        let _trim = _nextJaText.match(/^[、\s]*/)?.[0].length ?? 0;
+        _prevJaText = _prevJaText.replace(/[、\s]*$/, '');
+        _nextJaText = _nextJaText.replace(/^[、\s]*/, '');
+        _prevKoText = _isKoText ? _prevKoText.replace(/[,\s]*$/, '') : null;
+        _nextKoText = _isKoText ? _nextKoText.replace(/^[,\s]*/, '') : null;
+
+        //prev수정
         logger.info( db_module.logYTBUpdateTime(ytb, ytb.startTime, _critTime) );
         ytb.endTime = _critTime;
         logger.info( db_module.logJaBunUpdateJaText(jaBun, _prevJaText) );
@@ -188,6 +195,7 @@ async function bunkatsuJaText(req, res){
             })
         }
 
+        //hukumu
         let hukumus = await db_module.getHukumu(db, ytb.jaBId);
 
         let nextHukumu = hukumus.filter( (v) => v.startOffset >= critJaText );
@@ -198,10 +206,10 @@ async function bunkatsuJaText(req, res){
                 v.jaBId == obj.jaBId && v.startOffset == obj.startOffset && v.endOffset == obj.endOffset
             )
             if( hukumu != undefined ){
-                logger.info( db_module.logHukumuUpdateJaBIdOffsets(hukumu, _JABID, hukumu.startOffset - critJaText, hukumu.endOffset - critJaText) );
+                logger.info( db_module.logHukumuUpdateJaBIdOffsets(hukumu, _JABID, hukumu.startOffset - critJaText - _trim, hukumu.endOffset - critJaText - _trim) );
                 hukumu.jaBId = _JABID;
-                hukumu.startOffset = hukumu.startOffset - critJaText;
-                hukumu.endOffset = hukumu.endOffset - critJaText;
+                hukumu.startOffset = hukumu.startOffset - critJaText - _trim;
+                hukumu.endOffset = hukumu.endOffset - critJaText - _trim;
             }
         }
         

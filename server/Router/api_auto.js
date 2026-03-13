@@ -591,49 +591,46 @@ async function postAutoDB(req, res){
 
 
 async function getYomi(req, res){
-    await db_connection(req, res, async(db) => {
+    const { text } = req.query;
 
-        const { text } = req.query;
-
-        if( await _checkMecabInstalled() === false ){
-            res.send({
-                message : 'error',
-                data : []
-            });
-            return;
-        }
-
-        await _ensureUtf8CodePage();
-
-        let tokens = await new Promise((resolve, reject) => {
-            mecab.parse(text, (err, result) => {
-                if (err) return reject(err);
-
-                const _tokens = result.map(t => {
-
-                    return {
-                        surface: t[0],
-                        pos: t[1],
-                        base: t[7] !== "*\r" ? t[7] : t[0],
-                        reading : t[8] !== "*\r" ? _kataToHira( t[8] ) : "",
-                    }
-                });
-
-                resolve(_tokens);
-            });
-        });
-        
-        let yomi = tokens.map( (v) => v.reading ).join('');
-
-        console.log(yomi)
-
+    if( await _checkMecabInstalled() === false ){
         res.send({
-            message : 'success',
-            data : {
-                yomi : yomi
-            }
+            message : 'error',
+            data : []
         });
-    })
+        return;
+    }
+
+    await _ensureUtf8CodePage();
+
+    let tokens = await new Promise((resolve, reject) => {
+        mecab.parse(text, (err, result) => {
+            if (err) return reject(err);
+
+            const _tokens = result.map(t => {
+
+                return {
+                    surface: t[0],
+                    pos: t[1],
+                    base: t[7] !== "*\r" ? t[7] : t[0],
+                    reading : t[8] !== "*\r" ? _kataToHira( t[8] ) : "",
+                }
+            });
+
+            resolve(_tokens);
+        });
+    });
+    
+    let yomi = tokens.map( (v) => v.reading ).join('');
+
+    // console.log(yomi);
+
+    res.send({
+        message : 'success',
+        data : {
+            yomi : yomi
+        }
+    });
 }
 
 router.get('/', getAutoDB);

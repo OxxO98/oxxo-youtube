@@ -1,11 +1,15 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 
 import { useTranslation } from 'react-i18next';
 import { saveAs } from 'file-saver';
 import axios from 'axios';
 
+//contexts
+import { UnicodeRangeContext } from 'shared/contexts/UnicodeContext';
+
 //hooks
 import { useTimeStamp } from 'shared/lib/useTimeStamp';
+import { useJaText } from 'shared/lib/useJaText';
 
 //lib
 import { useShare } from '../lib/useShare'
@@ -37,8 +41,18 @@ export function useHandleShare(
     //State
     const [url, setUrl] = useState<string>(''); 
 
+    //Context
+    const unicodeRange = useContext<UnicodeRangeContext>(UnicodeRangeContext);
+
     //Hook
     const { timeToTS } = useTimeStamp();
+
+    const { HiraToKoNFC } = useJaText();
+
+    const isKanjiRegex = useMemo( () => new RegExp(
+        `[${unicodeRange.kanji}]+`,
+        'g'
+    ), [unicodeRange.kanji])
 
     //lib
     const { _getEncoded, _getEncodedLight, _findRange, _findRangeLight} = useShare(videoId, bunIds, setUrl, range);
@@ -86,22 +100,40 @@ export function useHandleShare(
         saveAs(blob, `${filename}.json`);
     }
 
-    const handleSaveByCaption = ( opt : 'ko' | 'ja' = 'ja' ) => {
+    const handleSaveByCaption = ( opt : 'ko' | 'ja' | 'yomi' = 'ja' ) => {
         if(json === null ){ return }
 
-        let filename = `CAPTION_${videoId}`;
+        let filename = `CAPTION_${videoId}_${opt}`;
+
+        console.log(json);
 
         let _captionData = json.map( (v) => {
+            let _reading = '';
+            if( v.reading !== undefined ){
+                let _huriArr = v.hurigana.split('　').filter( (huri) => huri !== '');
+                let _kanjiArr = v.jaText.match(isKanjiRegex);
+                let _huri = _kanjiArr?.reduce( (acc, cur, i) => acc.replace(cur, _huriArr[i]), v.reading) ?? "";
+                _reading = _huri.split(' ').map( (h) => HiraToKoNFC(h) ).join(' ')
+            }
+
             return {
                 startTime : timeToTS(v.startTime),
                 endTime : timeToTS(v.endTime),
                 jaText : v.jaText,
-                koText : v.koText
+                koText : v.koText,
+                reading : _reading
             }
         })
 
         let _toJaCaption = _captionData.map( (v, i) => {
-            return `${i}\n${v.startTime} --> ${v.endTime}\n${ opt === 'ko' ? v.koText : v.jaText }\n`
+            switch(opt){
+                case 'ja' :
+                    return `${i}\n${v.startTime} --> ${v.endTime}\n${v.jaText}\n`
+                case 'yomi' :
+                    return `${i}\n${v.startTime} --> ${v.endTime}\n${v.koText}\n`
+                case 'ko' :
+                    return `${i}\n${v.startTime} --> ${v.endTime}\n${v.reading}\n${v.koText}\n`
+            }
         }).join('\n')
         
         let blob = new Blob([_toJaCaption], {type: "text/plain;charset=utf-8"});
