@@ -4,10 +4,66 @@ const router = express.Router();
 import fs from 'fs'
 import { Innertube, UniversalCache, Platform, Utils } from 'youtubei.js';
 
+import { spawn } from 'child_process';
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+function runYtDlpToFile(videoId, folderPath) {
+  return new Promise((resolve, reject) => {
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const outputPath = path.join(folderPath, `${videoId}.%(ext)s`);
+
+    const args = [
+      '--no-warnings',
+      '--no-playlist',
+      '-x',
+      '--audio-format', 'wav',
+      '-o', outputPath,
+      url
+    ];
+
+    const child = spawn('yt-dlp', args, {
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    child.on('error', (err) => {
+      if (err.code === 'ENOENT') {
+        reject(
+          new Error(
+            `yt-dlp 실행 파일을 찾을 수 없습니다. 설치 후 PATH를 잡거나 YT_DLP_PATH를 설정하세요. 현재값: ${bin}`
+          )
+        );
+        return;
+      }
+      reject(err);
+    });
+
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr, outputPath });
+      } else {
+        reject(
+          new Error(`yt-dlp failed with code ${code}\n${stderr || stdout}`)
+        );
+      }
+    });
+  });
+}
 
 async function getAudioStreamYoutubeJS (req, res) {
   let assetPath = path.join(__dirname, '../Asset');
@@ -24,6 +80,7 @@ async function getAudioStreamYoutubeJS (req, res) {
   if( !fs.existsSync(videoPath) ){
     Platform.shim.eval = async (data, env) => {
       const properties = [];
+      console.log(data, env);
 
       if(env.n) {
         properties.push(`n: exportedVars.nFunction("${env.n}")`)
@@ -39,22 +96,31 @@ async function getAudioStreamYoutubeJS (req, res) {
     }
 
     const innertube = await Innertube.create({ cache: new UniversalCache(false), generate_session_locally: true });
-    
-    const stream = await innertube.download(videoId);
 
-    const writeStream = fs.createWriteStream(videoPath);
-    
-    for await (const chunk of Utils.streamToIterable(stream)) {
-      writeStream.write(chunk);
+    try {
+      const stream = await innertube.download(videoId);
+
+      const writeStream = fs.createWriteStream(videoPath);
+      
+      for await (const chunk of Utils.streamToIterable(stream)) {
+        writeStream.write(chunk);
+      }
+    }
+    catch(err){
+      console.log('catch error on youtubei.js change yt-dlp..')
+
+      await runYtDlpToFile( videoId, transcriptPath )
+    }
+    finally{
+      const readStream = fs.createReadStream(videoPath);
+
+      for await(const chunk of readStream){
+        res.write(chunk);
+      }
+
+      res.end();
     }
     
-    const readStream = fs.createReadStream(videoPath);
-
-    for await(const chunk of readStream){
-      res.write(chunk);
-    }
-
-    res.end();
   } 
   else{
     

@@ -78,7 +78,7 @@ export const DynamicInputComp = ({ handleMultiChange, multiInputData, multiValue
                 </Col>
                 <Flex justify='right' style={ButtonContainerStyle}>
                     {
-                        selection !== '' && selection && isAvailableKatachi &&
+                        selection !== '' && selection && isAvailableKatachi && concatMultiInput() !== '' &&
                         <>
                             <ModalTangoDB 
                                 multiInputData={multiInputData} multiValue={multiValue} value={concatMultiInput()} handleRefetch={handleRefetch}

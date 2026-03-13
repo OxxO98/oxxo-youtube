@@ -64,7 +64,7 @@ const TangoComp = ({ refetchHandles, refetchTangoList } : TangoCompProps ) => {
     //Hook
     const { refetch } = refetchHandles;
 
-    const { autoYomi, autoBool } = useGetYomi(selection, hukumuCheckLoading);
+    const { autoYomi, autoBool } = useGetYomi(selection, hukumuCheckLoading, hukumuData);
 
     const { multiValue, multiInputData, handleChange : handleMultiChange } = useMultiInput(selection, autoYomi, autoBool );
 

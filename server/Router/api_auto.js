@@ -622,8 +622,10 @@ async function getYomi(req, res){
                 resolve(_tokens);
             });
         });
-
+        
         let yomi = tokens.map( (v) => v.reading ).join('');
+
+        console.log(yomi)
 
         res.send({
             message : 'success',
