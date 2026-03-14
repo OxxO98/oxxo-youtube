@@ -3,6 +3,7 @@ import { useCallback, useContext, useMemo } from 'react';
 import { UnicodeRangeContext } from 'shared/contexts/UnicodeContext';
 
 import { assemble } from 'es-hangul';
+import e from 'express';
 
 const hiraganaKumi = [
     ['あ', 'い', 'う', 'え', 'お', 'や', 'ゆ', 'よ'],
@@ -20,7 +21,7 @@ const hiraganaKumi = [
     ['ら', 'り', 'る', 'れ', 'ろ', 'りゃ', 'りゅ', 'りょ']
 ]
 
-const hiraganaKumiRegex = new RegExp( `[${hiraganaKumi.flat().filter( (v) => v.length === 1).join('')}わをぁぃぅぇぉっん-]{1}[ゃゅょ]?`, 'g' )
+const hiraganaKumiRegex = new RegExp( `[${hiraganaKumi.flat().filter( (v) => v.length === 1).join('')}わをっん-]{1}[ゃゅょぁぃぅぇぉ]?`, 'g' )
 
 //'ぅ'로 되는 경우의 모음은 아직 정해지지 않은 상태
 const hiraganaTokubetsuKumi = [
@@ -191,6 +192,37 @@ const hiraAllHangul = [
     ['라', '리', '루', '레', '로', '랴', '류', '료']
 ]
 
+//Object Key
+const hiraSuteHangul : ObjKey = {
+    ぁ : '아',
+    ぃ : '이',
+    ぅ : '우',
+    ぇ : '에',
+    ぉ : '오',
+    すぃ : '시',
+    しぇ : '셰',
+    てぃ : '티',
+    とぅ : '투',
+    ちぇ : '체',
+    つぁ : '차',
+    つぃ : '치',
+    つぇ : '체',
+    つぉ : '초',
+    ほぅ : '후',
+    ふぁ : '화',
+    ふぃ : '휘',
+    ふぇ : '훼',
+    ふぉ : '호',
+    ずぃ : '지',
+    じぇ : '제',
+    でぃ : '디',
+    どぅ : '두',
+    ぶぁ : '봐',
+    ぶぃ : '뷔',
+    ぶぇ : '붸',
+    ぶぉ : '보'
+}
+
 const hiraAllMatch : ObjKey = hiraganaKumi.map( (v, i) => v
         .reduce( (acc, value, index) => { return {...acc, [value] : hiraAllHangul[i][index] } }, {} ) 
     ).reduce( (acc, value, index) => { return { ...acc, ...value } }, {})
@@ -303,6 +335,51 @@ function useJaText(){
     }, [chosungsRegex, jongsungsRegex, jungsungsRegex])
 
     /**
+     * う, い문자를 장음발음의 히라가나로 변경
+     * 읽기 표시중 단어 단위에만 적용하기 위해 만듬
+     * 반환 값은 히라가나
+     */
+    const reviseHira = useCallback( (hira : string) => {
+
+        let hiraArr = kataToHira(hira).match(hiraganaKumiRegex);
+        if(hiraArr === null){
+            return hira;
+        }
+
+        let revise: string[] = [];
+        for(let i = 0; i < hiraArr.length; i++ ){
+            let char = hiraArr[i];
+            if(char === 'う' && i !== 0){
+                let _prev = hiraArr[i-1];
+                let _dan = hiraganaDanExpended[ _prev ];
+
+                if( _dan === undefined ){
+                    revise.push(char);
+                }
+                else{
+                    revise.push( 'ううううおううお'[_dan] );
+                }                
+            }
+            else if( char === 'い' && i !== 0 ){
+                let _prev = hiraArr[i-1];
+                let _dan = hiraganaDanExpended[ _prev ];
+
+                if( _dan === undefined ){
+                    revise.push(char);
+                }
+                else{
+                    revise.push( 'いいいえいいいい'[_dan] );
+                }                
+            }
+            else{
+                revise.push(char);
+            }
+        }
+        
+        return revise.join('');
+    }, [hiraganaKumiRegex] )
+
+    /**
      * 한글 (문자 하나)을 히라가나로 변환
      * 장음은 '-'로 쓸 경우 앏맞게 변환 가능 (checkChouon참고)
      * 
@@ -381,40 +458,18 @@ function useJaText(){
 
         let _match = hiraAllMatch[ char ];
 
-        if( _match !== undefined ){
-
-            // 한글에서는 아닌 듯, 장음기호라면 다를지도
-            // if(char === 'う' && index !== 0){
-            //     // い => e단 일경우 '에'
-            //     let _prev = arr[index-1];
-            //     let _dan = hiraganaDanExpended[ _prev ];
-                
-            //     return '우우우우오우우오'[_dan];
-            // }
-            // else if( char === 'い' && index !== 0 ){
-            //     let _prev = arr[index-1];
-            //     let _dan = hiraganaDanExpended[ _prev ];
-
-            //     return '이이이에이이이이'[_dan];
-            // }
-
+        if( _match !== undefined ){           
             return _match;
         }
         else{
-            switch( char ){
-                case 'ぁ' :
-                    return 'ㅏ'
-                case 'ぃ' :
-                    return 'ㅣ'
-                case 'ぅ' :
-                    return 'ㅜ'
-                case 'ぇ' :
-                    return 'ㅔ'
-                case 'ぉ' :
-                    return 'ㅗ'
-                default :
-                    return ''        
+            let _sute = hiraSuteHangul[ char ];
+            if( _sute !== undefined ){
+                return _sute;
             }
+            let _f = hiraAllMatch[ char[0] ] ?? '';
+            let _s = char.length === 2 ? hiraSuteHangul[ char[1] ] ?? '' : '';
+            
+            return `${_f}${_s}`;
         }
 
     }, [hiraAllMatch])
@@ -448,7 +503,7 @@ function useJaText(){
         let hangul = hiraArr.map( (v, index, arr) => HiraToHangul(v, index, arr) ).join('');
 
         return assemble(hangul.split(''));
-    }, [hiraAllMatch, HiraToHangul])
+    }, [hiraganaKumiRegex, HiraToHangul])
   
     /**
      * 모든 문자가 한글일 경우에 true를 반환
@@ -1066,7 +1121,7 @@ function useJaText(){
     }
 
     return { 
-        koNFCToHira, HiraToKoNFC,
+        koNFCToHira, HiraToKoNFC, reviseHira,
         isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
         traceHukumu, 
         getHyoukiQuery, getYomiQuery, convertObjKey,

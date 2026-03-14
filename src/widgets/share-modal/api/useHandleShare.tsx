@@ -47,7 +47,7 @@ export function useHandleShare(
     //Hook
     const { timeToTS } = useTimeStamp();
 
-    const { HiraToKoNFC } = useJaText();
+    const { HiraToKoNFC, reviseHira } = useJaText();
 
     const isKanjiRegex = useMemo( () => new RegExp(
         `[${unicodeRange.kanji}]+`,
@@ -110,9 +110,9 @@ export function useHandleShare(
         let _captionData = json.map( (v) => {
             let _reading = '';
             if( v.reading !== undefined ){
-                let _huriArr = v.hurigana.split('　').filter( (huri) => huri !== '');
+                let _huriArr = v.hurigana.split('　').filter( (huri) => huri !== '').map( (huri) => reviseHira(huri) );
                 let _kanjiArr = v.jaText.match(isKanjiRegex);
-                let _huri = _kanjiArr?.reduce( (acc, cur, i) => acc.replace(cur, _huriArr[i]), v.reading) ?? "";
+                let _huri = _kanjiArr === null ? v.reading : _kanjiArr.reduce( (acc, cur, i) => acc.replace(cur, _huriArr[i]), v.reading) ?? "";
                 _reading = _huri.split(' ').map( (h) => HiraToKoNFC(h) ).join(' ')
             }
 
