@@ -1265,6 +1265,7 @@ declare global {
     TITLE : string;
     BUTTON : {
       TITLE : string;
+      PREV : string;
       CANCLE : string;
       CONFIRM : string;
       CONFIRM_WITH_AI : string;
@@ -1290,6 +1291,8 @@ declare global {
       KANJI : string;
       SIZE : string;
       IMI : string;
+      YOMI : string;
+      BASE : string;
     }
   }
 

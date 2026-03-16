@@ -6,6 +6,10 @@ export interface auto_db_matched {
     tId : string;
 }
 
+export interface auto_db_moreTId extends auto_db_matched {
+    kanjisQuery : string;
+}
+
 export type auto_db_tIdList = auto_db_matched[][];
 
 export interface auto_db_hukumu {

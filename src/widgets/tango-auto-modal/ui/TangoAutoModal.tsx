@@ -64,24 +64,42 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
         setStep(0);
     }
 
-    const handleCommit = useCallback( (tId : string | null, skip : boolean) => {
+    /**
+     * tId가 null이면 새로 생성 T{4자리 숫자}
+     * skip이 null이면 일부 skip
+     * skip에 상관 없이 TID가 들어가지만, commit에서는 skip에 우선순위가 있기 때문에 상관 없음
+     */
+    const handleCommit = useCallback( (tId : string | null, skip : boolean | null) => {
         if( dbData === null || commitData.current === null ){ return }
         let ids = dbData[curr].map( (v) => v.id );
 
-        let _v = index.current.toString().padStart(4, '0');
+        let _v = curr.toString().padStart(4, '0');
         for( let id of ids ){
             commitData.current[id].tId = tId == null ? `T${_v}` : tId;
-            commitData.current[id].skip = skip;
+            if( skip !== null ){
+                commitData.current[id].skip = skip;
+            }
         }
-        let _currData = dbData[curr][0];
-        moreTIdList.current.push([{
-            hyId : `HY${_v}`,
-            textData : _currData.textData,
-            yomi : _currData.yomi,
-            hyouki : _currData.hyouki,
-            tId : `T${_v}`
-        }])
-        index.current++;
+        
+        let _added = ids.filter( (v) => commitData.current?.[v].skip === false ).length;
+        if( moreTIdList.current !== null ){
+            if( _added > 0 ){
+                let _currData = dbData[curr][0];
+                moreTIdList.current[curr] = [{
+                    hyId : `HY${_v}`,
+                    textData : _currData.textData,
+                    yomi : _currData.yomi,
+                    hyouki : _currData.hyouki,
+                    tId : `T${_v}`,
+                    kanjisQuery : `${_currData.kanjis.join('')}`
+                }]
+            }
+            else{
+                moreTIdList.current[curr] = []
+            }
+        }
+        
+        
         setCurr(curr+1);
     }, [dbData, curr]);
 
@@ -112,6 +130,7 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
         if(res !== null && bunIds !== null){
             setDBData(res.data);
             commitData.current = commitDataDTO(bunIds, res.data);
+            moreTIdList.current = [];
         }
     }, [response])
 
@@ -127,16 +146,15 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
             
             <Modal
                 title={t('TITLE')}
-                closable={false}
+                closable
                 open={isModalOpen}
                 onCancel={handleCancel}
                 width={'80%'}
                 maskClosable={false}
                 footer={[
                     <>{
-                        step === 0 &&
                         <>
-                            <Button disabled={curr !== 0} onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
+                            <Button disabled={curr === 0} onClick={() => setCurr(prev => prev-1)}>{t('BUTTON.PREV')}</Button>
                         </>
                     }</>,
                     <>{
@@ -168,13 +186,15 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
                         dbData !== null && curr < dbData.length ?
                         <>
                             <Flex justify="space-around" style={{ height : '60vh' }}>
-                                <TangoCard data={dbData[curr]}/>
+                                <TangoCard data={dbData[curr]} commitData={commitData}/>
                                 <MatchedTangoList tIdList={
                                     [
                                         ...dbData[curr][0].tIdList,
-                                        ...moreTIdList.current.filter( (v) => v[0].hyouki == dbData[curr][0].hyouki || v[0].yomi == dbData[curr][0].yomi )
+                                        ...moreTIdList.current.slice(0, curr-1).filter( (v) => v.length !== 0 && ( v[0].hyouki == dbData[curr][0].hyouki || v[0].yomi == dbData[curr][0].yomi || v[0].kanjisQuery == dbData[curr][0].kanjis.join('') ) )
                                     ]
-                                } handleCommit={handleCommit}/>
+                                } hyouki = { dbData[curr][0].hyouki } 
+                                yomi = { dbData[curr][0].yomi }
+                                handleCommit={handleCommit}/>
                             </Flex>
                             <TangoAutoControl handleSkip={handleSkip}/>
                         </>

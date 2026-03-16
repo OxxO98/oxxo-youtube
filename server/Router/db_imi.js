@@ -48,13 +48,21 @@ async function postImi(req, res){
     await db_connection(req, res, async(db) => {
         let { jaBId, startOffset, endOffset, tId, value } = req.body;
 
-        let _IID = nanoid(10);
-        logger.info( db_module.logImiInsert( _IID, value, tId) );
-        db.data.imi.push({
-            iId : _IID,
-            koText : value,
-            tId : tId
-        });
+        let _IID = null;
+        let existImi = await db_module.getExistImi( db, tId, value);
+        if( existImi == true ){
+            let _imi = db.data.imi.find( (v) => v.koText == value && v.tId == tId );
+            _IID = _imi.iId;            
+        }
+        else{
+            _IID = nanoid(10);
+            logger.info( db_module.logImiInsert( _IID, value, tId) );
+            db.data.imi.push({
+                iId : _IID,
+                koText : value,
+                tId : tId
+            });
+        }
 
         let _hukumu = db.data.hukumu.find( (v) => 
             v.jaBId == jaBId &&

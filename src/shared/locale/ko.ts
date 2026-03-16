@@ -418,6 +418,7 @@ const TangoAutoModal : Locale['TangoAutoModal'] = {
     TITLE : '단어를 자동 생성에 DB에 등록합니다',
     BUTTON : {
         TITLE : '단어 자동 생성',
+        PREV : '이전',
         CANCLE : '취소',
         CONFIRM : '확인',
         CONFIRM_WITH_AI : '뜻과 함께 생성',
@@ -442,7 +443,9 @@ const TangoCard : Locale['TangoCard'] = {
     CONTENTS : {
         IMI : '의미',
         KANJI : '한자',
-        SIZE : '개'
+        SIZE : '개',
+        BASE : '기본형',
+        YOMI : '읽기'
     }
 }
 

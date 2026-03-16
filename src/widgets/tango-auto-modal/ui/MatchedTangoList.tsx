@@ -7,15 +7,20 @@ import { ComplexText } from 'entities/ComplexText/index';
 import type { auto_db_tIdList } from '../type';
 
 //CSS@antD
-import { Flex, Card, Button } from 'antd';
+import { Flex, Card, Button, theme } from 'antd';
+const { useToken } = theme; 
 
 interface MatchedTangoListProps {
-    tIdList : auto_db_tIdList
-    handleCommit : (tId : string | null, skip : boolean) => void;
+    tIdList : auto_db_tIdList;
+    hyouki : string;
+    yomi : string;
+    handleCommit : (tId : string | null, skip : boolean | null ) => void;
 }
 
-export const MatchedTangoList = ({ tIdList, handleCommit } : MatchedTangoListProps ) => {
+export const MatchedTangoList = ({ tIdList, hyouki, yomi, handleCommit } : MatchedTangoListProps ) => {
     const { t } = useTranslation('MatchedTangoList');
+
+    const { token } = useToken();
 
     return(
         <>
@@ -30,8 +35,13 @@ export const MatchedTangoList = ({ tIdList, handleCommit } : MatchedTangoListPro
                         tIdList.map( (v) => 
                             <Card
                                 actions={[
-                                    <Button onClick={() => handleCommit(v[0].tId, false)}>{t('BUTTON.SAVE')}</Button>
+                                    <Button onClick={() => handleCommit(v[0].tId, null)}>{t('BUTTON.SAVE')}</Button>
                                 ]}
+                                style={ 
+                                    ( hyouki === v[0].hyouki && yomi === v[0].yomi ) ?
+                                    { borderWidth : 2, borderColor : token.colorPrimaryBg } :
+                                    { }
+                                }
                             >
                                 <Card.Meta
                                         title={<ComplexText bId={null} data={v[0].hyouki} ruby={v[0].yomi} offset={0}/>
@@ -47,10 +57,10 @@ export const MatchedTangoList = ({ tIdList, handleCommit } : MatchedTangoListPro
                             </Card>
                         )
                     }
-                    <Button type="dashed" onClick={() => handleCommit(null, false)}>{t('BUTTON.SAVE_NEW')}</Button>
+                    <Button type="dashed" onClick={() => handleCommit(null, null)}>{t('BUTTON.SAVE_NEW')}</Button>
                 </>
                 :
-                <Button onClick={() => handleCommit(null, false)}>{t('BUTTON.SAVE_NEW')}</Button>
+                <Button onClick={() => handleCommit(null, null)}>{t('BUTTON.SAVE_NEW')}</Button>
             }
             </Flex>
         </>

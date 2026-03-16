@@ -39,6 +39,8 @@ const katakanaRegex = new RegExp(
 )
 const kanjiRegex = new RegExp('[\u3400-\u9fff\u3005]+', 'g');
 const hiraganaRegex = new RegExp('[^\u3400-\u9fff\u3005]+', 'g');
+const getKatakanaRegex = new RegExp('[\u30a0-\u30ff]+', 'g');
+
 
 const kanjiStartRegex = new RegExp('^[\u3400-\u9fff\u3005]+', 'g');
 const kanjiEndRegex = new RegExp('[\u3400-\u9fff\u3005]+$', 'g');
@@ -204,6 +206,31 @@ function _prefilter(tokens){
     );
 }
 
+function _complexKataToHira(origin, yomi){
+    if( yomi === undefined){
+        return origin.match(kanjiRegex) === null ? _kataToHira(origin) : '';
+    }
+    if( origin.match(katakanaRegex) === null || origin.match(kanjiRegex) === null  ){
+        return _kataToHira(yomi);
+    }
+
+    let _matched = origin.match(getKatakanaRegex);
+    if( _matched !== null ){
+        let _regexp = new RegExp( `^(.*)${_matched.join('(.*)')}(.*)$` );
+        let _m_yomi = yomi.match(_regexp);
+        let _m_ori = origin.match(_regexp);
+        if( _m_ori !== null && _m_yomi !== null ){
+            let _hira = _m_yomi.filter( (v, i) => i !== 0).map( (v) => _kataToHira(v) );
+            _m_ori = _m_ori.filter( (v, i) => i !== 0 );
+            let _string = _m_ori.reduce( (acc, curr, i) => acc.replace(curr, _hira[i]), origin );
+            
+            return _string;
+        }
+    }
+
+    return _kataToHira(origin);
+}
+
 function _analyzeWithMeCab( textObj ){
     return new Promise((resolve, reject) => {
         mecab.parse(textObj.jaText, (err, result) => {
@@ -218,10 +245,11 @@ function _analyzeWithMeCab( textObj ){
                     surface: t[0],
                     pos: t[1],
                     base: t[7] !== "*\r" ? t[7] : t[0],
-                    reading : t[8] !== "*\r" ? _kataToHira( t[8] ) : "",
+                    reading : t[8] !== "*\r" ? _complexKataToHira(t[0], t[8]) : "",
                     jaBId : textObj.jaBId,
                     offset : _offset
                 }
+                //_kataToHira( t[8] ) 
             });
 
             resolve(tokens);
@@ -603,6 +631,19 @@ async function getYomi(req, res){
 
     await _ensureUtf8CodePage();
 
+    if( text.match(/\s/) !== null ){
+        console.log('공백포함');
+
+        res.send({
+            message : 'success',
+            data : {
+                yomi : ''
+            }
+        });
+        
+        return;
+    }
+
     let tokens = await new Promise((resolve, reject) => {
         mecab.parse(text, (err, result) => {
             if (err) return reject(err);
@@ -613,7 +654,7 @@ async function getYomi(req, res){
                     surface: t[0],
                     pos: t[1],
                     base: t[7] !== "*\r" ? t[7] : t[0],
-                    reading : t[8] !== "*\r" ? _kataToHira( t[8] ) : "",
+                    reading : t[8] !== "*\r" ? t[0].match(kanjiRegex) !== null ? _complexKataToHira( t[0], t[8] ) : t[0] : "",
                 }
             });
 
@@ -623,7 +664,7 @@ async function getYomi(req, res){
     
     let yomi = tokens.map( (v) => v.reading ).join('');
 
-    // console.log(yomi);
+    console.log(yomi);
 
     res.send({
         message : 'success',

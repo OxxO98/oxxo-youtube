@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext, CSSProperties, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, CSSProperties, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -62,7 +62,7 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
     const { setScratch, gotoTime, keyboard } = videoPlayerHandles;
 
     //Redux
-    const { bunIds, currentBunId } = useAppSelector( (state) => state.timeline ); 
+    const { bunIds } = useAppSelector( (state) => state.timeline ); 
 
     const dispatch = useAppDispatch();
 
@@ -81,73 +81,6 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
         loop: keyboard.loop
     }
     useHandleKeyboard({ ...filteredKeyboard, custom: customKeyboard });
-
-    //Hotkeys
-    useHotkeys('enter', () => handleEdit())
-    useHotkeys('shift+enter', () => cancelEdit(), { enableOnFormTags: true })
-
-    //Handles
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setValue(e.target.value);
-    }
-
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-        e.target.selectionStart = e.target.value.length;
-    }
-
-    const cancelEdit = useCallback(() => {
-        dispatch(setStartTime(0));
-        dispatch(setEndTime(0));
-        setValue('');
-        setEditYtbId(null);
-    }, [])
-
-    const handleEdit = useCallback(() => {
-        if (bunIds === null) { return }
-
-        setEditYtbId(bunIds[currentBunId].ytBId);
-        setValue(bunIds[currentBunId].jaText);
-    }, [bunIds, currentBunId])
-
-    //Handle @timeline
-    const prevTimeLine = () => {
-        if (bunIds === null) {
-            return;
-        }
-
-        deselect();
-
-        if (currentBunId > 0) {
-            let curr = bunIds[currentBunId - 1];
-            gotoTime(curr.startTime, null);
-
-            dispatch( setCurrentBunIdPrev() );
-        }
-    }
-
-    const nextTimeLine = () => {
-        if (bunIds === null) {
-            return;
-        }
-
-        deselect();
-
-        if (currentBunId + 1 < bunIds.length) {
-            let curr = bunIds[currentBunId + 1];
-            gotoTime(curr.startTime, null);
-
-            dispatch( setCurrentBunIdNext() );
-        }
-    }
-
-    const currentTimeLine = () => {
-        if (bunIds === null) {
-            return;
-        }
-
-        let curr = bunIds[currentBunId];
-        setScratch(true, curr.startTime, curr.endTime, false);
-    }
 
     const getCurrentTimeLine = useCallback(() => {
         if (bunIds === null) {
@@ -173,6 +106,70 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
         return null;
     }, [bunIds, playedSeconds]);
 
+    //Memo
+    const currentBunId = useMemo( () => { return getCurrentTimeLine() }, [getCurrentTimeLine])
+
+    //Hotkeys
+    useHotkeys('enter', () => handleEdit())
+    useHotkeys('shift+enter', () => cancelEdit(), { enableOnFormTags: true })
+
+    //Handles
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setValue(e.target.value);
+    }
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        e.target.selectionStart = e.target.value.length;
+    }
+
+    const cancelEdit = useCallback(() => {
+        dispatch(setStartTime(0));
+        dispatch(setEndTime(0));
+        setValue('');
+        setEditYtbId(null);
+    }, [])
+
+    const handleEdit = useCallback(() => {
+        if ( currentBunId == null || bunIds === null) { return }
+
+        setEditYtbId(bunIds[currentBunId].ytBId);
+        setValue(bunIds[currentBunId].jaText);
+    }, [bunIds, currentBunId])
+
+    //Handle @timeline
+    const prevTimeLine = () => {
+        if ( currentBunId == null || bunIds === null) { return }
+
+        deselect();
+
+        if (currentBunId > 0) {
+            let curr = bunIds[currentBunId - 1];
+            gotoTime(curr.startTime, null);
+
+            dispatch( setCurrentBunIdPrev() );
+        }
+    }
+
+    const nextTimeLine = () => {
+        if ( currentBunId == null || bunIds === null) { return }
+
+        deselect();
+
+        if (currentBunId + 1 < bunIds.length) {
+            let curr = bunIds[currentBunId + 1];
+            gotoTime(curr.startTime, null);
+
+            dispatch( setCurrentBunIdNext() );
+        }
+    }
+
+    const currentTimeLine = () => {
+        if ( currentBunId == null || bunIds === null) { return }
+
+        let curr = bunIds[currentBunId];
+        setScratch(true, curr.startTime, curr.endTime, false);
+    }
+
     const moveCurrentTimeLine = useCallback(() => {
         if (playedSeconds !== null) {
             if (bunIds !== null) {
@@ -190,7 +187,7 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
     }, [playedSeconds, bunIds, moveCurrentTimeLine])
 
     useEffect(() => {
-        if (bunIds && bunIds.length !== 0) {
+        if ( currentBunId !== null && bunIds && bunIds.length !== 0) {
             setEditYtbId(null);
             cancelEdit();
 
@@ -221,7 +218,7 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
                         }
                     </div>
                     {
-                        bunIds !== null && bunIds.length !== 0 &&
+                        bunIds !== null && bunIds.length !== 0 && currentBunId !== null &&
                         <>
                             {
                                 editYtbId === null ?

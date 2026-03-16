@@ -80,7 +80,6 @@ async function getAudioStreamYoutubeJS (req, res) {
   if( !fs.existsSync(videoPath) ){
     Platform.shim.eval = async (data, env) => {
       const properties = [];
-      console.log(data, env);
 
       if(env.n) {
         properties.push(`n: exportedVars.nFunction("${env.n}")`)
