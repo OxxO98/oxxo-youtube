@@ -239,7 +239,7 @@ function _analyzeWithMeCab( textObj ){
             let _crit = 0;
             const tokens = result.map(t => {
                 let _offset = textObj.jaText.indexOf(t[0], _crit);
-                if( _offset !== -1 ){ _crit = _offset }
+                if( _offset !== -1 ){ _crit = _offset+t[0].length }
 
                 return {
                     surface: t[0],
@@ -257,23 +257,35 @@ function _analyzeWithMeCab( textObj ){
     });
 }
 
-async function _getImiWithAI( videoId, revised ){
+async function _getImiWithAI( videoId, db, revised ){
     if( await _existApiKey() === false ){
         return revised;
     }
 
     if( fs.existsSync(`${assetPath}/transcript/${videoId}.wav_word_imi.json`) === true ){
         let _json = JSON.parse( await fs.readFileSync(`${assetPath}/transcript/${videoId}.wav_word_imi.json`) );
-
+        
         return revised.map( (v, i) => {
             return {
                 ...v,
-                imi : _json.data[i].imi
+                imi : _json.data[i]?.imi ?? ''
             }
         })
     }
     
-    const translateData = revised.map( (v, i) => { return { idx : i,  hyouki : v.base } })
+    const translateData = revised
+        .map( (v, i) => {
+            let _hyouki = db.data.hyouki.find( (hy) => hy.hyouki == v.base || hy.hyouki == v.hyouki )
+            let _iId = _hyouki !== undefined ? db.data.hukumu.find( (hu) => hu.hyId == _hyouki.hyId && hu.iId !== null )?.iId : undefined; 
+            let _imi = _iId !== undefined ? db.data.imi.find( (m) => m.iId == _iId )?.koText : undefined;
+
+            return { idx : i, hyouki : v.base, imi : _imi ?? '' }
+        })
+
+    const filtered_translateData = translateData.filter( (v) => v.imi === '' )
+        .map( (v) => { return { idx : v.idx, hyouki : v.hyouki }});
+
+    console.log(filtered_translateData);
 
     const trData = z.object({ 
         data : z.array( z.object({
@@ -305,7 +317,7 @@ async function _getImiWithAI( videoId, revised ){
         JSON 이외의 어떤 텍스트도 출력하지 마라.
 
         입력 데이터:
-        ${JSON.stringify(translateData, null, 2)}
+        ${JSON.stringify(filtered_translateData, null, 2)}
     `
 
     const ai_res = await client.responses.parse({
@@ -317,14 +329,24 @@ async function _getImiWithAI( videoId, revised ){
             format : zodTextFormat(trData, 'translation_data'),
         }
     })
+
+    const revised_imi = {
+        data : translateData.map( (v) => {
+            return {
+                idx : v.idx,
+                hyouki : v.hyouki,
+                imi : v.imi == '' ? ai_res.output_parsed.data.find( (t) => t.idx == v.idx)?.imi : v.imi
+            }
+        })
+    }
     
-    await fs.writeFileSync(`${assetPath}/transcript/${videoId}.wav_word_imi.json`, JSON.stringify( ai_res.output_parsed, null, 2) )
+    await fs.writeFileSync(`${assetPath}/transcript/${videoId}.wav_word_imi.json`, JSON.stringify( revised_imi, null, 2) )
 
     if( ai_res.output_parsed ) {
         return revised.map( (v, i) => {
             return {
                 ...v,
-                imi : ai_res.output_parsed.data[i].imi
+                imi : v.imi == '' ? ai_res.output_parsed.data.find( (v) => v.idx == i)?.imi : v.imi
             }
         })
     }
@@ -408,8 +430,8 @@ async function getAutoDB(req, res){
         })
 
         //OPEN AI
-        if( option === 'true' ){
-            revised = await _getImiWithAI( videoId, revised );
+        if( option === 'true' || fs.existsSync(`${assetPath}/transcript/${videoId}.wav_word_imi.json`) === true ){
+            revised = await _getImiWithAI( videoId, db, revised );
         }
 
         let getCore = ( _textData ) => {
@@ -617,7 +639,6 @@ async function postAutoDB(req, res){
     });
 }
 
-
 async function getYomi(req, res){
     const { text } = req.query;
 
@@ -674,9 +695,123 @@ async function getYomi(req, res){
     });
 }
 
+function _checkWithMecab( text ){
+    return new Promise((resolve, reject) => {
+        mecab.parse(text, (err, result) => {
+            if (err) return reject(err);
+
+            const tokens = result.map(t => {
+
+                return {
+                    surface: t[0],
+                    pos: t[1],
+                    base: t[7] !== "*\r" ? t[7] : t[0],
+                    reading : t[8] !== "*\r" ? _complexKataToHira(t[0], t[8]) : "",
+                    pos1 : t[2],
+                    pos2 : t[3],
+                    pos3 : t[4],
+                }
+                //_kataToHira( t[8] ) 
+            });
+
+            resolve(tokens);
+        });
+    });
+}
+
+async function getPrompt(req, res){
+    await db_connection(req, res, async(db) => {
+        const { videoId } = req.query;
+
+        if( await _checkMecabInstalled() === false ){
+            res.send({
+                message : 'error',
+                data : []
+            });
+            return;
+        }
+
+        await _ensureUtf8CodePage();
+        //고유명사 등등
+        /** score로 판단해야 할 듯
+         * 1. 이 영상에서만 쓰이는 단어 //left 정도
+         * 2. 영상에서 자주, 반복 등장하는 단어 //sum
+         * ?. 사전에서 인식가능 한 단어 (mecab 사용?)
+         * 
+         * ex) hukumu 갯수 - 다른 영상에서 출현 정도
+         */
+
+        // VIDEO - YTB - JABID &&  HUKUMU - HYOUKI 
+
+        const _timeline = await db_module.getTimeline(db, videoId)
+        const _jaBIds = _timeline.map( (v) => v.jaBId );
+
+        const _joined = _.toArray( _.groupBy( db.data.hukumu.map( (v) => {
+            return {
+                ...v,
+                ...db.data.hyouki.find( (hy) => hy.hyId == v.hyId )
+            }
+        }), tango => tango.hyId ) ) // hyouki joined hukumu
+
+        const _scored = _joined.map( (v) => {
+            
+            return v.map( (t) => {
+                return {
+                    jaBId : t.jaBId,
+                    hyId : t.hyId,
+                    hyouki : t.hyouki,
+                    yomi : t.yomi,
+                    inVideo : _jaBIds.includes(t.jaBId)
+                }
+            })
+        }).map( (v) => {
+            return {
+                hyId : v[0].hyId,
+                hyouki : v[0].hyouki,
+                yomi : v[0].yomi,
+                sum : v.filter( (t) => t.inVideo === true ).length,
+                left : v.filter( (t) => t.inVideo === false ).length,
+                all : v.length
+            }
+        })
+        .filter( (v) => 
+            v.sum !== 0 && v.sum > v.left
+        )
+        .sort( (a, b) => b.sum - a.sum)
+        
+
+        let result = await Promise.allSettled(
+            _scored.map( async (v) => {
+                return {
+                    ...v,
+                    mecab : await _checkWithMecab(v.hyouki)
+                }
+            })
+        )
+        
+        result = result
+            .filter( (v) => 
+                v.status == 'rejected' || 
+                ( v.status == 'fulfilled' && v.value.mecab.length > 1 && v.value.mecab[0].pos !== '動詞' ) 
+            )
+            .map( (v) => v.value );
+
+        const resultStr = result.map( (v) => {
+            return `${v.hyouki}(${v.yomi})`
+        }).join(', ')
+
+        res.send({
+            message : 'success',
+            data : resultStr
+        });
+    })
+}
+
 router.get('/', getAutoDB);
 router.post('/', postAutoDB)
 
 router.get('/yomi', getYomi);
+
+router.get('/prompt', getPrompt);
 
 export default router;

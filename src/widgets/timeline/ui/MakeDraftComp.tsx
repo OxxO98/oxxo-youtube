@@ -7,6 +7,9 @@ import { VideoContext } from 'shared/contexts/VideoContext';
 //Hook
 import { useTimeStamp } from 'shared/lib/useTimeStamp';
 
+//ui
+import { SelectPromptModal } from '../ui/SelectPromptModal'
+
 //api
 import { useTranscript } from '../api/useTranscript';
 import { useCaptionData } from '../api/useCaptionData';
@@ -37,6 +40,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
     const [isTranslate, setIsTranslate] = useState<boolean>(false);
     const [isPrompt, setIsPrompt] = useState<boolean>(false);
     const [value, setValue] = useState<string>('');
+    // const [promptStr, setPromptStr] = useState<string>('');
 
     //Hook
     const { timeToTS } = useTimeStamp();
@@ -258,6 +262,9 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                                     {t('BUTTON.SWITCH_PROMPT')}
                                                     <Switch value={isPrompt} onChange={handlePromptSwitch}/>
                                                 </>
+                                            }
+                                            {
+                                                isPrompt && <SelectPromptModal setPrompt={setValue}/>
                                             }
                                             {isRevise && <OpenAIOutlined />}
                                         </Flex>

@@ -95,8 +95,8 @@ function _kataToHira(str){
 
 async function _getReading_mecab(text){
 
-    let _text = text.replace(/\s+/g, '、');
-    // console.log(_text);
+    let _reg = /[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"]/gi
+    let _text = text.replace(/\s+/g, '、').replace(_reg, '');
     let tokens = await new Promise((resolve, reject) => {
         mecab.parse(_text, (err, result) => {
             if (err) return reject(err);
@@ -171,6 +171,10 @@ async function getUserId(req, res){
 
 async function getVideo(req, res){
     await db_connection( req, res, async (db) => {
+        let { opt_disabled } = req.query;
+
+        let disabled = opt_disabled ?? 'true';
+
         let videos = db.data.videos.sort( (a, b) => {
             if( a.lastEditTime === undefined ){
                 return 1;
@@ -184,7 +188,14 @@ async function getVideo(req, res){
 
             return 0;
         })
-        .filter( (v) => v.disabled == undefined || v.disabled == false );
+        .filter( (v) => {
+            if( disabled == 'true' ){
+                return v.disabled == undefined || v.disabled == false 
+            }
+            else{
+                return true
+            }
+        });
 
         res.send({
             data : videos,

@@ -170,6 +170,14 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
     CONTENTS : ['字幕', '音声認識', '比較']
 }
 
+const SelectPromptModal : Locale['SelectPromptModal'] = {
+    TITLE : '読み込む動画を選択',
+    BUTTON : {
+        TITLE : '動画でプロンプトを読み込む',
+        CANCLE : '取り消し'
+    }
+}
+
 const AudioWaveComp : Locale["AudioWaveComp"] = {
     BUTTON : {
         PLAYING : ' ',
@@ -512,6 +520,7 @@ export default {
     HeigouTimelineComp,
     
     MakeDrftComp,
+    SelectPromptModal,
 
     AudioWaveComp,
     HelpModal,

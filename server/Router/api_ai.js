@@ -215,6 +215,18 @@ async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime, pro
 
     let _all = { transcription : [] };
 
+    // console.log(_transcription.segments);
+    /*
+        avg_logprob: 
+            >-0.3: 매우 강한 편. 짧고 분명한 발화에서 자주 나오는 편입니다.
+            -0.3 ~ -0.7: 대체로 양호. 후처리 후보로 쓰기 괜찮은 구간이 많습니다.
+            -0.7 ~ -1.0: 경계 구간. 잡음, 짧은 감탄사, 혼합 언어, 발음 뭉개짐이 있으면 흔들릴 수 있습니다.
+            <-1.0: 공식 기준상 실패 취급이 가능한 구간입니다. 재전사나 보수적 유지가 적절합니다.
+        compression_ratio: 텍스트가 반복적인 정도
+            2.4보다 크면 compression failed
+        no_speech_prob: avg_logprob < -1일 때 무음 세그먼트
+    */
+
     let dataArr = _transcription.segments.map( (v) => {
         return {
             start : v.start,
@@ -283,7 +295,7 @@ async function _reviseWithAi( videoPath, transcription ){
         - 각 줄은 동일 ID의 original만 수정할 것
         - 다른 줄의 내용을 병합하거나 분리하지 말 것
         - 문장이 어색해도 줄 경계를 유지할 것
-        - 참고 대본은 표현을 고칠 때만 참고하고 내용을 가져오지 말 것
+        - 참고 대본은 표현을 고칠 때만 참고하고 차이가 크면 참고 대본을 무시하고 original 유지할 것
 
         [보정 대상]
         ${transcriptionInput}

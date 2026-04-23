@@ -170,6 +170,14 @@ const MakeDrftComp : Locale["MakeDrftComp"] = {
     CONTENTS : ['자막', '음성인식', '비교']
 }
 
+const SelectPromptModal : Locale["SelectPromptModal"] = {
+    TITLE : '가져올 영상을 선택',
+    BUTTON : {
+        TITLE : '영상으로 프롬프트 가져오기',
+        CANCLE : '닫기'
+    }
+}
+
 const AudioWaveComp : Locale["AudioWaveComp"] = {
     BUTTON : {
         PLAYING : ' ',
@@ -512,6 +520,7 @@ export default {
     HeigouTimelineComp,
 
     MakeDrftComp,
+    SelectPromptModal,
 
     AudioWaveComp,
     HelpModal,

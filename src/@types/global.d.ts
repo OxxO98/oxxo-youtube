@@ -263,7 +263,9 @@ declare global {
   }
 
   export type RES_GET_VIDEO = RES_VIDEO[];
-  export type REQ_GET_VIDEO = null;
+  export type REQ_GET_VIDEO = {
+    opt_disabled? : string;
+  };
 
   export type RES_GET_VIDEO_SEARCH = RES_VIDEO[];
   export type REQ_GET_VIDEO_SEARCH = {
@@ -843,6 +845,7 @@ declare global {
     HeigouTimelineComp : HeigouTimelineComp;
 
     MakeDrftComp : MakeDrftComp;
+    SelectPromptModal : SelectPromptModal;
 
     AudioWaveComp : AudioWaveComp;
     HelpModal : HelpModal;
@@ -1053,6 +1056,14 @@ declare global {
     }
     TAG : string;
     CONTENTS : string[];
+  }
+
+  export interface SelectPromptModal {
+    TITLE : string;
+    BUTTON : {
+      TITLE : string;
+      CANCLE : string;
+    }
   }
 
   export interface AudioWaveComp {
