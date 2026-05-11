@@ -11,10 +11,16 @@ import { ComplexText } from 'entities/ComplexText/index';
 //api
 import { useDivide } from '../api/useDivide';
 
+//Redux
+import { useAppSelector, useAppDispatch, reactPlayerActions } from 'shared/store';
+
 //CSS@antD
 import { Input, Button, Flex, Modal, Card, Tooltip } from 'antd';
 import { SplitCellsOutlined } from '@ant-design/icons'
 import { VideoContext } from 'shared/contexts/VideoContext';
+
+//Redux
+const { clear } = reactPlayerActions;
 
 interface BunkatsuTimelineCompProps {
     ytb : RES_TIMELINE;
@@ -31,6 +37,8 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHa
 
     //Context
     const { videoId } = useContext(VideoContext);
+
+    const dispatch = useAppDispatch();
 
     //State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,6 +73,7 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHa
     const handleOk = () => {
         bunkatsuBun( inputs, ytb, critTime );
         setIsModalOpen(false);
+        dispatch( clear() );
     };
 
     //HotKeys

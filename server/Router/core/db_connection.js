@@ -5,7 +5,7 @@ import fs, { mkdir } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const assetPath = path.join(__dirname, '../../Asset');
+const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../../Asset');
 
 const defaultData = {
   "videos" : [],
@@ -24,6 +24,12 @@ async function db_connection(req, res, func){
   return await (async (req, res) => {
     let db;
     try{
+        if( process.env.APP_ASSET_ROOT ){
+          if( !fs.existsSync( process.env.APP_ASSET_ROOT ) ){
+            await fs.mkdirSync( process.env.APP_ASSET_ROOT )
+          }
+        }
+
         const file = path.join(assetPath, 'db', 'db.json');
         if( !fs.existsSync( path.join(assetPath, 'db') ) ){
           await fs.mkdirSync( path.join(assetPath, 'db') );

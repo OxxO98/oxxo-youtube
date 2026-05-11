@@ -16,7 +16,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
     
-const assetPath = path.join(__dirname, '../Asset');
+const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../Asset');
 
 async function _existApiKey(){
     const openaiApiKey = process.env.OPENAI_API_KEY;
@@ -464,8 +464,7 @@ async function _getDuration(filePath) {
 //local
 async function getRangeTranscript(req, res){
     let { videoId, startOffset, endOffset } = req.query;
-    
-    let assetPath = path.join(__dirname, '../Asset');
+
     let transcriptPath = path.join(assetPath, 'transcript');
 
     //기존 option제거
@@ -533,7 +532,6 @@ async function getRangeTranscript(req, res){
 
 async function getTransciptLocal( videoId, option ){
     
-    let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
 
     let videoPath = path.join(transcriptPath, `${videoId}.wav`);
@@ -631,7 +629,6 @@ async function getTransciptLocal( videoId, option ){
 
 async function getTranscriptOpenAI( videoId, prompt ){
     
-    let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
 
     let videoPath = path.join(transcriptPath, `${videoId}.wav`);
@@ -733,7 +730,6 @@ async function getTranscipt(req, res){
 
     console.log("option", req.query)
     
-    let assetPath = path.join(__dirname, '../Asset');
     let transcriptPath = path.join(assetPath, 'transcript');
 
     let videoPath = path.join(transcriptPath, `${videoId}.wav`);

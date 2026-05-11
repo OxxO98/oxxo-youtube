@@ -81,7 +81,7 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
     const customKeyboard = [
         { key : 'ArrowRight', action : () => { nextTimeLine( )} },
         { key : 'ArrowLeft', action : () => { prevTimeLine() } },
-        { key : 'q', action : () => { autoMarker() } }
+        { key : 'q', action : () => { autoMarker() } },
     ]
     const { handleKeyboard } = useHandleKeyboard({ ...keyboard, custom : customKeyboard });
     
@@ -93,7 +93,7 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
     const handleFocus = (e : React.FocusEvent<HTMLInputElement>) => {
         e.target.selectionStart = e.target.value.length;
     }
-    
+
     const prevTimeLine = () => {
         if( bunIds === null ){ return }
 
@@ -216,6 +216,8 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
 
     //Hotkeys
     useHotkeys('shift+enter', () => { cancelEdit(); inputRef.current?.blur() }, { enableOnFormTags : true } )
+    useHotkeys('esc', () => { inputRef.current?.blur(); }, { enableOnFormTags : true } );
+    useHotkeys('tab', () => { inputRef.current?.focus(); }, { enableOnFormTags : false } );
     
     //Effect
     useEffect( () => {
@@ -225,12 +227,6 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
         setInputText(res.data);
       }
     }, [resTransRange, setInputText])
-
-    useEffect( () => {
-        if(inputRef.current !== null && editYtbId !== null){
-            inputRef.current.focus();
-        }
-    }, [editYtbId])
 
     return(
         <div>

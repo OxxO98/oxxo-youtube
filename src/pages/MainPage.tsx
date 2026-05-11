@@ -13,7 +13,7 @@ import { LoadingOutlined } from '@ant-design/icons';
 
 const MainPage = () => {
     const [isOn, setIsOn] = useState(false);
-    const { response, fetch, error } = useAxiosGet('/api/test', false, null );
+    const { response, fetch, error } = useAxiosGet('/api/health', false, null );
 
     useEffect( () => {
         let res = response;

@@ -11,39 +11,30 @@ import OpenAI from 'openai';
 import { zodTextFormat } from "openai/helpers/zod";
 import { z } from "zod";
 
-import MeCab from "mecab-async";
-
 import db_connection from './core/db_connection.js';
+import { 
+    _checkMecabInstalled, 
+    _ensureUtf8CodePage, 
+    _prefilter, 
+    checkWithMecab, 
+    analyzeWithMeCab,
+    getYomiWithMecab,
+    
+    hiraganaRegex,
+    kanjiRegex,
+    kanjiStartRegex,
+    kanjiEndRegex,
+} from "./core/mecab_module.js";
 import * as db_module from "./core/db_module.js";
 import logger from "./core/logger.js"
-
-const mecab = new MeCab();
-
-import { exec } from 'child_process';
 
 import path, { resolve } from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
     
-const assetPath = path.join(__dirname, '../Asset');
+const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../Asset');
 
-/*
-    mecab by
-    and add path
-    https://shogo82148.github.io/mecab/
-*/
-
-const katakanaRegex = new RegExp(
-    `[\\u30A0-\\u30ff]`, 'g'
-)
-const kanjiRegex = new RegExp('[\u3400-\u9fff\u3005]+', 'g');
-const hiraganaRegex = new RegExp('[^\u3400-\u9fff\u3005]+', 'g');
-const getKatakanaRegex = new RegExp('[\u30a0-\u30ff]+', 'g');
-
-
-const kanjiStartRegex = new RegExp('^[\u3400-\u9fff\u3005]+', 'g');
-const kanjiEndRegex = new RegExp('[\u3400-\u9fff\u3005]+$', 'g');
 
 //중복
 async function _existApiKey(){
@@ -53,54 +44,6 @@ async function _existApiKey(){
         return false;
     }
     return true;
-}
-
-function _getCurrentCodePage(){
-    return new Promise((resolve, reject) => {
-        exec('chcp', (err, stdout) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            // 예: "Active code page: 949"
-            const match = stdout.match(/:\s*(\d+)/);
-            resolve(match?.[1] ?? '');
-        });
-    });
-}
-
-
-function _checkMecabInstalled(){
-    return new Promise((resolve) => {
-        exec('mecab --version', (error, stdout, stderr) => {
-            if (error) {
-                // mecab 명령을 찾지 못했거나 실행 실패
-                resolve(false);
-                return;
-            }
-
-            // 출력이 있으면 정상 설치로 판단
-            resolve(true);
-        });
-    });
-}
-
-async function _ensureUtf8CodePage(){
-
-    const currentCodePage = await _getCurrentCodePage();
-
-    if (currentCodePage !== '65001') {
-        await new Promise( (resolve, reject) => {
-            exec('chcp 65001 > nul', err => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve();
-            });
-        });
-    }
 }
 
 function _makeTextData( hyouki, yomi ){
@@ -188,73 +131,6 @@ function _compareTextData( hyoukiQuery, yomiQuery, textData ){
     let _yomiQuery = textData.map( (t) => t.ruby == null ? '0' : t.ruby ).join('_');
 
     return hyoukiQuery === _hyoukiQuery && yomiQuery === _yomiQuery
-}
-
-function _kataToHira(str){
-    if( str === undefined || str === null){ return "" }
-
-    let _hirgana =  str.replace( 
-        katakanaRegex, $0 => String.fromCharCode($0.charCodeAt(0) - 0x0060)
-    )
-
-    return _hirgana
-}
-
-function _prefilter(tokens){
-    return tokens.filter(t =>
-        t.surface.match(kanjiRegex) !== null
-    );
-}
-
-function _complexKataToHira(origin, yomi){
-    if( yomi === undefined){
-        return origin.match(kanjiRegex) === null ? _kataToHira(origin) : '';
-    }
-    if( origin.match(katakanaRegex) === null || origin.match(kanjiRegex) === null  ){
-        return _kataToHira(yomi);
-    }
-
-    let _matched = origin.match(getKatakanaRegex);
-    if( _matched !== null ){
-        let _regexp = new RegExp( `^(.*)${_matched.join('(.*)')}(.*)$` );
-        let _m_yomi = yomi.match(_regexp);
-        let _m_ori = origin.match(_regexp);
-        if( _m_ori !== null && _m_yomi !== null ){
-            let _hira = _m_yomi.filter( (v, i) => i !== 0).map( (v) => _kataToHira(v) );
-            _m_ori = _m_ori.filter( (v, i) => i !== 0 );
-            let _string = _m_ori.reduce( (acc, curr, i) => acc.replace(curr, _hira[i]), origin );
-            
-            return _string;
-        }
-    }
-
-    return _kataToHira(origin);
-}
-
-function _analyzeWithMeCab( textObj ){
-    return new Promise((resolve, reject) => {
-        mecab.parse(textObj.jaText, (err, result) => {
-            if (err) return reject(err);
-
-            let _crit = 0;
-            const tokens = result.map(t => {
-                let _offset = textObj.jaText.indexOf(t[0], _crit);
-                if( _offset !== -1 ){ _crit = _offset+t[0].length }
-
-                return {
-                    surface: t[0],
-                    pos: t[1],
-                    base: t[7] !== "*\r" ? t[7] : t[0],
-                    reading : t[8] !== "*\r" ? _complexKataToHira(t[0], t[8]) : "",
-                    jaBId : textObj.jaBId,
-                    offset : _offset
-                }
-                //_kataToHira( t[8] ) 
-            });
-
-            resolve(tokens);
-        });
-    });
 }
 
 async function _getImiWithAI( videoId, db, revised ){
@@ -402,7 +278,7 @@ async function getAutoDB(req, res){
 
         let tokens = [];
         for( let v of jaBIds ){
-            let _t = await _analyzeWithMeCab(v);
+            let _t = await analyzeWithMeCab(v);
             tokens = tokens.concat(_t);
         }
 
@@ -502,7 +378,7 @@ async function getAutoDB(req, res){
         })
 
         // json저장시, 모의 DB형태는 어떤지, hukumu, hyouki, tango, komu, kanji까지
-        await fs.writeFileSync(`${assetPath}/transcript/${videoId}.wav_word.json`, JSON.stringify(groupRevised, null, 2) );
+        await fs.writeFileSync(`${assetPath}/transcript/${videoId}.wav_word.json`, JSON.stringify(groupRevised, null, 2), { encoding : 'utf8' } );
 
         res.send({
             message : 'success',
@@ -665,23 +541,7 @@ async function getYomi(req, res){
         return;
     }
 
-    let tokens = await new Promise((resolve, reject) => {
-        mecab.parse(text, (err, result) => {
-            if (err) return reject(err);
-
-            const _tokens = result.map(t => {
-
-                return {
-                    surface: t[0],
-                    pos: t[1],
-                    base: t[7] !== "*\r" ? t[7] : t[0],
-                    reading : t[8] !== "*\r" ? t[0].match(kanjiRegex) !== null ? _complexKataToHira( t[0], t[8] ) : t[0] : "",
-                }
-            });
-
-            resolve(_tokens);
-        });
-    });
+    let tokens = await getYomiWithMecab( text )
     
     let yomi = tokens.map( (v) => v.reading ).join('');
 
@@ -692,30 +552,6 @@ async function getYomi(req, res){
         data : {
             yomi : yomi
         }
-    });
-}
-
-function _checkWithMecab( text ){
-    return new Promise((resolve, reject) => {
-        mecab.parse(text, (err, result) => {
-            if (err) return reject(err);
-
-            const tokens = result.map(t => {
-
-                return {
-                    surface: t[0],
-                    pos: t[1],
-                    base: t[7] !== "*\r" ? t[7] : t[0],
-                    reading : t[8] !== "*\r" ? _complexKataToHira(t[0], t[8]) : "",
-                    pos1 : t[2],
-                    pos2 : t[3],
-                    pos3 : t[4],
-                }
-                //_kataToHira( t[8] ) 
-            });
-
-            resolve(tokens);
-        });
     });
 }
 
@@ -784,7 +620,7 @@ async function getPrompt(req, res){
             _scored.map( async (v) => {
                 return {
                     ...v,
-                    mecab : await _checkWithMecab(v.hyouki)
+                    mecab : await checkWithMecab(v.hyouki)
                 }
             })
         )

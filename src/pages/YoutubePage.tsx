@@ -93,7 +93,7 @@ const YoutubePage = () => {
                     <VideoContext.Provider value={{ videoId : VIDEO_ID!, frameRate : frameRate }}>
                         <LayoutCompYoutube>
                             <Splitter style={{ height: '100%', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-                                <Splitter.Panel defaultSize="50%" min="30%" max="50%">                            
+                                <Splitter.Panel style={{ overflow : 'hidden' }} defaultSize="50%" min="30%" max="50%">                            
                                     <Routes>
                                         <Route path="/*" element={<VideoComp playerRef={playerRef} setPlayerRef={setPlayerRef} state={state} playerHandles={playerHandles} videoPlayerHandles={videoPlayerHandles}/>}/>
                                     </Routes>
@@ -115,7 +115,7 @@ const YoutubePage = () => {
                                                 </Splitter.Panel>
                                                 <Splitter.Panel>
                                                     <Splitter style={SplitterStyle}>
-                                                        <Splitter.Panel collapsible defaultSize="50%" min="30%">
+                                                        <Splitter.Panel collapsible defaultSize="50%" min="30%" style={{ scrollbarWidth : 'none'}}>
                                                             <CompoundListComp
                                                                 hukumuList={hukumuList} osusumeList={osusumeList} tangoList={tangoList}
                                                                 refetchHukumuList={refetchHukumuList} refetchOsusumeList={refetchOsusumeList} refetchTangoList={refetchTangoList}

@@ -53,6 +53,8 @@ app.use("/db/auto", db_auto);
 
 const port = 5000;
 
+app.use(express.static(path.join(__dirname, '..', 'build')));
+
 app.listen(port, () => {
     console.log(`${port}`)
 });

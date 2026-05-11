@@ -10,6 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../Asset');
 
 function runYtDlpToFile(videoId, folderPath) {
   return new Promise((resolve, reject) => {
@@ -66,7 +67,6 @@ function runYtDlpToFile(videoId, folderPath) {
 }
 
 async function getAudioStreamYoutubeJS (req, res) {
-  let assetPath = path.join(__dirname, '../Asset');
   let transcriptPath = path.join(assetPath, 'transcript');
 
   let { videoId } = req.query;
@@ -134,7 +134,6 @@ async function getAudioStreamYoutubeJS (req, res) {
 }
 
 async function getAudioCaption (req, res) {
-  let assetPath = path.join(__dirname, '../Asset');
   let transcriptPath = path.join(assetPath, 'transcript');
 
   let { videoId } = req.query;

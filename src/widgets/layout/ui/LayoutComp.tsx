@@ -23,7 +23,8 @@ interface LayoutCompProps {
 }
 
 const MenuStyle : CSSProperties = {
-    textAlign : 'left'
+    textAlign : 'left',
+    maxHeight : '100vh' 
 }
 
 const routeTuples : routeTuple[] = [
@@ -62,7 +63,7 @@ export const LayoutComp = ({ children } : LayoutCompProps ) => {
     };
 
     return(
-        <Layout style={{ minHeight : '100vh' }}>
+        <Layout style={{ height : '100vh', overflow : 'hidden' }}>
             <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
                 <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} selectedKeys={[currentLocation]} onClick={handleClick} style={MenuStyle}/>
             </Sider>

@@ -1,7 +1,13 @@
 import { useEffect } from 'react';
 
+//Redux
+import { useAppDispatch, reactPlayerActions } from 'shared/store';
+
 //Hook
 import { useAxiosPut } from 'shared/hooks/useAxios';
+
+//Redux
+const { clear } = reactPlayerActions;
 
 export function useMerge(
     videoId : string,
@@ -10,6 +16,8 @@ export function useMerge(
     refetchHandles : RefetchHandles,
     cancelEdit : () => void
 ){
+    const dispatch = useAppDispatch();
+
     const { response, setParams } = useAxiosPut<null, REQ_PUT_HEIGOU>('/db/bun/heigou', true, null);
 
     //Handle
@@ -32,6 +40,7 @@ export function useMerge(
             refetchTimeline();
             refetchHandles.refetchAll();
             cancelEdit();
+            dispatch( clear() );
         }
     }, [response, refetchTimeline, refetchHandles, cancelEdit])
 

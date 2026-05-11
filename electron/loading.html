@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Loading</title>
+    <style>
+      body {
+        margin: 0;
+        background: #111;
+        color: #fff;
+        font-family: sans-serif;
+        display: grid;
+        place-items: center;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .wrap {
+        text-align: center;
+      }
+      .text {
+        width: 100%;
+        text-align: center;
+        position: absolute;
+        color: black;
+        bottom: 36px;
+        z-index: 1;
+      }
+      .sub {
+        margin-top: 8px;
+        opacity: 0.7;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <img src="../public/logo512.png"/>
+      <div class="text">
+        <div>앱을 준비 중입니다...</div>
+        <div class="sub">서버 시작 대기 중</div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { CSSProperties, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 //Hooks
@@ -12,14 +12,17 @@ import { Empty, Typography, Radio } from 'antd';
 import type { RadioChangeEvent } from 'antd';
 import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 
-const DictionaryStyle = {
-    width : "100%",
-    height : "100%"
+const DictionaryStyle : CSSProperties = {
+    height : "100%",
+    width : '100%',
+    overflow : 'hidden'
 }
 
-const InnerStyle = {
-    width : "100%",
-    height : 'calc(100% - 38px)'
+const InnerStyle : CSSProperties = {
+    height : 'calc(100% - 38px)',
+    width : 'calc(100% + 16px)',
+    marginRight: '-16px',
+    overflow : 'hidden'
 }
 
 //네이버 사전

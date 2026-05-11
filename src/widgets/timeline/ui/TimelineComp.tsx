@@ -103,7 +103,12 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
         dispatch( setEndTime(bunIds[currentBunId].endTime) );
         setInputText(bunIds[currentBunId].jaText);
         selectEditYtBId(bunIds[currentBunId].ytBId);
-        gotoTime(bunIds[currentBunId].startTime, false);
+        if( bunIds[currentBunId].startTime > state.playedSeconds || state.playedSeconds > bunIds[currentBunId].endTime ){
+            gotoTime(bunIds[currentBunId].startTime, false);
+        }
+        else{
+            gotoTime(state.playedSeconds, false);
+        }
     }
     
     //Hotkeys
@@ -165,6 +170,7 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
                                                 jaText={timeline.jaText}
                                                 startTimestamp={ timeline.startTime.toString() } endTimestamp={ timeline.endTime.toString() }
                                                 startTime={ timeline.startTime } endTime={ timeline.endTime }
+                                                state={state}
                                                 setInputText={setInputText}
                                                 selectEditYtBId={selectEditYtBId}
                                                 setScratch={setScratch}

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2022",
+    "types": ["node", "react", "react-dom"],
     "lib": [
       "dom",
       "dom.iterable",
@@ -8,7 +9,7 @@
       "ES2018",
     ],
     "rootDir": "./",
-    "baseUrl": "./src",
+    "baseUrl": "src",
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

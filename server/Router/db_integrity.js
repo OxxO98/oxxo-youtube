@@ -10,6 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../Asset');
 
 async function checkIntegrity(req, res){
     await db_connection(req, res, async(db) => {
@@ -162,9 +163,9 @@ async function checkIntegrity(req, res){
         })
         
         let _today = new Date();
-        let _originalFilePath = path.join(__dirname, '../Asset/db/db.json');
+        let _originalFilePath = path.join(assetPath, '/db/db.json');
         let _backupFilename = `${_today.getFullYear()}${(_today.getMonth()+1).toString().padStart(2, '0')}${_today.getDate().toString().padStart(2, '0')}_db.json`
-        let _backupFolder = path.join(__dirname, '../Asset/db/backup');
+        let _backupFolder = path.join(assetPath, '/db/backup');
         if( !fs.existsSync(_backupFolder) ){
             await fs.mkdirSync(_backupFolder);
         }

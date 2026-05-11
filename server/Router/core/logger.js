@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const assetPath = path.join(__dirname, '../../Asset');
+const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../../Asset');
 
 const logDir = path.join(assetPath, './Logs');
 

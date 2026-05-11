@@ -6,7 +6,7 @@ import { Bun } from 'entities/Bun/index';
 
 //CSS@antd
 import { Button, Flex, Tooltip } from 'antd';
-import { FormOutlined, PlayCircleOutlined } from '@ant-design/icons'
+import { ConsoleSqlOutlined, FormOutlined, PlayCircleOutlined } from '@ant-design/icons'
 
 //Redux
 import { useAppDispatch, reactPlayerActions } from 'shared/store';
@@ -20,6 +20,7 @@ interface TimeLineBunProps {
   endTimestamp : string;
   startTime : number;
   endTime : number;
+  state : ReactPlayerState;
   setInputText : (value : string) => void;
   selectEditYtBId : (ytbId : string) => void; 
   setScratch : (set : boolean, startOffset : number, endOffset : number, loop : boolean) => void;
@@ -29,7 +30,7 @@ interface TimeLineBunProps {
   setActive? : (bId : string) => void;
 }
 
-const TimelineBun = ({ bId, ytbId, jaText, startTimestamp, endTimestamp, startTime, endTime, setInputText, selectEditYtBId, setScratch, gotoTime, bIdRef, ...props} : TimeLineBunProps ) => {
+const TimelineBun = ({ bId, ytbId, jaText, startTimestamp, endTimestamp, startTime, endTime, state, setInputText, selectEditYtBId, setScratch, gotoTime, bIdRef, ...props} : TimeLineBunProps ) => {
 
     //i18n
     const { t } = useTranslation('TimelineBun');
@@ -41,7 +42,13 @@ const TimelineBun = ({ bId, ytbId, jaText, startTimestamp, endTimestamp, startTi
         dispatch( setEndTime(endTime) );
         setInputText(jaText);
         selectEditYtBId(ytbId);
-        gotoTime(startTime, false);
+        if( startTime > state.playedSeconds || state.playedSeconds > endTime ){
+            gotoTime(startTime, false);
+        }
+        else{
+            gotoTime(state.playedSeconds, false);
+        }
+        
     }
 
     const onTimelineClick = () => {
