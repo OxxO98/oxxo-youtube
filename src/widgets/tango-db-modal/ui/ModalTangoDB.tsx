@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useContext, CSSProperties, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 //hooks
 import { useJaText } from 'shared/lib/useJaText';
@@ -52,24 +53,27 @@ export const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch 
 
     //lib
     const { getSearchedList } = useSearchedList();
-    
-    // useHotkeys('ctrl+enter', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen }, [isModalOpen])
-    // problem !! input에서 핫키 입력시 value가 변하면서 yomi가 초기화 됨.
+    const sanitizedValue = value.replace(/[\r\n]/g, '');
 
     //Handle
-    const showModal = () => {
-        setSearchText({ hyouki : selection, yomi : value });
+    const showModal = useCallback(() => {
+        setSearchText({ hyouki : selection, yomi : sanitizedValue });
         setIsModalOpen(true);
-    }
+    }, [selection, sanitizedValue]);
+
+    useHotkeys('ctrl+enter', (e) => {
+        e.preventDefault();
+        showModal();
+    }, { enableOnFormTags : true, enabled : !isModalOpen, preventDefault : true }, [showModal, isModalOpen])
 
     const handleCancel = () => {
         setIsModalOpen(false);
     };
 
     const handleSubmit = (tId : string | null) => {
-        if( isAllNihongo(value) === false ){ return }
+        if( isAllNihongo(sanitizedValue) === false ){ return }
 
-        postNewTango(multiInputData, multiValue, textOffset, selectedBun, selection, value, tId);
+        postNewTango(multiInputData, multiValue, textOffset, selectedBun, selection, sanitizedValue, tId);
         setIsModalOpen(false);
     }
 
@@ -84,7 +88,7 @@ export const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch 
     useEffect( () => {
         let res = response;
         if(res !== null && searchText !== null){
-            let _searchedList = getSearchedList(selection, value, searchText, res.data);
+            let _searchedList = getSearchedList(selection, sanitizedValue, searchText, res.data);
 
             setSearchedList(_searchedList);
         }
@@ -94,7 +98,7 @@ export const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch 
 
     return (
         <>
-            <Button disabled={isAllNihongo(value) === false || multiInputData.filter( (v, i) => v.inputBool === true && multiValue[i] === '' ).length > 0 } type='primary' onClick={showModal}>{t('BUTTON.TITLE')}</Button>
+            <Button disabled={isAllNihongo(sanitizedValue) === false || multiInputData.filter( (v, i) => v.inputBool === true && multiValue[i] === '' ).length > 0 } type='primary' onClick={showModal}>{t('BUTTON.TITLE')}</Button>
 
             <Modal title={t('TITLE')}
                 closable={{ 'aria-label': 'Custom Close Button' }}
@@ -110,7 +114,7 @@ export const ModalTangoDB = ({ multiInputData, multiValue, value, handleRefetch 
                     <Button onClick={handleCancel}>{t('BUTTON.CANCLE')}</Button>
                 ]}
             >
-                <ComplexText bId={'tango'} data={selection} ruby={value} offset={0}/>
+                <ComplexText bId={'tango'} data={selection} ruby={sanitizedValue} offset={0}/>
                 <AccordianTangoDB searchedList={searchedList} handleSubmit={handleSubmit}/>
             </Modal>
         </>
