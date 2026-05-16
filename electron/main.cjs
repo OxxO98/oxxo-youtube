@@ -47,6 +47,8 @@ function createWindow() {
     },
   });
 
+  win.maximize();
+  
   win.setMenu(null);
 
   win.webContents.on('did-finish-load', () => {

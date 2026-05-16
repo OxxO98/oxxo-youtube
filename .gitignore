@@ -28,4 +28,7 @@ server/Asset/Logs/*
 server/Asset/transcript/*
 server/Asset/db/*
 
+#README
+README_c.md
+
 #run
