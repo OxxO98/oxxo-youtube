@@ -25,6 +25,7 @@ export const HonyakuComp = ({ ytBId, clearEdit, bIdRef } : HonyakuCompProps ) =>
     const [translates, setTranslates] = useState<RES_GET_TRANSLATE | null>(null);
 
     const { response, setParams, fetch } = useAxiosGet<RES_GET_TRANSLATE, REQ_GET_TRANSLATE>('/db/translate', false, { videoId : videoId, ytBId : ytBId });
+    const { response : resAuto, setParams : setParamsAuto } = useAxiosGet<RES_GET_TRANSLATE_AUTO, REQ_GET_TRANSLATE_AUTO>('/db/translate/auto', true, null);
 
     const handleChange = (e : React.ChangeEvent<HTMLTextAreaElement>) => {
         setValue(e.target.value);
@@ -46,8 +47,20 @@ export const HonyakuComp = ({ ytBId, clearEdit, bIdRef } : HonyakuCompProps ) =>
             if( res.data.koBun !== null && res.data.koBun !== undefined){
                 setValue(res.data.koBun.koText);
             }
+            else{
+                setParamsAuto({ videoId : videoId, jaText : res.data.jaBun.jaText });
+            }
         }
     }, [response, bIdRef, fetch])
+
+    useEffect( () => {
+        let res = resAuto;
+        if(res !== null){
+            if(res.data !== ""){
+                setValue(res.data);
+            }
+        }
+    }, [resAuto])
 
     useEffect( () => {
         setParams({ videoId : videoId, ytBId : ytBId });

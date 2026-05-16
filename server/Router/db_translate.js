@@ -8,6 +8,14 @@ import logger from './core/logger.js';
 import { nanoid } from "nanoid";
 import { message } from "antd";
 
+function extractEnglish(text){
+    if(typeof text !== 'string') return '';
+
+    let matched = text.match(/[A-Za-z]+(?:['-][A-Za-z]+)*/g);
+
+    return matched == null ? '' : matched.join(' ');
+}
+
 async function getTranslate(req, res){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId } = req.query;
@@ -176,6 +184,68 @@ async function setRepresentive(req, res){
     })
 }
 
+async function getAutoTranslate(req, res) {
+    await db_connection(req, res, async (db) => {
+        let { videoId, jaText } = req.query;
+
+        let video = db.data.videos.find( (video) => video.src == videoId);
+
+        let timeline = video.timeline;
+        
+        if( !timeline ){ 
+            res.send({
+                message : 'error',
+                data : []
+            }) 
+            return;
+        }
+        else{
+            let jaBuns = db.data.jaBuns;
+            let koBuns = db.data.koBuns;
+            let joinText = timeline.map( (v) => {
+                return { ...v, 
+                    ...jaBuns.find( (ja) => ja.jaBId == v.jaBId ), 
+                    ...koBuns.find( (ko) => ko.koBId == v.koBId ) 
+                }
+            }).toSorted( (a, b) => a.startTime - b.startTime );
+
+            if( joinText.length == 0){
+                res.send({
+                    message : 'empty',
+                    data : ""
+                })
+                return;
+            }
+
+            let _find = joinText.find( (v) => v.jaText == jaText );
+
+            if( _find === undefined || _find?.koText === undefined ){
+                let en_text = extractEnglish(jaText);
+
+                if( en_text === '' ){
+                    res.send({
+                        message : 'empty',
+                        data : ""
+                    })
+                    return;
+                }
+                else{
+                    res.send({
+                        message : 'success',
+                        data : en_text
+                    })
+                    return;
+                }
+            }
+
+            res.send({
+                message : 'success',
+                data : _find.koText
+            });
+        }
+    })
+}
+
 router.get('/', getTranslate);
 router.post('/', postTranslate);
 router.put('/', putTranslate);
@@ -183,5 +253,7 @@ router.delete('/', deleteTranslate);
 
 router.get('/representive', getRepresentive);
 router.put('/representive', setRepresentive);
+
+router.get('/auto', getAutoTranslate);
 
 export default router;

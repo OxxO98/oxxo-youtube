@@ -423,6 +423,12 @@ declare global {
     ytBId : string;
   }
 
+  export type RES_GET_TRANSLATE_AUTO = string;
+  export type REQ_GET_TRANSLATE_AUTO = {
+    videoId : string;
+    jaText : string;
+  }
+
   export type RES_POST_LIST_HUKUMU = {
     jaBId : jaBId;
   }
