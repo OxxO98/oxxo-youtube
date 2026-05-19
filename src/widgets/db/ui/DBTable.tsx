@@ -43,7 +43,7 @@ export const DBTable = ({ list, pageSize } : DBTableProps) => {
 
     const navigate = useNavigate();
 
-    const { HiraToKoNFC } = useJaText()
+    const { HiraToKoNFC, convertKoReading } = useJaText()
 
     const allColumns : TableColumnsType<AllDataType> = [
         { 
@@ -106,6 +106,16 @@ export const DBTable = ({ list, pageSize } : DBTableProps) => {
         },
         { 
             title : t('BUN_COLUMNS.1'), dataIndex : 'koText', key : 'koText' 
+        },
+        {
+            title : '발음', key : 'reading',
+            render : (v) => {
+                let hurigana = v.jaTextData.map( (td : TextData) => td.ruby ?? '　' ).join('').trim()
+                console.log(v, hurigana);
+                return(
+                    <div>{convertKoReading(v.reading, hurigana, v.jaText)}</div>
+                )
+            }
         },
         { 
             title : t('BUN_COLUMNS.2'), key : 'src',

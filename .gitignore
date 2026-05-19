@@ -29,6 +29,8 @@ server/Asset/transcript/*
 server/Asset/db/*
 
 #README
-README_c.md
+README_legacy.md
+README_legacy-jpn.md
+guideline.md
 
 #run

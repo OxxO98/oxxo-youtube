@@ -3,7 +3,6 @@ import { useCallback, useContext, useMemo } from 'react';
 import { UnicodeRangeContext } from 'shared/contexts/UnicodeContext';
 
 import { assemble } from 'es-hangul';
-import e from 'express';
 
 const hiraganaKumi = [
     ['あ', 'い', 'う', 'え', 'お', 'や', 'ゆ', 'よ'],
@@ -21,7 +20,7 @@ const hiraganaKumi = [
     ['ら', 'り', 'る', 'れ', 'ろ', 'りゃ', 'りゅ', 'りょ']
 ]
 
-const hiraganaKumiRegex = new RegExp( `[${hiraganaKumi.flat().filter( (v) => v.length === 1).join('')}わをっん-]{1}[ゃゅょぁぃぅぇぉ]?`, 'g' )
+const hiraganaKumiRegex = new RegExp( `[${hiraganaKumi.flat().filter( (v) => v.length === 1).join('')}わをっん\\-]{1}[ゃゅょぁぃぅぇぉ]?`, 'g' )
 
 //'ぅ'로 되는 경우의 모음은 아직 정해지지 않은 상태
 const hiraganaTokubetsuKumi = [
@@ -284,6 +283,9 @@ function useJaText(){
     const isAllKanjiRegex = useMemo( () => new RegExp(
         `^[${unicodeRange.kanji}]+$`
     ), [unicodeRange.kanji]);
+    const isAllHiraKataRegex = useMemo( () => new RegExp(
+        `^[${unicodeRange.hiragana}${unicodeRange.katakana}]+$`
+    ), [unicodeRange.hiragana, unicodeRange.katakana]);
 
     const isHiraRegex = useMemo( () => new RegExp(
         `[${unicodeRange.hiragana}]+`,
@@ -297,6 +299,10 @@ function useJaText(){
         `[${unicodeRange.kanji}]+`,
         'g'
     ), [unicodeRange.kanji])
+
+    const divideHiraganaRegex = useMemo( () => new RegExp(
+       `[${unicodeRange.hiragana}${unicodeRange.katakana}]+|[\^${unicodeRange.hiragana}${unicodeRange.katakana}]+`, 'g' 
+    ), [unicodeRange.hiragana])
     
     /**
      * 카타카나를 히라가나로 변환
@@ -432,7 +438,6 @@ function useJaText(){
      * @example HiraToHangul('ん', 1, 'こんど') : 'ㄴ'
      */
     const HiraToHangul = useCallback( ( char : string, index : number, arr : string[]  ) => {
-        
         if(char === 'を'){
             return '오'
         }
@@ -496,13 +501,28 @@ function useJaText(){
      * @example hangulToHira('そうぞう') : '소우조우'
      */
     const HiraToKoNFC = useCallback( (hira : string) => {
-        let hiraArr = kataToHira(hira).match(hiraganaKumiRegex);
-        if(hiraArr === null){
-            return hira;
-        }
-        let hangul = hiraArr.map( (v, index, arr) => HiraToHangul(v, index, arr) ).join('');
+        let _divide = hira.match(divideHiraganaRegex) ?? [];
 
-        return assemble(hangul.split(''));
+        let _ret = [];
+        for( let token of _divide ){
+            if( isAllHiraKataRegex.test(token) == true ){
+                console.log(token);
+                let hiraArr = kataToHira(token).match(hiraganaKumiRegex);
+
+                if(hiraArr === null){
+                    _ret.push(token);
+                    break;
+                }
+                let hangul = hiraArr.map( (v, index, arr) => HiraToHangul(v, index, arr) ).join('');
+
+                _ret.push( assemble(hangul.split('')) );
+            }
+            else{
+                _ret.push(token);
+            }
+        }
+
+        return _ret.join('');
     }, [hiraganaKumiRegex, HiraToHangul])
   
     /**
@@ -1120,11 +1140,24 @@ function useJaText(){
         return obj;
     }
 
+    const convertKoReading = (reading : string, hurigana : string, jaText : string) => {
+        let _reading = '';
+        if( reading !== undefined ){
+            let _huriArr = hurigana.split('　').filter( (huri) => huri !== '').map( (huri) => reviseHira(huri) );
+            let _kanjiArr = jaText.match(isKanjiRegex);
+            let _huri = _kanjiArr === null ? reading : _kanjiArr.reduce( (acc, cur, i) => acc.replace(cur, _huriArr[i]), reading) ?? "";
+            _reading = _huri.split(' ').map( (h) => HiraToKoNFC(h) ).join(' ')
+        }
+
+        return _reading;
+    }
+
     return { 
         koNFCToHira, HiraToKoNFC, reviseHira,
         isAllHangul, isAllNihongo, isAllHira, checkKatachi, isOnajiOkuri, 
         traceHukumu, 
         getHyoukiQuery, getYomiQuery, convertObjKey,
+        convertKoReading,
     }
 }
 

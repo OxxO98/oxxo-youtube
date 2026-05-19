@@ -10,6 +10,6 @@ export const UnicodeContext = createContext<UnicodeContext>({
 
 export const UnicodeRangeContext = createContext<UnicodeRangeContext>({
   kanji : '\\u3400-\\u9fff\u3005',
-  hiragana : '\\3040-\\u309f',
+  hiragana : '\\u3040-\\u309f',
   katakana : '\\u30a0-\\u30ff'
 })

@@ -91,6 +91,7 @@ const ShareModalComp = () => {
     useEffect( () => {
         if(jsonBunIds !== null){
             let _json = jsonBunIds.map( (v) => {
+                console.log(v);
                 return {
                     'startTime' : v.startTime,
                     'endTime' : v.endTime,

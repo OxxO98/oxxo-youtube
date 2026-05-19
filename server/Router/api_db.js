@@ -25,6 +25,48 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../Asset');
 
+async function _addReading(jaText){
+    let yomi = await getReadingWithMecab(jaText);
+
+    let _reading = [];
+    let flag = false;
+    for(let token of yomi){
+        if( token.space == true ){
+            _reading.push(token.reading)
+            flag = true;
+        }
+        else{
+            _reading.push(`${flag == true ? ' ' : ''}${token.reading}`);
+            flag = false;
+        }
+    }
+
+    return _reading.join('');
+}
+
+function _convertJaTextToTextData(hukumu, jaText){
+    let offset = [ 0, ...hukumu.map( (h) => {
+        return [h.startOffset, h.endOffset]
+    }).flat(), jaText.length].filter( (o, i, arr) => arr.indexOf(o) == i );
+
+    let textData = offset.map( (o, i, arr) => {
+        if(i == arr.length-1){ return }
+        let finded =  hukumu.find( (h) => h.startOffset == o )
+        if( finded != undefined ){
+            return finded.textData.map( (td) => { return { ...td, offset : o + td.offset } })
+        }
+        else{
+            return {
+                data : jaText.substring(o, arr[i+1]),
+                ruby : null,
+                offset : o
+            }
+        }
+    }).filter( (o) => o != undefined ).flat();
+
+    return textData;
+}
+
 async function saveUserId(req, res){
     await db_connection( req, res, async (db) => {
         let { userId } = req.body;
@@ -528,26 +570,11 @@ async function getExportJson(req, res){
             if( await _checkMecabInstalled() === true ){
                 await _ensureUtf8CodePage();
 
+                
                 for await( let obj of joinText ){
-                    let yomi = await getReadingWithMecab(obj.jaText);
-
-                    let _reading = [];
-                    let flag = false;
-                    for(let token of yomi){
-                        if( token.space == true ){
-                            _reading.push(token.reading)
-                            flag = true;
-                        }
-                        else{
-                            _reading.push(`${flag == true ? ' ' : ''}${token.reading}`);
-                            flag = false;
-                        }
-                    }
-                    obj.reading = _reading.join('');
+                    obj.reading = await _addReading(obj.jaText);
                 }
             }
-
-            
 
             res.send({
                 message : 'success',
@@ -650,7 +677,7 @@ async function getDBAll(req, res){
                             kanjis : db.data.komu.filter( (km) => km.hyId == hu.hyId )
                                 .map( (km) => 
                                     db.data.kanji.find( (k) => k.kId == km.kId)
-                                )
+                                ),
                         }
                     }), "hyId") )
             }
@@ -664,6 +691,18 @@ async function getDBAll(req, res){
 
         //sort
         joinData = _.sortBy( joinData, (v) => v.hukumus[0][0][0].yomi);
+
+        for( let obj of joinData ){
+            for( let hyouki of obj.hukumus ){
+                for( let video of hyouki ){
+                    for( let ja of video ){
+                        ja.hukumus = await db_module.getHukumu(db, ja.jaBId)
+                        ja.jaTextData = _convertJaTextToTextData(ja.hukumus, ja.jaText)
+                        ja.reading = await _addReading(ja.jaText);
+                    }
+                }
+            }
+        }
 
         res.send({
             message : 'success',
