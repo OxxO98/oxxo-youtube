@@ -1,5 +1,6 @@
 import React, { CSSProperties, useState, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 //hooks
 import { useLayoutMenu } from 'shared/lib/useLayoutMenu';
@@ -47,10 +48,10 @@ const routeTuples : routeTuple[] = [
 const itemTuples : itemTuple[] = [
     [ 'HOME', '1', <HomeOutlined/> ],
     [ 'VIDEO', 'sub1', <YoutubeOutlined/>, [
-            [ 'MARKING', '2', <FieldTimeOutlined /> ],
-            [ 'TIMELINE', '3', <DatabaseOutlined /> ],
-            [ 'HONYAKU', '4', <EditOutlined /> ],
-            [ 'TANGOCHOU', '5', <BookOutlined /> ]
+            [ 'MARKING', '2', <FieldTimeOutlined />, null, 'ctrl+1' ],
+            [ 'TIMELINE', '3', <DatabaseOutlined />, null, 'ctrl+2' ],
+            [ 'HONYAKU', '4', <EditOutlined />, null, 'ctrl+3' ],
+            [ 'TANGOCHOU', '5', <BookOutlined />, null, 'ctrl+4' ]
         ] 
     ]
 ]
@@ -90,6 +91,12 @@ export const LayoutCompYoutube = ({ children } : LayoutCompProps ) => {
             navigate(path); 
         }
     };
+
+    //Hotkeys
+    useHotkeys('ctrl+1', () => navigate(routes[1].path) );
+    useHotkeys('ctrl+2', () => navigate(routes[2].path) );
+    useHotkeys('ctrl+3', () => navigate(routes[3].path) );
+    useHotkeys('ctrl+4', () => navigate(routes[4].path) );
 
     return(
         <Layout style={{ height : '100vh' }}>

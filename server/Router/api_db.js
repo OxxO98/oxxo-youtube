@@ -653,6 +653,7 @@ function _buildDBTextJoinData(db){
             let searchData = _getJaTextSearchData(index, ja);
 
             return {
+                startTime : t.startTime,
                 ...ja,
                 ...ko,
                 ...searchData,

@@ -116,7 +116,7 @@ function useRender(){
         },
         { 
             title : t('TANGO_COL.3.3'), key : 'src',
-            render : (v) => <Button onClick={ () => navigate(`/video/${v.src}`) }>{t('BUTTON.MOVE_TIMELINE')}</Button>,
+            render : (v) => <Button onClick={ () => navigate(`/video/${v.src}?startTime=${v.startTime}`) }>{t('BUTTON.MOVE_TIMELINE')}</Button>,
             width : '10%'
         }
     ]
@@ -158,7 +158,7 @@ function useRender(){
         },
         { 
             title : t('TEXT_COL.1.3'), key : 'src',
-            render : (v) => <Button onClick={ () => navigate(`/video/${v.src}`) }>{t('BUTTON.MOVE_TIMELINE')}</Button>,
+            render : (v) => <Button onClick={ () => navigate(`/video/${v.src}?startTime=${v.startTime}`) }>{t('BUTTON.MOVE_TIMELINE')}</Button>,
             width : '10%'
         }
     ]

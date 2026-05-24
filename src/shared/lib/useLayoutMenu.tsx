@@ -2,12 +2,16 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 //CSS@Antd
+import { Tooltip } from 'antd'
 import type { MenuProps } from 'antd';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
 export type routeTuple = [string, string, string, string | null]
-export type itemTuple = [string, string] | [string, string, React.ReactNode | null] | [string, string, React.ReactNode | null, itemTuple[]]
+export type itemTuple = [string, string] | 
+    [string, string, React.ReactNode | null] | 
+    [string, string, React.ReactNode | null, itemTuple[]] |
+    [string, string, React.ReactNode | null, itemTuple[] | null, React.ReactNode]
 
 interface Routes {
     key : string;
@@ -28,7 +32,7 @@ function getRouteItem(
 }
 
 function getItem(
-    label: string,
+    label: string | React.ReactNode,
     key: string,
     icon?: React.ReactNode | null,
     children?: MenuItem[],
@@ -67,17 +71,16 @@ export function useLayoutMenu(
             return getRouteItem(...v)
         }
     });
-    const items : MenuItem[] = itemesData.map( (v) => {
-        if(v.length === 4){
-            return getItem(t(v[0]), v[1], v[2], v[3].map( (_) => getItem( t(_[0]) , _[1], _[2]) ))
-        }
-        else if(v.length === 3){
-            return getItem(t(v[0]), v[1], v[2])
-        }
-        else{
-            return getItem(t(v[0]), v[1])
-        }
-    });
+    const makeMenuItem = (v : itemTuple) : MenuItem => {
+        const tooltip = v.length === 5 ? v[4] : null;
+        const label = tooltip !== null ? <Tooltip title={tooltip}><span>{t(v[0])}</span></Tooltip> : t(v[0]);
+        const children = v.length >= 4 && (v[3] !== null && v[3] !== undefined) ? v[3].map(makeMenuItem) : undefined;
+        const icon = v.length >= 3 ? v[2] : undefined;
+
+        return getItem(label, v[1], icon, children);
+    }
+
+    const items : MenuItem[] = itemesData.map(makeMenuItem);
 
     return { routes, items }
 }

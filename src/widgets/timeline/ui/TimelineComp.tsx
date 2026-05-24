@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback, CSSProperties } from 'react';
 import VirtualList, { ListRef } from 'rc-virtual-list';
 import { useHotkeys } from 'react-hotkeys-hook';
-
+import { useLocation } from 'react-router-dom';
 
 import type { timelineHandles } from 'shared/hooks/useTimeline'
 
@@ -48,7 +48,9 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
     const [value, setValue] = useState<string>('');
 
     const currentTimelineBun = useRef<Array<HTMLDivElement | null>>([]);
-        
+    
+    const appliedStartTimeRef = useRef<string | null>(null);
+
     const divBox = useRef<HTMLDivElement>(null);
     const [divBoxHeight, setDivBoxHeight] = useState<number>(800);
     const virtualRef = useRef(null);
@@ -61,6 +63,8 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
     const dispatch = useAppDispatch();
 
     //Hook    
+    const location = useLocation();
+
     const { getActive, setActive } = useActive();
 
     const { setScratch, gotoTime } = videoPlayerHandles;
@@ -133,6 +137,28 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
             observer.observe(divBox.current);
         }
     }, [])
+
+    useEffect( () => {
+        let params = new URLSearchParams(location.search);
+        let rawStartTime  = params.get('startTime');
+
+        if(rawStartTime === null) return;
+        if(appliedStartTimeRef.current === rawStartTime) return;
+        if(state.duration <= 0) return;
+
+        const startTime = Number(rawStartTime);
+
+        if(!Number.isFinite(startTime) || startTime < 0){
+            appliedStartTimeRef.current = rawStartTime;
+            return;
+        }
+
+        const safeStartTime = Math.min(startTime, state.duration);
+
+        appliedStartTimeRef.current = rawStartTime;
+        gotoTime(safeStartTime, false);
+
+    }, [location.search, state.duration, gotoTime])
 
     return(
         <>

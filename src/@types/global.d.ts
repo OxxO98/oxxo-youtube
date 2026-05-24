@@ -1442,6 +1442,7 @@ declare global {
     src : string;
 
     ytBId : string;
+    startTime : number;
     
     jaBId : string;
     jaText : string;
