@@ -193,42 +193,41 @@ const HelpModal : Locale["HelpModal"] = {
         TITLE : 'ショートカット・ヘルプ',
         CANCLE : '取り消し'
     },
-    CONTENTS : [
-        {
-            TITLE : '再生コントロール z,x,c,v',
-            ITEMS : [
-                'z : 1秒前へ', 'x : 1フレーム前へ', 'c : 1フレーム後へ', 'v : 1秒後へ'
-            ]
-        },
-        {
-            TITLE : 'スタート・エンド時点を設定する',
-            ITEMS : [
-                'a : スタート・マーカー選択', 's : スタート・マーカー設定', 'd : エンド・マーカー設定', 'f : エンド・マーカー選択', 'マーカーを選択すると、zxcvで移動できます'
-            ]
-        },
-        {
-            TITLE : 'マーカープレイ・コントロール',
-            ITEMS : [
-                'b : 該当辞典にマーカー設定の後に再生する', 'g : マーカーに移動し、停止する', 
-                'z : マーカーの1秒前', 'x : マーカーの1フレーム前', 'c : マーカーの1フレーム後', 'v : マーカーの1秒後'
-            ]
-        },
-        {
-            TITLE : '付加機能',
-            ITEMS : [
-                'r : 繰り返し', 'n : 現在のエンド・マーカーをスタート・マーカーに設定し、再び入力する時、入力した時点をエンド・マーカーに設定する'
-            ]
-        },
-        {
-            TITLE : 'タイムライン関連機能',
-            ITEMS : [
-                '時間入力をクリックすると、該当のマーカーが選択できます', 'x, cで移動可能', 
-                'z, v（不安定機能）', 
-                'q : 自動にスタート・マーカーの場合、前のエンド・マーカーに設定、エンド・マーカーの場合、後のスタート・マーカーに設定',
-                '右と左の方向キーでタイムライン移動ができます'
-            ]
-        }
-    ]
+    GROUPS : {
+        ALL : '全体',
+        MARKING : 'マーキング',
+        TIMELINE : 'タイムライン',
+        HONYAKU : '翻訳',
+        VIDEO : 'ビデオ',
+        EXTRA : 'その他'
+    },
+    SHORTCUTS : {
+        PREV_SEC : '1秒前へ移動',
+        PREV_FRAME : '1フレーム前へ移動',
+        NEXT_FRAME : '1フレーム後へ移動',
+        NEXT_SEC : '1秒後へ移動',
+        SELECT_START : 'Startマーカーを選択',
+        MARK_START : '現在時刻をStartマーカーに設定',
+        MARK_END : '現在時刻をEndマーカーに設定',
+        SELECT_END : 'Endマーカーを選択',
+        MARKER_PLAY : 'その時点にマーカーを設定して再生',
+        MARKER_STOP : 'マーカー位置へ移動して停止',
+        LOOP : 'Start-Endマーカー間をループ再生',
+        NEXT_MARKER_PLAY : '現在のEndをStartに設定して再生',
+        AUTO_MARKER : '前後のタイムライン基準でマーカーを自動設定',
+        TIMELINE_MOVE : 'タイムライン移動',
+        GO_MARKING : 'マーキング画面へ移動',
+        GO_TIMELINE : 'タイムライン画面へ移動',
+        GO_HONYAKU : '翻訳画面へ移動',
+        GO_TANGOCHOU : '単語帳画面へ移動',
+        CONFIRM : '確認',
+        CANCEL : 'キャンセル',
+        EDIT_CURRENT : '現在の項目を編集',
+        FOCUS_INPUT : '編集中に入力欄へ移動',
+        BLUR_INPUT : '入力欄のフォーカスを解除',
+        DIVIDE : '分割',
+        MERGE : '結合'
+    }
 }
 
 const DictionaryComp : Locale['DictionaryComp'] = {

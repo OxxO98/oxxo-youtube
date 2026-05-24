@@ -1125,7 +1125,41 @@ declare global {
       TITLE : string;
       CANCLE : string;
     }
-    CONTENTS : { TITLE : string; ITEMS : string[] }[];
+    GROUPS : {
+      ALL : string;
+      MARKING : string;
+      TIMELINE : string;
+      HONYAKU : string;
+      VIDEO : string;
+      EXTRA : string;
+    }
+    SHORTCUTS : {
+      PREV_SEC : string;
+      PREV_FRAME : string;
+      NEXT_FRAME : string;
+      NEXT_SEC : string;
+      SELECT_START : string;
+      MARK_START : string;
+      MARK_END : string;
+      SELECT_END : string;
+      MARKER_PLAY : string;
+      MARKER_STOP : string;
+      LOOP : string;
+      NEXT_MARKER_PLAY : string;
+      AUTO_MARKER : string;
+      TIMELINE_MOVE : string;
+      GO_MARKING : string;
+      GO_TIMELINE : string;
+      GO_HONYAKU : string;
+      GO_TANGOCHOU : string;
+      CONFIRM : string;
+      CANCEL : string;
+      EDIT_CURRENT : string;
+      FOCUS_INPUT : string;
+      BLUR_INPUT : string;
+      DIVIDE : string;
+      MERGE : string;
+    }
   }
 
   export interface DictionaryComp {

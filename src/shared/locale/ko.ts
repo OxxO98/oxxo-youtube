@@ -193,42 +193,41 @@ const HelpModal : Locale["HelpModal"] = {
         TITLE : '단축키 도움말',
         CANCLE : '닫기'
     },
-    CONTENTS : [
-        {
-            TITLE : '재생 컨트롤 z,x,c,v',
-            ITEMS : [
-                'z : 1초전', 'x : 1프레임 전', 'c : 1프레임 후', 'v : 1초후'
-            ]
-        },
-        {
-            TITLE : 'start, end 마커 컨트롤',
-            ITEMS : [
-                'a : Start마커 선택', 's : start마커 설정', 'd : end마커 설정', 'f : end마커 선택', '마커 선택시, zxcv로 변경 가능'
-            ]
-        },
-        {
-            TITLE : '마커 플레이 컨트롤',
-            ITEMS : [
-                'b : 해당 시점에 마커 설정 후 재생', 'g : 마커로 이동하며 정지', 'z : 마커 시점 1초 전', 
-                'x : 마커 사점 1프레임 전', 'c : 마커 시점 1프레임 후', 'v : 마커 시점 1초 후'
-            ]
-        },
-        {
-            TITLE : '부가 기능',
-            ITEMS : [
-                'r : start-end 마커 사이 loop 기능', 'n : 현재 endTime을 startTime으로 설정 한뒤, 재생, 다시 입력시 해당 시점을 end마커로 설정.'
-            ]
-        },
-        {
-            TITLE : 'timeline에서',
-            ITEMS : [
-                'start, end마커 클릭시 해당 마커 선택', 'x, c로 1프레임씩 이동 가능', 
-                'z, v로 자동 오디오 파형의 끝점으로 이동기능 (불안정)', 
-                'q : 오토 마커로, start는 이전 timeline의 end로 설정, end마커는 이후 timeline의 start시간으로 설정',
-                '우측 방향키, 왼쪽 방향키로 타임라인 이동'
-            ]
-        }
-    ]
+    GROUPS : {
+        ALL : '전체',
+        MARKING : '마킹',
+        TIMELINE : '타임라인',
+        HONYAKU : '번역',
+        VIDEO : '비디오',
+        EXTRA : '기타'
+    },
+    SHORTCUTS : {
+        PREV_SEC : '1초 전으로 이동',
+        PREV_FRAME : '1프레임 전으로 이동',
+        NEXT_FRAME : '1프레임 후로 이동',
+        NEXT_SEC : '1초 후로 이동',
+        SELECT_START : 'Start 마커 선택',
+        MARK_START : '현재 시간을 Start 마커로 설정',
+        MARK_END : '현재 시간을 End 마커로 설정',
+        SELECT_END : 'End 마커 선택',
+        MARKER_PLAY : '해당 시점에 마커 설정 후 재생',
+        MARKER_STOP : '마커 위치로 이동하고 정지',
+        LOOP : 'Start-End 마커 사이 반복 재생',
+        NEXT_MARKER_PLAY : '현재 End를 Start로 설정한 뒤 재생',
+        AUTO_MARKER : '이전/다음 타임라인 기준으로 마커 자동 설정',
+        TIMELINE_MOVE : '타임라인 이동',
+        GO_MARKING : '마킹 화면으로 이동',
+        GO_TIMELINE : '타임라인 화면으로 이동',
+        GO_HONYAKU : '번역 화면으로 이동',
+        GO_TANGOCHOU : '단어장 화면으로 이동',
+        CONFIRM : '확인',
+        CANCEL : '취소',
+        EDIT_CURRENT : '현재 항목 편집',
+        FOCUS_INPUT : '편집 상태에서 입력창으로 이동',
+        BLUR_INPUT : '입력창 포커스 취소',
+        DIVIDE : '분할',
+        MERGE : '병합'
+    }
 }
 
 const DictionaryComp : Locale['DictionaryComp'] = {

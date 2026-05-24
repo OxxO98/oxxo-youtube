@@ -13,8 +13,8 @@ import { useTimeStamp } from 'shared/lib/useTimeStamp';
 import { useCanvas } from '../lib/useCanvas';
 import { useRange } from '../lib/useRange';
 
-//ui
-import { HelpModal } from './HelpModal';
+//widgets
+import { HelpModal } from 'widgets/help-modal';
 
 //CSS@antD
 import { Slider, Button, Space, Input, Skeleton } from 'antd';
