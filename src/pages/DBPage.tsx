@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 
 //Hook
 import { useAxiosGet } from 'shared/hooks/useAxios';
@@ -8,23 +8,26 @@ import { useAxiosGet } from 'shared/hooks/useAxios';
 //widgets
 import { LayoutComp } from 'widgets/layout/index';
 import { DBTable, DBSearch, DBSearchList } from 'widgets/db/index';
-import type { db_all } from 'widgets/db/type';
 
 //CSS@Antd
-import { Pagination, Empty, Flex, Affix } from 'antd';
+import { Pagination, Flex, Affix, Spin } from 'antd';
 import type { PaginationProps } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+
+const PAGE_SIZE_OPTION = [10, 50, 100];
 
 const DBPage = () => {
     const [data, setData] = useState<db_all>([]); 
     const [totalPage, setTotalPage] = useState<number | null>(null);
-    const [pageSize, setPageSize] = useState(24);
+    const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTION[0]);
 
     const [container, setContainer] = useState<HTMLDivElement | null>(null);
   
     //Hook
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const { response, fetch, error } = useAxiosGet('/db/all', false, null );
+    const { response, loading, setParams } = useAxiosGet<RES_GET_DB, REQ_GET_DB>('/db/all', true, null);
 
     //Handle
     const onChange = (page : number, pagesize : number) => {
@@ -38,11 +41,19 @@ const DBPage = () => {
     useEffect( () => {
         let res = response;
         if( res !== null ){
-            console.log(res.data);
-            setData(res.data);
-            setTotalPage(res.data.length)
+            setData(res.data.db);
+            setTotalPage(res.data.pagination.total)
         }
     }, [response])
+
+    useEffect( () => {
+        let pathname = location.pathname;
+        let page = pathname.match(/\/db\/([0-9]+)/);
+        
+        if( page === null ){ return }
+
+        setParams({ page : Number(page[1]), limit : pageSize });
+    }, [location, setParams])
     
     return(
         <>
@@ -56,16 +67,24 @@ const DBPage = () => {
                         {
                             totalPage === null ?
                             <>
-                                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                            {
+                                loading &&
+                                <Spin indicator={<LoadingOutlined spin />} size="large"/>
+                            }
                             </>
                             :
                             <>
                                 <Affix offsetTop={0}>
                                     <Flex justify='center' style={{ backgroundColor : '#000000'}}>
-                                        <Pagination align='center' showSizeChanger defaultCurrent={1} pageSize={pageSize} pageSizeOptions={[6, 12, 24]} total={totalPage} onChange={onChange} onShowSizeChange={onShowSizeChange}/>
+                                        <Pagination align='center' showSizeChanger defaultCurrent={0} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTION} total={totalPage} onChange={onChange} onShowSizeChange={onShowSizeChange}/>
                                     </Flex>
                                 </Affix>
-                                <DBTable list={data} pageSize={pageSize}/>
+                                {
+                                    loading ?
+                                        <Spin indicator={<LoadingOutlined spin />} size="large"/>
+                                    :
+                                        <DBTable list={data}/>
+                                }
                             </>
                         }
                         </div>

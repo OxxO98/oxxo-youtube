@@ -1,39 +1,14 @@
-export interface db_kanji_data {
-    kId : string;
-    jaText : string;
-}
 
-export interface db_hukumu_data {
-    title : string;
-    src : string;
+type WithTableKey<T> = T & {
+    key: React.Key;
+};
 
-    ytBId : string;
-    jaBId : string;
-    jaText : string;
-    koBId : string | null;
-    koText? : string;
-    startTime : number;
-    endTime : number;
+export type DBTangoDataType = WithTableKey<db_tango_data>;
 
-    startOffset : number;
-    endOffset : number;
+export type DBHukumuDataType = WithTableKey<db_hukumu_data>;
 
-    hyId : string;
-    iId : string | null;
-    tId : string;
+export type DBVideoDataType = WithTableKey<db_video_data>;
 
-    hyouki : string;
-    yomi : string;
-    textData : TextData[];
+export type DBTextDataType = WithTableKey<db_text_data>;
 
-    imi? : string;
-
-    kanjis : db_kanji_data[];
-}
-
-export interface db_tango_data {
-    tId : string;
-    hukumus : db_hukumu_data[][][];
-}
-
-export type db_all = db_tango_data[];
+export type HukumuDataType = WithTableKey<HukumuData>;

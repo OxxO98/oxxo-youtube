@@ -506,7 +506,8 @@ function useJaText(){
         let _ret = [];
         for( let token of _divide ){
             if( isAllHiraKataRegex.test(token) == true ){
-                console.log(token);
+                if(token === 'ー' || token === '-') continue;
+
                 let hiraArr = kataToHira(token).match(hiraganaKumiRegex);
 
                 if(hiraArr === null){
@@ -514,6 +515,10 @@ function useJaText(){
                     break;
                 }
                 let hangul = hiraArr.map( (v, index, arr) => HiraToHangul(v, index, arr) ).join('');
+
+                if(hangul === ''){
+                    break;
+                }
 
                 _ret.push( assemble(hangul.split('')) );
             }

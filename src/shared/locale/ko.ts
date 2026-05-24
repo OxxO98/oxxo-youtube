@@ -464,30 +464,24 @@ const MatchedTangoList : Locale['MatchedTangoList'] = {
     }
 }
 
-const DBTable : Locale['DBTable'] = {
-    ALL_COLUMNS : [
-        "표기",
-        "의미",
-        "표기 요약",
-        "갯수"
+const DBPage : Locale['DBPage'] = {
+    SELECT : [
+        '표기+읽기', '표기', '읽기', '뜻', '일본어 문장', '한국어 문장'
     ],
-    COLUMNS : [
-        "표기",
-        "읽기",
-        "발음",
-        "한자"
+    TANGO_COL : [
+        ["표기", "뜻", "표기 요약", "갯수"],
+        ["표기", "읽기", "발음", "한자"],
+        ["영상 제목", "갯수", "해당 영상으로 이동"],
+        ["원문", "번역문", "발음", "해당 문장으로 이동"]
     ],
-    VIDEO_COLUMNS : [
-        "영상 제목",
-        "갯수"
-    ],
-    BUN_COLUMNS : [
-        "원문",
-        "번역문",
-        "해당 영상으로 이동"
+    TEXT_COL : [
+        ["영상 제목", "갯수", "해당 영상으로 이동"],
+        ["원문", "번역문", "발음", "해당 문장으로 이동"],
+        ["표기", "읽기", "발음"]
     ],
     BUTTON : {
-      MOVE : '이돟'
+      MOVE_VIDEO : '이동',
+      MOVE_TIMELINE : '이동'
     }
 }
 
@@ -562,7 +556,7 @@ export default {
     TangoCard,
     MatchedTangoList,
 
-    DBTable,
+    DBPage,
 
     NotFoundPage,
 } as Locale

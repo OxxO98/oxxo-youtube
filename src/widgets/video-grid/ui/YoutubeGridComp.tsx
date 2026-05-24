@@ -10,7 +10,8 @@ import { VideoCardListComp } from './VideoItemList';
 import { NewVideoComp } from './NewVideo';
 
 //CSS@AntD
-import { Input, Flex, notification, Empty } from "antd";
+import { Input, Flex, notification, Empty, Spin } from "antd";
+import { LoadingOutlined } from '@ant-design/icons'
 import type {  GetProps } from 'antd'
 
 //Redux
@@ -30,7 +31,7 @@ const YoutubeGridComp = () => {
     const [messageApi, contextHolder] = notification.useNotification();
 
     //Hook
-    const { response, fetch : refetch } = useAxiosGet<RES_GET_VIDEO, REQ_GET_VIDEO>('/db/video', false, null);
+    const { response, loading, fetch : refetch } = useAxiosGet<RES_GET_VIDEO, REQ_GET_VIDEO>('/db/video', false, null);
     const { response : resSearch, setParams : setParamsSearch } = useAxiosGet<RES_GET_VIDEO_SEARCH, REQ_GET_VIDEO_SEARCH>('/db/video/search', true, null);
 
     const { response : resIntegrity, fetch  } = useAxiosGet<RES_GET_INTEGRITY, REQ_GET_INTEGRITY>('/db/integrity', true, null);
@@ -125,15 +126,15 @@ const YoutubeGridComp = () => {
                     list.length !== 0 ?
                         <VideoCardListComp list={list} refetch={refetch}/>
                     :
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
                 :
-                videos !== null ?
-                    videos.length !== 0 ?
-                        <VideoCardListComp list={videos} refetch={refetch}/>
-                    :
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                :
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                    videos !== null ?
+                        videos.length !== 0 ?
+                            <VideoCardListComp list={videos} refetch={refetch}/>
+                        :
+                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                        :
+                        <Spin indicator={<LoadingOutlined spin />} size="large"/>
             }
             </div>
         </>

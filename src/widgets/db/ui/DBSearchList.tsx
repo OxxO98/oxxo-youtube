@@ -8,33 +8,34 @@ import { useAxiosGet } from 'shared/hooks/useAxios';
 //ui
 import { DBTable } from '../ui/DBTable'
 
-//type
-import { db_all } from "../type";
-
 //CSS@Antd
-import { Pagination, Empty, Flex, Affix } from 'antd';
+import { Pagination, Empty, Flex, Affix, Spin } from 'antd';
 import type { PaginationProps } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+
+const PAGE_SIZE_OPTION = [10, 50, 100];
 
 export const DBSearchList = () => {
     //State
-    const [list, setList] = useState<db_all>([]);
+    const [list, setList] = useState<db_all | db_all_text>([]);
     const [totalPage, setTotalPage] = useState<number | null>(null);
-    const [pageSize, setPageSize] = useState(24);
+    const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTION[0]);
+    const [searchType, setSearchType] = useState<SearchType>('auto');
     
     //Hook
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { response, setParams, fetch, error } = useAxiosGet<any, any>('/db/all', true, null );
+    const { response, loading, setParams } = useAxiosGet<RES_GET_SEARCH_DB, REQ_GET_SEARCH_DB>('/db/search', true, null );
 
     //Handle
     const onChange = (page : number, pagesize : number) => {
         let search = location.search;
         let params = new URLSearchParams(search);
+        let type = params.get('type');
         let keyword = params.get('keyword');
-        let imiKeyword = params.get('imiKeyword');
-
-        navigate(`/db/search/${page}?keyword=${keyword}${ imiKeyword !== null ? `&imiKeyword=${imiKeyword}` : ``}`)
+        
+        navigate(`/db/search/${page}?type=${type}&keyword=${keyword}`)
     }
     
     const onShowSizeChange: PaginationProps['onShowSizeChange'] = (current, pageSize) => {
@@ -44,25 +45,23 @@ export const DBSearchList = () => {
     useEffect( () => {
         let res = response;
         if(res !== null){
-            console.log(res.data);
-            setList(res.data);
-            setTotalPage(res.data.length);
+            setList(res.data.db);
+            setTotalPage(res.data.pagination.total);
+            setSearchType(res.data.type);
         }
     }, [response])
 
     useEffect( () => {
+        let pathname = location.pathname;
+        let page = pathname.match(/\/db\/search\/([0-9]+)/);
+
         let search = location.search;
         let params = new URLSearchParams(search);
+        let type = params.get('type');
         let keyword = params.get('keyword');
-        let imiKeyword = params.get('imiKeyword');
 
-        if( keyword === null ){ return }
-        if( imiKeyword === null ){
-            setParams({ keyword : keyword });
-        }
-        else{
-            setParams({ keyword : keyword, imiKeyword : imiKeyword });
-        }
+        if( keyword === null || page === null || type == null ){ return }
+        setParams({ type : type, keyword : keyword, page : Number(page[1]), limit : pageSize })
     }, [location, setParams])
 
     return(
@@ -76,10 +75,15 @@ export const DBSearchList = () => {
                 <>
                     <Affix offsetTop={0}>
                         <Flex justify='center' style={{ backgroundColor : '#000000'}}>     
-                            <Pagination align='center' showSizeChanger defaultCurrent={1} pageSize={pageSize} pageSizeOptions={[6, 12, 24]} total={totalPage} onChange={onChange} onShowSizeChange={onShowSizeChange}/>
+                            <Pagination align='center' showSizeChanger defaultCurrent={1} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTION} total={totalPage} onChange={onChange} onShowSizeChange={onShowSizeChange}/>
                         </Flex>
                     </Affix>
-                    <DBTable list={list} pageSize={pageSize}/>
+                    {
+                        loading ?
+                            <Spin indicator={<LoadingOutlined spin />} size="large"/>
+                        :
+                            <DBTable list={list} type={searchType}/>
+                    }
                 </>
             }
         </>

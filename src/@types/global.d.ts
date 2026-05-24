@@ -706,6 +706,38 @@ declare global {
     kanjiList : RES_PDF_KANJI_LIST[];
   };
 
+  //DB_PAGE
+  export interface RES_GET_DB {
+    db : db_all;
+    pagination : {
+      page : number,
+      total : number,
+      totalPages : number
+    }
+  }
+
+  export interface REQ_GET_DB {
+    page : number;
+    limit : number;
+  }
+
+  export type RES_GET_DB_READING = string;
+
+  export interface REQ_GET_DB_READING {
+    jaText : string;
+  }
+
+  export interface RES_GET_SEARCH_DB extends RES_GET_DB {
+    type : SearchType
+  }
+
+  export interface REQ_GET_SEARCH_DB {
+    type : string;
+    keyword : string;
+    page : number;
+    limit : number;
+  }
+
   //공유하는 데이터
   export interface RES_SHARE {
     startTime : number;
@@ -899,7 +931,7 @@ declare global {
     TangoCard : TangoCard;
     MatchedTangoList : MatchedTangoList;
 
-    DBTable : DBTable;
+    DBPage : DBPage;
 
     NotFoundPage : NotFoundPage;
   }
@@ -1326,13 +1358,13 @@ declare global {
     }
   }
 
-  export interface DBTable {
-    ALL_COLUMNS : string[];
-    COLUMNS : string[];
-    VIDEO_COLUMNS : string[];
-    BUN_COLUMNS : string[];
+  export interface DBPage {
+    SELECT : string[];
+    TANGO_COL : string[][];
+    TEXT_COL : string[][];
     BUTTON : {
-      MOVE : string;
+      MOVE_VIDEO : string;
+      MOVE_TIMELINE : string;
     }
   }
 
@@ -1357,4 +1389,73 @@ declare global {
     add : number[];
     del : number[];
   }
+
+  //DB Page type
+  export type SearchType = 'auto' | 'hyouki' | 'yomi' | 'imi' | 'jaText' | 'koText';
+
+  export interface db_kanji_data {
+    kId : string;
+    jaText : string;
+  }
+
+  export interface db_hukumu_data {
+    title : string;
+    src : string;
+
+    ytBId : string;
+    jaBId : string;
+    jaText : string;
+    koBId : string | null;
+    koText? : string;
+    startTime : number;
+    endTime : number;
+
+    startOffset : number;
+    endOffset : number;
+
+    hyId : string;
+    iId : string | null;
+    tId : string;
+
+    hyouki : string;
+    yomi : string;
+    textData : TextData[];
+
+    imi? : string;
+
+    kanjis : db_kanji_data[];
+
+    jaTextData : TextData[];
+    hukumus : HukumuData[];
+    reading : string;
+  }
+
+  export interface db_tango_data {
+    tId : string;
+    hukumus : db_hukumu_data[][][];
+  }
+
+  export type db_all = db_tango_data[];
+
+  export interface db_text_data {
+    title : string;
+    src : string;
+
+    ytBId : string;
+    
+    jaBId : string;
+    jaText : string;
+    ruby : string;
+
+    jaTextData : TextData[];    
+    hukumus : HukumuData[];
+    reading : string;
+  }
+
+  export interface db_video_data {
+    src : string;
+    buns : db_text_data[];
+  }
+
+  export type db_all_text = db_video_data[]
 }

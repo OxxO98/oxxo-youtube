@@ -25,48 +25,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../Asset');
 
-async function _addReading(jaText){
-    let yomi = await getReadingWithMecab(jaText);
-
-    let _reading = [];
-    let flag = false;
-    for(let token of yomi){
-        if( token.space == true ){
-            _reading.push(token.reading)
-            flag = true;
-        }
-        else{
-            _reading.push(`${flag == true ? ' ' : ''}${token.reading}`);
-            flag = false;
-        }
-    }
-
-    return _reading.join('');
-}
-
-function _convertJaTextToTextData(hukumu, jaText){
-    let offset = [ 0, ...hukumu.map( (h) => {
-        return [h.startOffset, h.endOffset]
-    }).flat(), jaText.length].filter( (o, i, arr) => arr.indexOf(o) == i );
-
-    let textData = offset.map( (o, i, arr) => {
-        if(i == arr.length-1){ return }
-        let finded =  hukumu.find( (h) => h.startOffset == o )
-        if( finded != undefined ){
-            return finded.textData.map( (td) => { return { ...td, offset : o + td.offset } })
-        }
-        else{
-            return {
-                data : jaText.substring(o, arr[i+1]),
-                ruby : null,
-                offset : o
-            }
-        }
-    }).filter( (o) => o != undefined ).flat();
-
-    return textData;
-}
-
 async function saveUserId(req, res){
     await db_connection( req, res, async (db) => {
         let { userId } = req.body;
@@ -584,157 +542,331 @@ async function getExportJson(req, res){
     })
 }
 
-function _exp_searchJaText(joinData){
-    //filter after
-    joinData = joinData.map( (v) => { return {
-            ...v,
-            hukumus : v.hukumus.map(
-                (s) => s.map(
-                    (t) => t.filter( 
-                        (b) => b.jaText.includes(keyword)
-                    ) 
-                ) 
-            )
-        }}
-    )
+//DBPage
+async function _addReading(jaText){
+    let yomi = await getReadingWithMecab(jaText);
 
-    joinData = joinData.map( (v) => { return {
-            ...v,
-            hukumus : v.hukumus.map(
-                (s) => s.filter(
-                    (t) => t.length != 0
-                ) 
-            )
-        }}
-    )
+    let _reading = [];
+    let flag = false;
+    for(let token of yomi){
+        if( token.space == true ){
+            _reading.push(token.reading)
+            flag = true;
+        }
+        else{
+            _reading.push(`${flag == true ? ' ' : ''}${token.reading}`);
+            flag = false;
+        }
+    }
 
-    joinData = joinData.map( (v) => { return {
-            ...v,
-            hukumus : v.hukumus.filter(
-                (s) => s.length != 0
-            )
-        }}
-    )
+    return _reading.join('');
+}
 
-    joinData = joinData.filter( (v) => v.hukumus.length != 0 )
-    //이러면 가능은 한데, jaText에 포함이 되지만, 해당 문장에 등록된 단어가 없는 경우는 나오지 않음
-    //걍 따로 검색을 두는 것이 맞는 듯.
+function _convertJaTextToTextData(hukumu, jaText){
+    let offset = [ 0, ...hukumu.map( (h) => {
+        return [h.startOffset, h.endOffset]
+    }).flat(), jaText.length].filter( (o, i, arr) => arr.indexOf(o) == i );
+
+    let textData = offset.map( (o, i, arr) => {
+        if(i == arr.length-1){ return }
+        let finded =  hukumu.find( (h) => h.startOffset == o )
+        if( finded != undefined ){
+            return finded.textData.map( (td) => { return { ...td, offset : o + td.offset } })
+        }
+        else{
+            return {
+                data : jaText.substring(o, arr[i+1]),
+                ruby : null,
+                offset : o
+            }
+        }
+    }).filter( (o) => o != undefined ).flat();
+
+    return textData;
+}
+
+function _getDBPagination(query){
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 10);
+    const start = (page-1)*limit;
+    const end = start + limit;
+
+    return { page, limit, start, end };
+}
+
+function _buildDBYtBuns(db){
+    return db.data.videos.map( (v) => {
+        return v.timeline.map( (t) => {
+            return {
+                ...t,
+                title : v.title,
+                src : v.src
+            }
+        })
+    }).flat();
+}
+
+function _buildDBJoinData(db){
+    let ytBuns = _buildDBYtBuns(db);
+    
+    let joinData = db.data.tango.map( (v) => {
+        return {
+            ...v,
+            hukumus : _.toArray( _.groupBy( db.data.hukumu
+                .filter( (hu) => hu.tId == v.tId )
+                .map( (hu) => { 
+                    let _ja = db.data.jaBuns.find( (ja) => ja.jaBId == hu.jaBId);
+                    let _ytBun = ytBuns.find( (yt) => yt.ytBId == _ja.ytBId);
+                    return {
+                        ...hu,
+                        ...db.data.hyouki.find( (hy) => hy.hyId == hu.hyId),
+                        ...( hu.iId != null ? { imi : db.data.imi.find( (v) => v.iId == hu.iId ).koText } : {} ),
+                        ..._ja,
+                        ...db.data.koBuns.find( (ko) => ko.koBId == _ytBun.koBId),
+                        ..._ytBun,
+                        kanjis : db.data.komu.filter( (km) => km.hyId == hu.hyId )
+                            .map( (km) => 
+                                db.data.kanji.find( (k) => k.kId == km.kId)
+                            ),
+                    }
+                }), "hyId") )
+        }
+    })
+    .map( (v) => {
+        return {
+            ...v,
+            hukumus : v.hukumus.map( (hu) => _.toArray( _.groupBy(hu, "src") ) )
+        }
+    })
+
+
+    return _.sortBy( joinData, (v) => v.hukumus[0][0][0].yomi);
+}
+
+function _buildDBTextJoinData(db){
+    const index = _buildDBHukumuIndex(db);
+
+    let joinData = db.data.videos.map( (v) => {
+        return v.timeline.map( (t) => {
+            let ja = db.data.jaBuns.find( (j) => j.jaBId == t.jaBId );
+            let ko = db.data.koBuns.find( (k) => k.koBId == t.koBId );
+            let searchData = _getJaTextSearchData(index, ja);
+
+            return {
+                ...ja,
+                ...ko,
+                ...searchData,
+                title : v.title,
+                src : v.src,
+                reading : 'loading...'
+            }
+        })
+    }).flat();
+
+    return joinData;
+}
+
+async function _hydrateDBPageData(db, pagedData){
+    for( let obj of pagedData ){
+        for( let hyouki of obj.hukumus ){
+            for( let video of hyouki ){
+                for( let ja of video ){
+                    ja.hukumus = await db_module.getHukumu(db, ja.jaBId)
+                    ja.jaTextData = _convertJaTextToTextData(ja.hukumus, ja.jaText)
+                    ja.reading = 'loading...'
+                }
+            }
+        }
+    }
+
+    return pagedData;
 }
 
 async function getDBAll(req, res){
     await db_connection(req, res, async(db) => {
-        let { keyword, imiKeyword } = req.query;
+        const { page, limit, start, end } = _getDBPagination(req.query);
 
-        //추후 조건 필요
-        //search 후의 sort조건까지
-        //한자 활용 방안 찾기
+        const joinData = _buildDBJoinData(db);
+        let pagedData = joinData.slice(start, end);
 
-        let _cond_hyouki = (v) => {
-            if(keyword !== undefined ){
-                let _comp = v.hukumus.map( (s) => s[0][0] );
-                let _hyoukis = _comp.map( (s) => s.hyouki);
-                let _yomis = _comp.map( (s) => s.yomi);
-                let _imis = _comp.map( (s) => s.imi).filter( (s) => s != undefined );
-                if(imiKeyword !== undefined ){
-                    return _hyoukis.filter( (s) => s.includes(keyword) == true ).length > 0 ||
-                        _yomis.filter( (s) => s.includes(keyword) == true ).length > 0 ||
-                        _imis.filter( (s) => s.includes(imiKeyword) == true ).length > 0
-                }
-                else{
-                    return _hyoukis.filter( (s) => s.includes(keyword) == true ).length > 0 ||
-                        _yomis.filter( (s) => s.includes(keyword) == true ).length > 0
-                }
-            }
-
-            return true;
-        }
-
-        let ytBuns = db.data.videos.map( (v) => {
-            return v.timeline.map( (t) => {
-                return {
-                    ...t,
-                    title : v.title,
-                    src : v.src
-                }
-            })
-        }).flat();
-        
-        let joinData = db.data.tango.map( (v) => {
-            return {
-                ...v,
-                hukumus : _.toArray( _.groupBy( db.data.hukumu
-                    .filter( (hu) => hu.tId == v.tId )
-                    .map( (hu) => { 
-                        let _ja = db.data.jaBuns.find( (ja) => ja.jaBId == hu.jaBId);
-                        let _ytBun = ytBuns.find( (yt) => yt.ytBId == _ja.ytBId);
-                        return {
-                            ...hu,
-                            ...db.data.hyouki.find( (hy) => hy.hyId == hu.hyId),
-                            ...( hu.iId != null ? { imi : db.data.imi.find( (v) => v.iId == hu.iId ).koText } : {} ),
-                            ..._ja,
-                            ...db.data.koBuns.find( (ko) => ko.koBId == _ytBun.koBId),
-                            ..._ytBun,
-                            kanjis : db.data.komu.filter( (km) => km.hyId == hu.hyId )
-                                .map( (km) => 
-                                    db.data.kanji.find( (k) => k.kId == km.kId)
-                                ),
-                        }
-                    }), "hyId") )
-            }
-        })
-        .map( (v) => {
-            return {
-                ...v,
-                hukumus : v.hukumus.map( (hu) => _.toArray( _.groupBy(hu, "src") ) )
-            }
-        }).filter( (v) => _cond_hyouki(v) )
-
-        //sort
-        joinData = _.sortBy( joinData, (v) => v.hukumus[0][0][0].yomi);
-
-        for( let obj of joinData ){
-            for( let hyouki of obj.hukumus ){
-                for( let video of hyouki ){
-                    for( let ja of video ){
-                        ja.hukumus = await db_module.getHukumu(db, ja.jaBId)
-                        ja.jaTextData = _convertJaTextToTextData(ja.hukumus, ja.jaText)
-                        ja.reading = await _addReading(ja.jaText);
-                    }
-                }
-            }
-        }
+        await _hydrateDBPageData(db, pagedData);
 
         res.send({
             message : 'success',
-            data : joinData
+            data : {
+                db : pagedData,
+                pagination : {
+                    page : page,
+                    limit : limit,
+                    total : joinData.length
+                }
+            }
         })
     })
 }
 
-// 아마 문장 검색만들다 만듯?
-async function getDBJaBun(req, res){
-    await db_connection(req, res, async(db) => {
-        let { keyword, imiKeyword } = req.query;
+async function getReading(req, res){
 
-        let ytBuns = db.data.videos.map( (v) => {
-            return v.timeline.map( (t) => {
-                return {
-                    ...t,
-                    title : v.title,
-                    src : v.src
-                }
-            })
-        }).flat();
+    let { jaText } = req.query;
 
-        joinData = ytBuns.map( (v) => {
+    let reading = await _addReading(jaText);
+    
+    res.send({
+        message : 'success',
+        data : reading
+    })
+}
+
+function _filter_hyouki_yomi(v, keyword){
+    if(keyword !== undefined ){
+        let _comp = v.hukumus.map( (s) => s[0][0] );
+        let _hyoukis = _comp.map( (s) => s.hyouki);
+        let _yomis = _comp.map( (s) => s.yomi);
+
+        return _hyoukis.filter( (s) => s.includes(keyword) == true ).length > 0 ||
+                _yomis.filter( (s) => s.includes(keyword) == true ).length > 0
+    }
+
+    return true;
+}
+
+function _filter_hyouki(v, keyword){
+    if(keyword !== undefined){
+        let _comp = v.hukumus.map( (s) => s[0][0] );
+        let _hyoukis = _comp.map( (s) => s.hyouki);
+
+        return _hyoukis.filter( (s) => s.includes(keyword) == true ).length > 0
+    }
+
+    return true;
+}
+
+function _filter_yomi(v, keyword){
+    if(keyword !== undefined){
+        let _comp = v.hukumus.map( (s) => s[0][0] );
+        let _yomis = _comp.map( (s) => s.yomi);
+
+        return _yomis.filter( (s) => s.includes(keyword) == true ).length > 0
+    }
+
+    return true;
+}
+
+function _filter_imi(v, keyword){
+    if(keyword !== undefined){
+        let _comp = v.hukumus.map( (s) => s[0][0] );
+        let _imis = _comp.map( (s) => s.imi).filter( (s) => s != undefined );
+
+        return _imis.filter( (s) => s.includes(keyword) == true ).length > 0
+    }
+
+    return true;
+}
+
+function _buildDBHukumuIndex(db){
+    return {
+        hukumuByJaBId : _.groupBy(db.data.hukumu, "jaBId"),
+        hyoukiByHyId : new Map(db.data.hyouki.map( (v) => [v.hyId, v] ))
+    }
+}
+
+function _getHukumuFromIndex(index, jaBId){
+    return (index.hukumuByJaBId[jaBId] ?? [])
+        .map( (hu) => {
+            let hyouki = index.hyoukiByHyId.get(hu.hyId);
+            if( hyouki === undefined ){ return undefined; }
+
             return {
-                ...v,
-                jaBuns : db.data.jaBuns.filter( (ja) => ja.ytBId == v.ytBId ),
-                koBuns : db.data.koBuns.filter( (ko) => ko.ytBId == v.ytBId )
+                ...hu,
+                ...hyouki
             }
         })
+        .filter( (v) => v !== undefined )
+        .sort( (a, b) => a.startOffset - b.startOffset );
+}
 
-        joinData = _.toArray( _.groupBy(joinData, "src") )
+function _getJaTextSearchData(index, ja){
+    let hukumus = _getHukumuFromIndex(index, ja.jaBId);
+    let jaTextData = _convertJaTextToTextData(hukumus, ja.jaText);
+    let ruby = jaTextData
+        .map( (v) => v.ruby === null ? v.data : v.ruby )
+        .join('');
+
+    return { hukumus, jaTextData, ruby };
+}
+
+function _filter_jaText(db, joinData, keyword){
+    return _.toArray( _.groupBy( joinData.filter( (v) => v.ruby.includes(keyword) || v.jaText.includes(keyword) ), "src") )
+        .map( (v) => { return { buns : v, src : v[0].src } });
+}
+
+function _filter_koText(db, joinData, keyword){
+    return _.toArray( _.groupBy( joinData.filter( (v) => v.koText !== undefined && v.koText.includes(keyword) ), "src") )
+        .map( (v) => { return { buns : v, src : v[0].src } });
+}
+
+async function getDBSearch(req, res){
+    await db_connection(req, res, async(db) => {
+        const { type, keyword } = req.query;
+
+        const { page, limit, start, end } = _getDBPagination(req.query);
+
+        // search 후의 sort조건까지
+
+        let joinData = _buildDBJoinData(db);
+        let pagedData;
+        if( type !== 'jaText' && type !== 'koText' ){
+            joinData = joinData.filter( (v) => {
+                switch(type){
+                    case 'auto' : 
+                        return _filter_hyouki_yomi(v, keyword);
+                        break;
+                    case 'hyouki' :
+                        return _filter_hyouki(v, keyword);
+                        break;
+                    case 'yomi' :
+                        return _filter_yomi(v, keyword);
+                        break;
+                    case 'imi' :
+                        return _filter_imi(v, keyword);
+                        break;
+                    default :
+                        return _filter_hyouki_yomi(v, keyword);
+                        break;
+                }
+            });
+
+            pagedData = joinData.slice(start, end);
+
+            await _hydrateDBPageData(db, pagedData);
+        }
+        else{
+            joinData = _buildDBTextJoinData(db);
+
+            switch(type){
+                case 'jaText' :
+                    joinData = _filter_jaText(db, joinData, keyword);
+                    break;
+                case 'koText' :
+                    joinData = _filter_koText(db, joinData, keyword);
+                    break;
+            }
+
+            pagedData = joinData.slice(start, end);
+        }
+
+        res.send({
+            message : 'success',
+            data : {
+                db : pagedData,
+                type : type,
+                pagination : {
+                    page : page,
+                    limit : limit,
+                    total : joinData.length
+                }
+            }
+        })
     })
 }
 
@@ -758,6 +890,10 @@ router.post('/captionToBuns', captionToBuns);
 router.get('/share', getShare);
 router.get('/json', getExportJson);
 
+//DB Page
 router.get('/all', getDBAll);
+router.get('/search', getDBSearch)
+
+router.get('/reading', getReading);
 
 export default router;
