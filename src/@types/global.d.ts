@@ -967,6 +967,8 @@ declare global {
     }
     RANGE_OPTIONS : string[];
     LIGHT_OPTIONS : string[];
+    LABEL_PRESET : string;
+    FONTS_PRESETS : string[];
   }
 
   export interface YoutubeGridComp {
@@ -1467,6 +1469,14 @@ declare global {
   export interface db_tango_data {
     tId : string;
     hukumus : db_hukumu_data[][][];
+    match? : {
+      type : 'hyouki' | 'yomi' | 'imi';
+      start : number;
+      end : number;
+      hyoukiIndex : number;
+      videoIndex : number;
+      bunIndex : number;
+    };
   }
 
   export type db_all = db_tango_data[];
@@ -1485,6 +1495,12 @@ declare global {
     jaTextData : TextData[];    
     hukumus : HukumuData[];
     reading : string;
+    match : {
+      type : 'jaText' | 'koText';
+      matchType : 'hukumu' | 'text' | 'etc';
+      start : number;
+      end : number;
+    };
   }
 
   export interface db_video_data {

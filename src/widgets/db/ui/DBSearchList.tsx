@@ -18,6 +18,7 @@ const PAGE_SIZE_OPTION = [10, 50, 100];
 export const DBSearchList = () => {
     //State
     const [list, setList] = useState<db_all | db_all_text>([]);
+    const [page, setPage] = useState<number>(1);
     const [totalPage, setTotalPage] = useState<number | null>(null);
     const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTION[0]);
     const [searchType, setSearchType] = useState<SearchType>('auto');
@@ -46,8 +47,11 @@ export const DBSearchList = () => {
         let res = response;
         if(res !== null){
             setList(res.data.db);
+            setPage(res.data.pagination.page);
             setTotalPage(res.data.pagination.total);
             setSearchType(res.data.type);
+
+            console.log(res.data);
         }
     }, [response])
 
@@ -75,7 +79,7 @@ export const DBSearchList = () => {
                 <>
                     <Affix offsetTop={0}>
                         <Flex justify='center' style={{ backgroundColor : '#000000'}}>     
-                            <Pagination align='center' showSizeChanger defaultCurrent={1} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTION} total={totalPage} onChange={onChange} onShowSizeChange={onShowSizeChange}/>
+                            <Pagination align='center' showSizeChanger current={page} pageSize={pageSize} pageSizeOptions={PAGE_SIZE_OPTION} total={totalPage} onChange={onChange} onShowSizeChange={onShowSizeChange}/>
                         </Flex>
                     </Affix>
                     {

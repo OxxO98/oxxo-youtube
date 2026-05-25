@@ -5,6 +5,9 @@ import { isHotkeyPressed } from 'react-hotkeys-hook'
 //api
 import { useHandleShare } from '../api/useHandleShare';
 
+//lib
+import type { SharePreset } from '../lib/useShare';
+
 //ui
 import { SharedRangeBun } from './SharedRangeBun';
 
@@ -18,7 +21,7 @@ import { VideoContext } from 'shared/contexts/VideoContext';
 import { useAxiosGet, useAxiosPost } from 'shared/hooks/useAxios';
 
 //CSS@Antd
-import { Modal, Input, Button, Slider, Flex, Dropdown } from 'antd';
+import { Modal, Input, Button, Slider, Flex, Dropdown, Select, Space } from 'antd';
 import { ShareAltOutlined, DownOutlined, CloudUploadOutlined } from '@ant-design/icons'
 
 const ShareModalComp = () => {
@@ -26,12 +29,23 @@ const ShareModalComp = () => {
     //i18n
     const { t } = useTranslation('SharedModalComp');
 
+    const PRESET_OPTIONS : { value : SharePreset, label : string }[] = [
+        { value : 0, label : t('FONTS_PRESETS.0') },
+        { value : 1, label : t('FONTS_PRESETS.1') },
+        { value : 2, label : t('FONTS_PRESETS.2') },
+        { value : 3, label : t('FONTS_PRESETS.3') },
+        { value : 4, label : t('FONTS_PRESETS.4') },
+        { value : 5, label : t('FONTS_PRESETS.5') },
+        { value : 6, label : t('FONTS_PRESETS.6') }
+    ];
+
     //Context
     const { videoId } = useContext(VideoContext);
 
     //State
     const [bunIds, setBunIds] = useState<RES_SHARE[] | null>(null);
     const [range, setRange] = useState<number[] | null>(null);
+    const [preset, setPreset] = useState<SharePreset>(0);
     const [userId, setUserId] = useState<string | null>(null);
     const [json, setJson] = useState<JSON_DATA[] | null>(null);
 
@@ -58,7 +72,7 @@ const ShareModalComp = () => {
         handleGetShort,
         handleLightMenuClick,
         handleRangeMenuClick
-    } = useHandleShare(videoId, bunIds, range, userId, json, () => setIsModalOpen(false), setParamsUserId);
+    } = useHandleShare(videoId, bunIds, range, preset, userId, json, () => setIsModalOpen(false), setParamsUserId);
 
     const showModal = () => {
         setParams({ videoId : videoId });
@@ -91,7 +105,6 @@ const ShareModalComp = () => {
     useEffect( () => {
         if(jsonBunIds !== null){
             let _json = jsonBunIds.map( (v) => {
-                console.log(v);
                 return {
                     'startTime' : v.startTime,
                     'endTime' : v.endTime,
@@ -166,7 +179,19 @@ const ShareModalComp = () => {
                         </Flex>
                     </> 
                 }
-                <Input.TextArea style={{ marginBottom : '16px'}} autoSize={{ minRows : 2, maxRows : 10 }} value={`${BASE_URL}?a=${url}`} count={{ show : true, max : COPY_MAX}}/>
+                <Input.TextArea style={{ marginBottom : '32px'}} autoSize={{ minRows : 2, maxRows : 10 }} value={`${BASE_URL}?a=${url}`} count={{ show : true, max : COPY_MAX}}/>
+                <Flex
+                    justify='flex-start' gap={16}
+                    style={{ width : '100%', padding : '0 16px', marginBottom : '16px' }}
+                >
+                    <Space>{t('LABEL_PRESET')}</Space>
+                    <Select<SharePreset>
+                        style={{ minWidth : '128px'}}
+                        value={preset}
+                        options={PRESET_OPTIONS}
+                        onChange={setPreset}
+                    />
+                </Flex>
             </Modal>
         </>
     )

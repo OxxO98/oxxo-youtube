@@ -13,6 +13,7 @@ import { useJaText } from 'shared/lib/useJaText';
 
 //lib
 import { useShare } from '../lib/useShare'
+import type { SharePreset } from '../lib/useShare'
 
 //api
 import { useMessageApi } from '../api/useMessageApi';
@@ -30,6 +31,7 @@ export function useHandleShare(
     videoId : string,
     bunIds : RES_SHARE[] | null,
     range : number[] | null,
+    preset : SharePreset,
     userId : string | null,
     json : JSON_DATA[] | null,
     handleOk : () => void,
@@ -55,7 +57,7 @@ export function useHandleShare(
     ), [unicodeRange.kanji])
 
     //lib
-    const { _getEncoded, _getEncodedLight, _findRange, _findRangeLight} = useShare(videoId, bunIds, setUrl, range);
+    const { _getEncoded, _getEncodedLight, _findRange, _findRangeLight} = useShare(videoId, bunIds, setUrl, range, preset);
 
     //api
     const { contextHolder, success, error } = useMessageApi();
@@ -142,11 +144,15 @@ export function useHandleShare(
 
     const handlePostLong = async () => {
         try {
+            if (bunIds === null) {
+                return;
+            }
+            
             let opt = userId === null ? {} : { userId : userId }
             
             axios.post(
                 API_POST_LONG,
-                { videoId : videoId, string : url, ...opt }
+                { videoId : videoId, string : _getEncoded(bunIds), ...opt }
             ).then( 
                 ( res ) => {
                     if( res.data.message === 'error'){ return }

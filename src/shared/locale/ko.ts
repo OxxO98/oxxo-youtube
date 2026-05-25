@@ -30,8 +30,9 @@ const SharedModalComp : Locale["SharedModalComp"] = {
         SAVE_CAPTION_KO : '한국어 자막으로 저장'
     },
     RANGE_OPTIONS : ['선택된 범위', '최대 범위'],
-    LIGHT_OPTIONS : ['전부', '일본어만', '한국어만']
-
+    LIGHT_OPTIONS : ['전부', '일본어만', '한국어만'],
+    LABEL_PRESET : '프리셋 선택',
+    FONTS_PRESETS : ['각진 고딕1', '각진 고딕2', '둥근 고딕', '손글씨1', '손글씨2', '도트1', '도트2']
 }
 
 const YoutubeGridComp : Locale["YoutubeGridComp"] = {

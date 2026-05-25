@@ -28,10 +28,12 @@ const SharedModalComp : Locale["SharedModalComp"] = {
         COPY_UPLOAD : 'アップロードしてシェアする',
         SAVE : 'JSON形式で保存',
         SAVE_CAPTION_JA : '日本語字幕で保存',
-        SAVE_CAPTION_KO : '韓国語字幕で保存'
+        SAVE_CAPTION_KO : '韓国語字幕で保存',
     },
     RANGE_OPTIONS : ['選択範囲', '最大範囲'],
-    LIGHT_OPTIONS : ['全部', '日本語だけ', '韓国語だけ']
+    LIGHT_OPTIONS : ['全部', '日本語だけ', '韓国語だけ'],
+    LABEL_PRESET : 'プリセット選択',
+    FONTS_PRESETS : ['ゴシック１', 'ゴシック２', '丸ゴシック', '手書き１', '手書き２', 'ドット１', 'ドット２']
 }
 
 const YoutubeGridComp : Locale["YoutubeGridComp"] = {

@@ -28,17 +28,29 @@ function useRender(){
     const navigate = useNavigate();
 
     const { HiraToKoNFC } = useJaText()
+
+    const getMatchedHukumu = (v : DBTangoDataType) => {
+        if( v.match !== undefined ){
+            return v.hukumus[v.match.hyoukiIndex][v.match.videoIndex][v.match.bunIndex];
+        }
+
+        return v.hukumus[0][0][0];
+    };
     
     //Tango
     const tango_all_col : TableColumnsType<DBTangoDataType> = [
         { 
             title : t('TANGO_COL.0.0'), key : 'hyouki', 
-            render : (v) => <ComplexText bId={null} data={v.hukumus[0][0][0].hyouki} ruby={v.hukumus[0][0][0].yomi} offset={0}/>,
+            render : (v) => {
+                let hukumu = getMatchedHukumu(v);
+
+                return <ComplexText bId={null} data={hukumu.hyouki} ruby={hukumu.yomi} offset={0}/>;
+            },
             width : '20%'
         },
         { 
             title : t('TANGO_COL.0.1'), key : 'imi', 
-            render : (v) => v.hukumus[0][0][0].imi ?? '',
+            render : (v) => getMatchedHukumu(v).imi ?? '',
             width : '20%'
         },
         { 
@@ -139,16 +151,36 @@ function useRender(){
             width : '10%'
         }
     ]
-    
+
     const text_bun_col : TableColumnsType<DBTextDataType> = [
         { 
             title : t('TEXT_COL.1.0'), key : 'jaText',
-            render : (v) => v.jaText,
+            render : (v) => v.match.type === 'jaText' ?
+                <div>
+                    {v.jaText.substring(0, v.match.start)}
+                    <span className="bold highlight">
+                    {v.jaText.substring(v.match.start, v.match.end)}
+                    </span>
+                    {v.jaText.substring(v.match.end)}
+                </div>
+                :
+                v.jaText
+            ,
             width : '30%'
         },
         { 
             title : t('TEXT_COL.1.1'), key : 'koText',
-            render : (v) => <div>{v.koText ?? ''}</div>,
+            render : (v) => v.match.type === 'koText' ?
+                <div>
+                    {v.koText.substring(0, v.match.start)}
+                    <span className="bold highlight">
+                    {v.koText.substring(v.match.start, v.match.end)}
+                    </span>
+                    {v.koText.substring(v.match.end)}
+                </div>
+                :
+                <div>{v.koText ?? ''}</div>
+            ,
             width : '30%'
         },
         {
@@ -217,7 +249,7 @@ function useRender(){
             sticky={true}
             size="small"
             columns={text_bun_col}
-            style={{ marginBottom : v.length-1 == i ? 0 : DB_TABLE_MARGIN }}
+            style={{ marginBottom : DB_TABLE_MARGIN }}
             expandable={{ 
                 expandedRowRender : (_, i) => text_hyouki_render(_, v.length-1 == i ? 0 : DB_TABLE_MARGIN), 
                 rowExpandable: (record) => record.hukumus.length > 0

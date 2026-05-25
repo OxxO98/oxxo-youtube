@@ -9,6 +9,7 @@ import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 import { COPY_MAX } from '../config/share-config';
 
 type opt = 'both' | 'ja' | 'ko'
+export type SharePreset = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export type getEncoded = ( arr : RES_SHARE[], start? : number, end? : number ) => string;
 export type getEncodedLight = ( arr : RES_SHARE[], start? : number, end? : number, opt? : opt ) => string;
@@ -20,6 +21,7 @@ export function useShare(
     bunIds : RES_SHARE[] | null,
     setUrl : ( url : string ) => void,
     range : number[] | null,
+    preset : SharePreset,
 ){
     const _getEncoded : getEncoded = useCallback( ( arr : RES_SHARE[], start : number = 0, end : number = arr.length ) => {
         let sharedTimeline = arr.slice(start, end+1).map( (v) => {
@@ -33,7 +35,10 @@ export function useShare(
 
         let shared = {
             v : videoId,
-            t : sharedTimeline
+            t : sharedTimeline,
+            s : {
+                p : preset
+            }
         }
 
         let stringify = JSON.stringify(shared)
@@ -41,7 +46,7 @@ export function useShare(
         let compressed = LZstring.compressToEncodedURIComponent(stringify);
 
         return compressed;
-    }, [videoId]);
+    }, [videoId, preset]);
 
     const _getEncodedLight : getEncodedLight = useCallback( ( arr : RES_SHARE[], start : number = 0, end : number = arr.length, opt : opt = 'both' ) => {
         const _returnOpt = ( v : RES_SHARE ) => {

@@ -755,13 +755,81 @@ function _filter_yomi(v, keyword){
 
 function _filter_imi(v, keyword){
     if(keyword !== undefined){
-        let _comp = v.hukumus.map( (s) => s[0][0] );
+        let _comp = v.hukumus.flat(2);
         let _imis = _comp.map( (s) => s.imi).filter( (s) => s != undefined );
 
         return _imis.filter( (s) => s.includes(keyword) == true ).length > 0
     }
 
     return true;
+}
+
+const TANGO_MATCH_TYPE_ORDER = {
+    yomi : 0,
+    hyouki : 1,
+    imi : 2
+};
+
+function _addTangoMatch(v, type, keyword){
+    let _fields;
+
+    switch(type){
+        case 'hyouki' :
+            _fields = ['hyouki'];
+            break;
+        case 'yomi' :
+            _fields = ['yomi'];
+            break;
+        case 'imi' :
+            _fields = ['imi'];
+            break;
+        default :
+            _fields = ['hyouki', 'yomi'];
+            break;
+    }
+
+    let _matches = [];
+    let _addMatch = (data, field, hyoukiIndex, videoIndex, bunIndex) => {
+        if( typeof data[field] !== 'string' || data[field].includes(keyword) !== true ){
+            return;
+        }
+
+        let _start = data[field].indexOf(keyword);
+
+        _matches.push({
+            type : field,
+            start : _start,
+            end : _start + keyword.length,
+            hyoukiIndex : hyoukiIndex,
+            videoIndex : videoIndex,
+            bunIndex : bunIndex
+        });
+    };
+
+    _fields.forEach( (field) => {
+        v.hukumus.forEach( (hyouki, hyoukiIndex) => {
+            if( field === 'imi' ){
+                hyouki.forEach( (video, videoIndex) => {
+                    video.forEach( (bun, bunIndex) => {
+                        _addMatch(bun, field, hyoukiIndex, videoIndex, bunIndex);
+                    });
+                });
+            }
+            else{
+                _addMatch(hyouki[0][0], field, hyoukiIndex, 0, 0);
+            }
+        });
+    });
+
+    let _match = _.sortBy( _matches, [
+        (m) => TANGO_MATCH_TYPE_ORDER[m.type],
+        (m) => m.start,
+        (m) => m.hyoukiIndex,
+        (m) => m.videoIndex,
+        (m) => m.bunIndex
+    ])[0];
+
+    return { ...v, match : _match };
 }
 
 function _buildDBHukumuIndex(db){
@@ -796,13 +864,106 @@ function _getJaTextSearchData(index, ja){
     return { hukumus, jaTextData, ruby };
 }
 
+const MATCH_TYPE_ORDER = {
+    hukumu: 0,
+    text: 1,
+    etc: 2
+};
+
 function _filter_jaText(db, joinData, keyword){
-    return _.toArray( _.groupBy( joinData.filter( (v) => v.ruby.includes(keyword) || v.jaText.includes(keyword) ), "src") )
+    return _.toArray( 
+            _.groupBy( 
+                _.sortBy( 
+                    joinData
+                    .filter( (v) => v.ruby.includes(keyword) || v.jaText.includes(keyword) )
+                    .map( (v) => {
+                        let _match_jaText = [...v.jaText.matchAll(`${keyword}`, 'g')]
+                            .map( (_) => _.index );
+                        let _match_ruby = [...v.ruby.matchAll(`${keyword}`, 'g')]
+                            .map( (_) => _.index );
+                        let _match_hukumus = v.hukumus.filter( (_) => _.hyouki.includes(keyword) || _.yomi.includes(keyword) )
+                            .map( (_) => [_.startOffset, _.endOffset] ).flat();
+                        let _matchType = _match_hukumus.length > 0 ? 'hukumu' : _match_jaText.length > 0 ? 'text' : 'etc';
+                        let _start, _end;
+                        if( _matchType === 'hukumu' ){
+                            _start = _match_hukumus[0]
+                            _end = _match_hukumus[1]
+                        }
+                        else if( _matchType === 'text'){
+                            _start = _match_jaText[0]
+                            _end = _match_jaText[0] + keyword.length
+                        }
+                        else{
+                            let _ruby_start = _match_ruby[0];
+                            let _ruby_end = _ruby_start + keyword.length;
+                            let _ruby_offset = 0;
+
+                            let _ranges = v.jaTextData.map( (td) => {
+                                let _text = td.ruby === null ? td.data : td.ruby;
+                                let _text_start = _ruby_offset;
+                                let _text_end = _text_start + _text.length;
+                                _ruby_offset = _text_end;
+
+                                if( _text_start >= _ruby_end || _text_end <= _ruby_start ){
+                                    return undefined;
+                                }
+
+                                if( td.ruby !== null ){
+                                    let _hukumu = v.hukumus.find( (hu) =>
+                                        hu.startOffset <= td.offset && td.offset < hu.endOffset
+                                    );
+
+                                    if( _hukumu !== undefined ){
+                                        return [ _hukumu.startOffset, _hukumu.endOffset ];
+                                    }
+
+                                    return [ td.offset, td.offset + td.data.length ];
+                                }
+
+                                let _overlap_start = Math.max(_ruby_start, _text_start);
+                                let _overlap_end = Math.min(_ruby_end, _text_end);
+
+                                return [
+                                    td.offset + (_overlap_start - _text_start),
+                                    td.offset + (_overlap_end - _text_start)
+                                ];
+                            }).filter( (range) => range !== undefined );
+
+                            _start = Math.min(..._ranges.map( (range) => range[0] ));
+                            _end = Math.max(..._ranges.map( (range) => range[1] ));
+                        }
+
+                        return {
+                            ...v, match : {
+                                type : 'jaText',
+                                matchType : _matchType,
+                                start : _start,
+                                end : _end,
+                            }
+                        }
+                    })
+                , [ (o) => MATCH_TYPE_ORDER[o.match.matchType], (o) => o.match.start ])
+            , "src") 
+        )
         .map( (v) => { return { buns : v, src : v[0].src } });
 }
 
 function _filter_koText(db, joinData, keyword){
-    return _.toArray( _.groupBy( joinData.filter( (v) => v.koText !== undefined && v.koText.includes(keyword) ), "src") )
+    return _.toArray( _.groupBy( 
+            _.sortBy(
+                joinData.filter( (v) => v.koText !== undefined && v.koText.includes(keyword) )
+                    .map( (v) => {
+                        return {
+                            ...v, match : {
+                                type : 'koText',
+                                matchType : 'text',
+                                start : v.koText.indexOf(keyword),
+                                end : v.koText.indexOf(keyword) + keyword.length,
+                            }
+                        }
+                    })
+            , [ (o) => o.match.start ])
+        , "src") )
         .map( (v) => { return { buns : v, src : v[0].src } });
 }
 
@@ -814,9 +975,10 @@ async function getDBSearch(req, res){
 
         // search 후의 sort조건까지
 
-        let joinData = _buildDBJoinData(db);
+        let joinData;
         let pagedData;
         if( type !== 'jaText' && type !== 'koText' ){
+            joinData = _buildDBJoinData(db);
             joinData = joinData.filter( (v) => {
                 switch(type){
                     case 'auto' : 
@@ -836,6 +998,16 @@ async function getDBSearch(req, res){
                         break;
                 }
             });
+
+            if( keyword !== undefined ){
+                joinData = _.sortBy(
+                    joinData.map( (v) => _addTangoMatch(v, type, keyword) ),
+                    [
+                        (v) => TANGO_MATCH_TYPE_ORDER[v.match.type],
+                        (v) => v.match.start
+                    ]
+                );
+            }
 
             pagedData = joinData.slice(start, end);
 
