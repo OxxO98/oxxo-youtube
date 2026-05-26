@@ -35,8 +35,9 @@ export const DBSearchList = () => {
         let params = new URLSearchParams(search);
         let type = params.get('type');
         let keyword = params.get('keyword');
+        let sort = params.get('sort');
         
-        navigate(`/db/search/${page}?type=${type}&keyword=${keyword}`)
+        navigate(`/db/search/${page}?type=${type}&keyword=${keyword}&sort=${sort}`)
     }
     
     const onShowSizeChange: PaginationProps['onShowSizeChange'] = (current, pageSize) => {
@@ -63,9 +64,10 @@ export const DBSearchList = () => {
         let params = new URLSearchParams(search);
         let type = params.get('type');
         let keyword = params.get('keyword');
+        let sort = params.get('sort');
 
-        if( keyword === null || page === null || type == null ){ return }
-        setParams({ type : type, keyword : keyword, page : Number(page[1]), limit : pageSize })
+        if( keyword === null || page === null || type == null || sort == null ){ return }
+        setParams({ type : type, keyword : keyword, page : Number(page[1]), limit : pageSize, sort : sort })
     }, [location, setParams])
 
     return(

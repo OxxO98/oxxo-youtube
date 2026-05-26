@@ -659,6 +659,7 @@ function _buildDBTextJoinData(db){
                 ...searchData,
                 title : v.title,
                 src : v.src,
+                lastEditTime : v.lastEditTime ?? null,
                 reading : 'loading...'
             }
         })
@@ -770,7 +771,31 @@ const TANGO_MATCH_TYPE_ORDER = {
     imi : 2
 };
 
-function _addTangoMatch(v, type, keyword){
+function _getSort(sort){
+
+    let iteratees = {
+        'auto' : [ 
+            (o) => TANGO_MATCH_TYPE_ORDER[o.match.type], (o) => o.match.start 
+        ],
+        'asc' : [
+            (o) => o.match.start
+        ],
+        'desc' : [
+            (o) => o.match.last
+        ],
+        'asc_amt' : [
+            (o) => o.hukumus.length
+        ],
+        'desc_amt' : [
+            (o) => -o.hukumus.length
+        ],
+        'default' : [0]
+    }
+
+    return { iteratees : iteratees[sort] }
+}
+
+function _addTangoMatch(v, type, keyword, sort){
     let _fields;
 
     switch(type){
@@ -788,6 +813,14 @@ function _addTangoMatch(v, type, keyword){
             break;
     }
 
+    let iteratees = sort === 'asc' ? 
+        [(m) => m.start]
+        :
+        sort === 'desc' ?
+            [(m) => m.last] 
+            : 
+            [(m) => TANGO_MATCH_TYPE_ORDER[m.type], (m) => m.start]
+
     let _matches = [];
     let _addMatch = (data, field, hyoukiIndex, videoIndex, bunIndex) => {
         if( typeof data[field] !== 'string' || data[field].includes(keyword) !== true ){
@@ -800,6 +833,7 @@ function _addTangoMatch(v, type, keyword){
             type : field,
             start : _start,
             end : _start + keyword.length,
+            last : data[field].length - ( _start + keyword.length ),
             hyoukiIndex : hyoukiIndex,
             videoIndex : videoIndex,
             bunIndex : bunIndex
@@ -822,8 +856,7 @@ function _addTangoMatch(v, type, keyword){
     });
 
     let _match = _.sortBy( _matches, [
-        (m) => TANGO_MATCH_TYPE_ORDER[m.type],
-        (m) => m.start,
+        ...iteratees,
         (m) => m.hyoukiIndex,
         (m) => m.videoIndex,
         (m) => m.bunIndex
@@ -870,8 +903,65 @@ const MATCH_TYPE_ORDER = {
     etc: 2
 };
 
-function _filter_jaText(db, joinData, keyword){
+function _getSortText(sort, locale){
+    let fields = ['auto', 'default'];
+
+    switch(sort){
+        case 'auto' :
+            fields = ['auto', 'default']
+            break;
+        case 'asc' :
+            fields = ['asc', 'default']
+            break;
+        case 'desc' :
+            fields = ['desc', 'default']
+            break;
+        case 'asc_amt' :
+            fields = ['auto', 'asc_amt']
+            break;
+        case 'desc_amt' :
+            fields = ['auto', 'desc_amt']
+            break;
+        case 'video' :
+            fields = ['auto', 'video']
+            break;
+        default :
+            fields = ['auto', 'default']
+            break;
+    }
+
+    let iteratees = {
+        'auto' : locale === 'ja' ? 
+            [ (o) => MATCH_TYPE_ORDER[o.match.matchType], (o) => o.match.start ]
+            :
+            [ (o) => o.match.start ],
+        'asc' : [
+            (o) => o.match.start
+        ],
+        'desc' : [
+            (o) => o.match.last
+        ],
+        'asc_amt' : [
+            (o) => o.length
+        ],
+        'desc_amt' : [
+            (o) => -o.length
+        ],
+        'video' : [
+            (o) => -o[0].lastEditTime ?? 0
+        ],
+        'default' : [0]
+    }
+
+    return { iteratees, fields }
+}
+
+function _filter_jaText(db, joinData, keyword, sort){
+
+    const { iteratees, fields } = _getSortText(sort, 'ja');
+
     return _.toArray( 
+        _.sortBy(
             _.groupBy( 
                 _.sortBy( 
                     joinData
@@ -939,41 +1029,49 @@ function _filter_jaText(db, joinData, keyword){
                                 matchType : _matchType,
                                 start : _start,
                                 end : _end,
+                                last : v.jaText.length-_end
                             }
                         }
                     })
-                , [ (o) => MATCH_TYPE_ORDER[o.match.matchType], (o) => o.match.start ])
+                , iteratees[fields[0]] )
             , "src") 
-        )
-        .map( (v) => { return { buns : v, src : v[0].src } });
+        , iteratees[fields[1]])
+    )
+    .map( (v) => { return { buns : v, src : v[0].src, lastEditTime : v[0].lastEditTime } });
 }
 
-function _filter_koText(db, joinData, keyword){
-    return _.toArray( _.groupBy( 
-            _.sortBy(
-                joinData.filter( (v) => v.koText !== undefined && v.koText.includes(keyword) )
-                    .map( (v) => {
-                        return {
-                            ...v, match : {
-                                type : 'koText',
-                                matchType : 'text',
-                                start : v.koText.indexOf(keyword),
-                                end : v.koText.indexOf(keyword) + keyword.length,
+function _filter_koText(db, joinData, keyword, sort){
+
+    const { iteratees, fields } = _getSortText(sort, 'ko');
+
+    return _.toArray( 
+        _.sortBy(
+            _.groupBy( 
+                _.sortBy(
+                    joinData.filter( (v) => v.koText !== undefined && v.koText.includes(keyword) )
+                        .map( (v) => {
+                            return {
+                                ...v, match : {
+                                    type : 'koText',
+                                    matchType : 'text',
+                                    start : v.koText.indexOf(keyword),
+                                    end : v.koText.indexOf(keyword) + keyword.length,
+                                    last : v.koText.length - ( v.koText.indexOf(keyword) + keyword.length )
+                                }
                             }
-                        }
-                    })
-            , [ (o) => o.match.start ])
-        , "src") )
-        .map( (v) => { return { buns : v, src : v[0].src } });
+                        })
+                , iteratees[fields[0]])
+            , "src") 
+        , iteratees[fields[1]]) )
+        .map( (v) => { return { buns : v, src : v[0].src } }
+    );
 }
 
 async function getDBSearch(req, res){
     await db_connection(req, res, async(db) => {
-        const { type, keyword } = req.query;
+        const { type, keyword, sort } = req.query;
 
         const { page, limit, start, end } = _getDBPagination(req.query);
-
-        // search 후의 sort조건까지
 
         let joinData;
         let pagedData;
@@ -1000,12 +1098,11 @@ async function getDBSearch(req, res){
             });
 
             if( keyword !== undefined ){
+                const { iteratees } = _getSort(sort);
+
                 joinData = _.sortBy(
-                    joinData.map( (v) => _addTangoMatch(v, type, keyword) ),
-                    [
-                        (v) => TANGO_MATCH_TYPE_ORDER[v.match.type],
-                        (v) => v.match.start
-                    ]
+                    joinData.map( (v) => _addTangoMatch(v, type, keyword, sort) ),
+                    iteratees
                 );
             }
 
@@ -1018,10 +1115,10 @@ async function getDBSearch(req, res){
 
             switch(type){
                 case 'jaText' :
-                    joinData = _filter_jaText(db, joinData, keyword);
+                    joinData = _filter_jaText(db, joinData, keyword, sort);
                     break;
                 case 'koText' :
-                    joinData = _filter_koText(db, joinData, keyword);
+                    joinData = _filter_koText(db, joinData, keyword, sort);
                     break;
             }
 
@@ -1033,6 +1130,7 @@ async function getDBSearch(req, res){
             data : {
                 db : pagedData,
                 type : type,
+                sort : sort,
                 pagination : {
                     page : page,
                     limit : limit,

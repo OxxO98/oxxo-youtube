@@ -736,6 +736,7 @@ declare global {
     keyword : string;
     page : number;
     limit : number;
+    sort? : string;
   }
 
   //공유하는 데이터
@@ -1396,6 +1397,7 @@ declare global {
 
   export interface DBPage {
     SELECT : string[];
+    SELECT_SORT : string[];
     TANGO_COL : string[][];
     TEXT_COL : string[][];
     BUTTON : {
@@ -1428,6 +1430,7 @@ declare global {
 
   //DB Page type
   export type SearchType = 'auto' | 'hyouki' | 'yomi' | 'imi' | 'jaText' | 'koText';
+  export type SortType = 'auto' | 'asc' | 'desc' | 'asc_amt' | 'desc_amt' | 'video';
 
   export interface db_kanji_data {
     kId : string;

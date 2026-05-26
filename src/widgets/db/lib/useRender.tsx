@@ -54,7 +54,7 @@ function useRender(){
             width : '20%'
         },
         { 
-            title : t('TANGO_COL.0.2'), key : 'sum', 
+            title : t('TANGO_COL.0.2'), key : 'sum_hyouki', 
             render : (v) => <Space>{ 
                 v.hukumus.map( (hu : db_hukumu_data[][]) => <ComplexText bId={null} data={hu[0][0].hyouki} ruby={hu[0][0].yomi} offset={0}/> )
             }</Space>,
