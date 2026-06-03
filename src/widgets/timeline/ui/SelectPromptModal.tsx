@@ -60,7 +60,7 @@ export const SelectPromptModal = ({ setPrompt } : SelectPromptModalProps) => {
         <>
             <Button type="primary"
                 onClick={showModal}
-                iconPosition='end'
+                iconPlacement='end'
                 loading={loading}
             >
                 {t('BUTTON.TITLE')}

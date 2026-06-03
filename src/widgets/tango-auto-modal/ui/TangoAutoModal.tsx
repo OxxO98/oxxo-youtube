@@ -169,7 +169,7 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
             >
                 {
                     step === 0 &&
-                    <Alert style={{ width : '100%' }} message={t('ALERT.MESSAGE')} description={
+                    <Alert style={{ width : '100%' }} title={t('ALERT.MESSAGE')} description={
                         <>
                             <div style={{ marginBottom : '16px' }}>{t('ALERT.DESCRIPTION')}</div>
                             <Flex gap={16}>

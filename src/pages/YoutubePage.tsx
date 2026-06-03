@@ -109,7 +109,7 @@ const YoutubePage = () => {
                                             <TimelineComp state={state} bIdRef={bIdRef} timelineHandles={timelineHandles} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles}/>
                                         }/>
                                         <Route path="/timeline" element={
-                                            <Splitter layout="vertical" style={SplitterStyle}>
+                                            <Splitter orientation="vertical" style={SplitterStyle}>
                                                 <Splitter.Panel defaultSize="16%" min="16%" max="30%">
                                                     <TangoComp refetchHandles={refetchHandles} refetchTangoList={refetchTangoList}/>
                                                 </Splitter.Panel>
@@ -130,7 +130,7 @@ const YoutubePage = () => {
                                                 </Splitter.Panel>
                                             </Splitter>}/>
                                         <Route path="/honyaku" element={
-                                            <Splitter layout="vertical" style={SplitterStyle}>
+                                            <Splitter orientation="vertical" style={SplitterStyle}>
                                                 <Splitter.Panel defaultSize="16%" min="16%" max="30%">
                                                     <ImiComp/>
                                                 </Splitter.Panel>

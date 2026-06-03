@@ -90,7 +90,7 @@ export const ModalEditVideo = ({ data, refetch } : ModalEditVideoProps ) => {
                     defaultValue={data.tags}
                 />
                 <Divider />
-                <Alert message={t('ALERT')} description={
+                <Alert title={t('ALERT')} description={
                     <ModalDeleteVideo videoId={data.src} refetch={refetch}/>
                 } type="error" showIcon icon={<WarningOutlined />}/>
             </Modal>

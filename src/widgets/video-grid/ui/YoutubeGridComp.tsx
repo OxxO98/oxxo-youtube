@@ -86,7 +86,7 @@ const YoutubeGridComp = () => {
         if( res !== null ){
             if(res.message === 'done'){
                 messageApi['success']({
-                    message: t('MESSAGE'),
+                    title: t('MESSAGE'),
                     description: t('DESCRIPTION'),
                     placement : 'bottomRight'
                 });

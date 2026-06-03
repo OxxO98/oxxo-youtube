@@ -159,7 +159,7 @@ const ShareModalComp = () => {
                     <Dropdown menu={{ items : lightItems, onClick : handleLightMenuClick }}>
                         <Button type='primary'>{t('BUTTON.COPY_LIGHT')}<DownOutlined /></Button>
                     </Dropdown>,
-                    <Button type='primary' onClick={() => handlePostLong()} icon={<CloudUploadOutlined />} iconPosition='end'>{t('BUTTON.COPY_UPLOAD')}</Button>,
+                    <Button type='primary' onClick={() => handlePostLong()} icon={<CloudUploadOutlined />} iconPlacement='end'>{t('BUTTON.COPY_UPLOAD')}</Button>,
                     <>{
                         url.length >= COPY_MAX || isHotkeyPressed('shift') ?
                         <Button type='primary' onClick={() => handleGetShort()}>{t('BUTTON.COPY')}</Button>

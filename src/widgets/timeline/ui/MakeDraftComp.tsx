@@ -148,7 +148,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                         <Button type="primary"
                             loading={state.transcript.loading}
                             onClick={showModal}
-                            iconPosition="end"
+                            iconPlacement="end"
                         >
                             {t('BUTTON.TITLE')}
                         </Button>
@@ -271,7 +271,7 @@ export const MakeDrftComp = ({ refetch, gotoTime, loading } : MakeDraftCompProps
                                         {
                                             isRevise &&
                                             <>
-                                                <Alert style={{ width : '100%' }} message={t('ALERT.MESSAGE')} description={
+                                                <Alert style={{ width : '100%' }} title={t('ALERT.MESSAGE')} description={
                                                     <>
                                                         <div>{t('ALERT.DESCRIPTION.0')}</div>
                                                         <div>{t('ALERT.DESCRIPTION.1')}</div>

@@ -27,6 +27,7 @@ module.exports = {
         manufacturer: 'OxxO',
         exe: 'oxxo_youtube.exe',
         icon : './public/favicon.ico',
+        upgradeCode : '702ff84e-d2e1-4bb5-8a15-ba79befc6fca',
         ui: true
       },
     }
