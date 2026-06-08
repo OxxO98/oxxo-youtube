@@ -31,10 +31,10 @@ const YoutubeGridComp = () => {
     const [messageApi, contextHolder] = notification.useNotification();
 
     //Hook
-    const { response, loading, fetch : refetch } = useAxiosGet<RES_GET_VIDEO, REQ_GET_VIDEO>('/db/video', false, null);
+    const { response, fetch : refetch } = useAxiosGet<RES_GET_VIDEO, REQ_GET_VIDEO>('/db/video', false, null);
     const { response : resSearch, setParams : setParamsSearch } = useAxiosGet<RES_GET_VIDEO_SEARCH, REQ_GET_VIDEO_SEARCH>('/db/video/search', true, null);
 
-    const { response : resIntegrity, fetch  } = useAxiosGet<RES_GET_INTEGRITY, REQ_GET_INTEGRITY>('/db/integrity', true, null);
+//    const { response : resIntegrity, fetch  } = useAxiosGet<RES_GET_INTEGRITY, REQ_GET_INTEGRITY>('/db/integrity', true, null);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -76,11 +76,12 @@ const YoutubeGridComp = () => {
         let res = response;
         if( res !== null ){
             setVideos(res.data);
-            fetch();
+            //fetch();
             dispatch( clear() );
         }
     }, [response, fetch])
 
+    /*
     useEffect( () => {
         let res = resIntegrity;
         if( res !== null ){
@@ -93,7 +94,8 @@ const YoutubeGridComp = () => {
             }
         }
     }, [resIntegrity, messageApi])
-    
+    */
+
     useEffect( () => {
         let search = location.search;
         let params = new URLSearchParams(search);

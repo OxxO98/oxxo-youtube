@@ -36,9 +36,29 @@
     <div class="wrap">
       <img src="../public/logo512.png"/>
       <div class="text">
-        <div>앱을 준비 중입니다...</div>
-        <div class="sub">서버 시작 대기 중</div>
+        <div id="loading-title">앱을 준비 중입니다...</div>
+        <div id="loading-status" class="sub">서버 시작 대기 중...</div>
+        <div id="loading-version">ver. </div>
       </div>
     </div>
+    <script>
+      window.loadingAPI?.onStatus((payload) => {
+        const title = document.getElementById('loading-title');
+        const status = document.getElementById('loading-status');
+        const version = document.getElementById('loading-version');
+
+        if (title && payload?.title) {
+          title.textContent = payload.title;
+        }
+
+        if (status && payload?.status) {
+          status.textContent = payload.status;
+        }
+
+        if (version && payload?.version) {
+          version.textContent = payload.version;
+        }
+      });
+    </script>
   </body>
 </html>

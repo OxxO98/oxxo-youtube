@@ -36,6 +36,46 @@ function waitForServer(url, timeout = 500000) {
   });
 }
 
+function requestJson(url) {
+  return new Promise((resolve, reject) => {
+    http
+      .get(url, (res) => {
+        let body = '';
+
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+          body += chunk;
+        });
+        res.on('end', () => {
+          let data = null;
+
+          try {
+            data = body.length > 0 ? JSON.parse(body) : null;
+          } catch (error) {
+            reject(error);
+            return;
+          }
+
+          if (res.statusCode && res.statusCode >= 400) {
+            reject(new Error(`Request failed with status ${res.statusCode}`));
+            return;
+          }
+
+          resolve(data);
+        });
+      })
+      .on('error', reject);
+  });
+}
+
+function sendLoadingStatus(win, payload) {
+  if (!win || win.isDestroyed()) {
+    return;
+  }
+
+  win.webContents.send('loading:status', payload);
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1920,
@@ -75,6 +115,7 @@ function loadingWindow() {
     resizable : false,
     webPreferences: {
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   });
 
@@ -127,8 +168,44 @@ app.whenReady().then(async () => {
   let loadingWin = loadingWindow();
 
   await loadingWin.loadFile(path.join(__dirname, 'loading.html'));
-  
-  await waitForServer('http://localhost:5000/api/health');
+
+  try {
+    let version_info = `ver. ${app.getVersion()}`;
+
+    sendLoadingStatus(loadingWin, {
+      title: '앱을 준비 중입니다...',
+      status: '서버 시작 대기 중...',
+      version: version_info,
+    });
+
+    await waitForServer('http://localhost:5000/api/health');
+
+    sendLoadingStatus(loadingWin, {
+      title: '앱을 준비 중입니다...',
+      status: '데이터 무결성 확인 중...',
+      version: version_info,
+    });
+
+    const integrity = await requestJson('http://localhost:5000/db/integrity');
+
+    if (integrity?.ok === false || integrity?.message === 'error') {
+      throw new Error(integrity?.errorCode || 'DB integrity check failed');
+    }
+
+    sendLoadingStatus(loadingWin, {
+      title: '앱을 준비 중입니다...',
+      status: '앱 화면을 여는 중...',
+      version: version_info,
+    });
+  } catch (error) {
+    console.error('startup failed', error);
+    sendLoadingStatus(loadingWin, {
+      title: '시작 중 오류가 발생했습니다.',
+      status: error instanceof Error ? error.message : '알 수 없는 오류입니다.',
+      version: version_info,
+    });
+    return;
+  }
 
   loadingWin.close();
 

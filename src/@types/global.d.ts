@@ -2,12 +2,6 @@ export {};
 
 declare global {
 
-  export interface Window {
-    desktopAPI?: {
-      getVersion: () => Promise<string>;
-    };
-  }
-
   export interface UnicodeContext {
     kanji : RegExp;
     kanjiStart : RegExp;
