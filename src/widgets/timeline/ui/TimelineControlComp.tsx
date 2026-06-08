@@ -28,7 +28,7 @@ import { Input, Button, Flex, Tooltip, InputRef } from 'antd';
 import { AudioOutlined } from '@ant-design/icons'
 
 //Redux
-const { setStartTime, setEndTime, selectMarkerStart, selectMarkerEnd, unselectMarker } = reactPlayerActions;
+const { setStartTime, setEndTime, selectMarkerStart, selectMarkerEnd, unselectMarker, clear } = reactPlayerActions;
 
 interface TimelineControlCompProps {
     value : string;
@@ -52,31 +52,33 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
     //i18n
     const { t } = useTranslation('TimelineControlComp');
 
+    const dispatch = useAppDispatch();
+
     //Context
     const { videoId, frameRate } = useContext(VideoContext);
 
     const inputRef = useRef<InputRef>(null);
 
     const cancelEdit = useCallback( () => {
+        dispatch( clear() );
         setInputText('');
         selectEditYtBId(null);
     }, [setInputText, selectEditYtBId])
 
-    //Hook
-    const { timeToFrameStamp } = useTimeStamp();
-
-    const { insertBun } = usePostTimeline(videoId, refetchTimeline, cancelEdit);
-    const { updateYTBunTime } = useUpdateTimelineTime(videoId, refetchTimeline, cancelEdit);
-    const { response : resTransRange, setParams : setParamsTransRange } = useAxiosGet<RES_GET_TRANSCRIPT_RANGE, REQ_GET_TRANSCRIPT_RANGE>('/ai/transcript/range', true, null);
-
-    //Redux
-    const { startTime, endTime, selectMarker } = useAppSelector((state) => state.reactPlayer)
-
-    const dispatch = useAppDispatch();
 
     //State
     const { duration, playedSeconds } = state;
     const { gotoTime, keyboard } = videoPlayerHandles; 
+    
+    //Hook
+    const { timeToFrameStamp } = useTimeStamp();
+
+    const { insertBun } = usePostTimeline(videoId, refetchTimeline, cancelEdit);
+    const { updateYTBunTime } = useUpdateTimelineTime(videoId, duration, refetchTimeline, cancelEdit);
+    const { response : resTransRange, setParams : setParamsTransRange } = useAxiosGet<RES_GET_TRANSCRIPT_RANGE, REQ_GET_TRANSCRIPT_RANGE>('/ai/transcript/range', true, null);
+
+    //Redux
+    const { startTime, endTime, selectMarker } = useAppSelector((state) => state.reactPlayer)
     
     const customKeyboard = [
         { key : 'ArrowRight', action : () => { nextTimeLine( )} },
@@ -115,66 +117,98 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
     }
 
     const autoMarker = () => {
-        if( bunIds === null ){
-            return;
-        }
+        if( bunIds === null ) return;
+        if( selectMarker === null ) return;
+        if( startTime === null && endTime === null ) return;
 
-        if(startTime !== null || endTime !== null){
-            if( selectMarker !== null && currentBunId !== null ){
-                if(selectMarker === 'startTime'){
-                    if( currentBunId > 0 ){
-                        let _prev = bunIds[currentBunId-1];
+        let _bunIdsWithIndex = bunIds.map( (_, i) => { return { ..._, index : i } } )
 
-                        dispatch( setStartTime(_prev.endTime) );
-                    }
+        if( editYtbId !== null ){
+            let _bun = _bunIdsWithIndex
+                .find( (v) => v.ytBId == editYtbId ) ?? null;
+
+            if( _bun === null ) return;
+
+            if( selectMarker === 'startTime' ){
+                if( _bun.index-1 >= 0 ){
+                    dispatch( setStartTime( bunIds[_bun.index-1].endTime ) );
                 }
-                if(selectMarker === 'endTime'){
-                    if( currentBunId < bunIds.length - 1 ){
-                        let _next = bunIds[currentBunId+1];
-
-                        dispatch( setEndTime(_next.startTime) );
-                    }
+                else{
+                    dispatch( setStartTime( 0 ) );
                 }
             }
-            else{
-                if(selectMarker === 'startTime' && startTime !== null){
-                    let a = bunIds.findIndex( (arr) =>
-                        arr.startTime > startTime
-                    );
-
-                    if( a !== -1 && a > 0){
-                        let curr = bunIds[a-1];
-                        dispatch( setStartTime( curr.endTime ) );
-                    }
-                    else if( bunIds.length > 0 ){
-                        if( startTime >= bunIds[bunIds.length-1].endTime ){
-                            dispatch( setStartTime(bunIds[bunIds.length-1].endTime) );
-                        }
-                        else if( startTime <= bunIds[0].startTime ){
-                            dispatch( setStartTime(0) );
-                        }
-                    }
+            else if( selectMarker === 'endTime' ){
+                if( _bun.index+1 <= bunIds.length-1 ){
+                    dispatch( setEndTime( bunIds[_bun.index+1].startTime ) );
                 }
-                else if(selectMarker === 'endTime' && endTime !== null){
-                    let a = bunIds.findIndex( (arr) =>
-                        arr.endTime < endTime
-                    );
+                else{
+                    dispatch( setEndTime( duration ) );
+                }
+            }
+        }
+        else{
+            let _includeStart = startTime !== null ? _bunIdsWithIndex
+                .filter( (v) => v.startTime < startTime && startTime < v.endTime ) : [];
+            let _lastStart = _includeStart.length > 0 ? _includeStart[_includeStart.length-1] : null;
 
-                    if( a !== -1 && a < bunIds.length-1 ){
-                        let curr = bunIds[a+1];
-                        if( curr.endTime > endTime ){
-                            dispatch( setEndTime( curr.startTime ) );
-                        }
-                        else{
-                            dispatch( setEndTime(duration) );
+            let _includeEnd = endTime !== null ? _bunIdsWithIndex
+                .filter( (v) => v.startTime < endTime && endTime < v.endTime ) : [];
+            let _firstEnd = _includeEnd.length > 0 ? _includeEnd[0] : null;
+
+            if( 
+                _lastStart !== null && _firstEnd !== null && 
+                _lastStart.index+1 === _firstEnd.index && 
+                timeToFrameStamp(_lastStart.endTime, frameRate) !== timeToFrameStamp(_firstEnd.startTime, frameRate)
+            ){
+                if( selectMarker === 'startTime' ){
+                    dispatch( setStartTime( _lastStart.endTime ) );
+                }
+                else if( selectMarker === 'endTime' ){
+                    dispatch( setEndTime( _firstEnd.startTime ) );
+                }
+            }
+            else if( _lastStart === null || _firstEnd === null ){
+                let _prevStart = startTime !== null ? _bunIdsWithIndex
+                    .filter( (v) => v.startTime < startTime ) : []
+                let _lastPrev = _prevStart.length > 0 ? _prevStart[_prevStart.length-1] : null;
+
+                let _nextEnd = endTime !== null ? _bunIdsWithIndex
+                    .filter( (v) => v.endTime > endTime ) : []
+                let _firstNext = _nextEnd.length > 0 ? _nextEnd[0] : null;
+
+                if( selectMarker === 'startTime' && startTime !== null ){
+                    if( _lastPrev === null ){
+                        if( 
+                            (_firstEnd !== null && _firstEnd.index === 0) || 
+                            (_firstEnd === null && _firstNext !== null && _firstNext.index === 0)
+                        ){
+                            dispatch( setStartTime( 0 ) );
                         }
                     }
                     else{
-                        if( endTime <= bunIds[0].startTime ){
-                            dispatch( setEndTime(bunIds[0].startTime) );
+                        if(
+                            (_firstNext !== null && _lastPrev.index+1 === _firstNext.index) ||
+                            (_firstNext === null && _lastPrev.index === bunIds.length-1) 
+                        ){
+                            dispatch( setStartTime( _lastPrev.endTime ) );
                         }
-                        else if( endTime >= bunIds[bunIds.length-1].endTime ){
-                            dispatch( setEndTime(duration) );
+                    }
+                }
+                else if( selectMarker === 'endTime' && endTime !== null ){
+                    if( _firstNext === null ){
+                        if(
+                            (_lastStart !== null && _lastStart.index === bunIds.length-1) ||
+                            (_lastStart === null && _lastPrev !== null && _lastPrev.index === bunIds.length-1)
+                        ){
+                            dispatch( setEndTime( duration ) );
+                        }
+                    }
+                    else{
+                        if(
+                            (_lastPrev !== null && _lastPrev.index+1 === _firstNext.index) ||
+                            (_firstEnd === null && _firstNext.index === 0)
+                        ){
+                            dispatch( setEndTime( _firstNext.startTime ) );
                         }
                     }
                 }

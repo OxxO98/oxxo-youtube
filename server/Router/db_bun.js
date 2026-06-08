@@ -8,6 +8,59 @@ import logger from "./core/logger.js";
 import { nanoid } from "nanoid";
 import { message } from "antd";
 
+function _is_available(timeline, startTime, endTime, excludeYtBId = null){
+    let incomingContainsExisting = timeline
+        .filter( (v) => startTime <= v.startTime && v.endTime <= endTime )
+    let existingContainsIncoming = timeline
+        .filter( (v) => v.startTime <= startTime && endTime <= v.endTime )
+
+    if( excludeYtBId !== null ){
+        let _curr = timeline.find( (v) => v.ytBId === excludeYtBId );
+        if( _curr === undefined || endTime <= _curr.startTime || _curr.endTime <= startTime ){
+            return false;
+        }
+        incomingContainsExisting = incomingContainsExisting.filter( (v) => v.ytBId !== excludeYtBId );
+        existingContainsIncoming = existingContainsIncoming.filter( (v) => v.ytBId !== excludeYtBId );
+    }
+
+    if( incomingContainsExisting.length > 0 || existingContainsIncoming.length > 0 ){
+        return false;
+    } 
+    else{
+        return true;
+    }    
+}
+
+function _is_adjust(ytb, critTime){
+    if( ytb.startTime < critTime && critTime < ytb.endTime ){
+        return true;
+    }
+    return false;
+}
+
+function _get_side_timeline(timeline, ytBId){
+    let curr = timeline
+        .map( (v, i) => { return { ...v, i } })
+        .find( (v) => v.ytBId == ytBId )
+    
+    if( curr === undefined ){
+        return null;
+    }
+
+    let prev = null, next = null;
+    if( curr.i - 1 >= 0 ){
+        prev = timeline[curr.i-1];
+    }
+
+    if( curr.i + 1 <= timeline.length-1 ){
+        next = timeline[curr.i+1];
+    }
+
+    return {
+        prev : prev, next : next
+    }
+}
+
 async function getBun(req, res){
     await db_connection(req, res, async(db) => {
         let { bId } = req.query;
@@ -38,6 +91,45 @@ async function postBun(req, res){
         let _JABID = nanoid(10);
 
         let timeline = await db_module.getTimeline(db, videoId);
+
+        if( _is_available(timeline, startTime, endTime) == false ){
+            res.send({
+                message : 'error',
+                data : {}
+            });
+            return;
+        }
+
+        let _prev_list = timeline
+            .map( (v, i) => { return { ...v, i } })
+            .filter( (v) => v.startTime < startTime && startTime < v.endTime );
+        let _next_list = timeline
+            .map( (v, i) => { return { ...v, i } })
+            .filter( (v) => v.startTime < endTime && endTime < v.endTime );
+
+        if( _prev_list.length == 1 && _next_list.length == 0 ){
+            let _prev_ytb = await db_module.getYTBun(timeline, _prev_list[0].ytBId);
+
+            logger.info( db_module.logYTBUpdateTime(_prev_ytb, _prev_ytb.startTime, startTime) );
+            _prev_ytb.endTime = startTime;
+        }
+        else if( _prev_list.length == 0 && _next_list.length == 1 ){
+            let _next_ytb = await db_module.getYTBun(timeline, _next_list[0].ytBId);
+
+            logger.info( db_module.logYTBUpdateTime(_next_ytb, endTime, _next_ytb.endTime) );
+            _next_ytb.startTime = endTime;
+        }
+        else if( _prev_list.length == 1 && _next_list.length == 1 && _next_list[0].i - _prev_list[0].i == 1){
+            let _prev_ytb = await db_module.getYTBun(timeline, _prev_list[0].ytBId);
+            let _next_ytb = await db_module.getYTBun(timeline, _next_list[0].ytBId);
+
+            logger.info( db_module.logYTBUpdateTime(_prev_ytb, _prev_ytb.startTime, startTime) );
+            logger.info( db_module.logYTBUpdateTime(_next_ytb, endTime, _next_ytb.endTime) );
+            _prev_ytb.endTime = startTime;
+            _next_ytb.startTime = endTime;
+        }
+
+
         logger.info( db_module.logYTBInsert(_YTBID, _JABID, startTime, endTime) );
         timeline.push({
             "ytBId" : _YTBID,
@@ -91,6 +183,29 @@ async function updateTime(req, res) {
         let timeline = await db_module.getTimeline(db, videoId);
         
         let ytb = await db_module.getYTBun(timeline, ytBId);
+
+        if( _is_available(timeline, startTime, endTime, ytBId) == false ){
+            res.send({
+                message : 'error',
+                data : {}
+            });
+            return;
+        }
+
+        let { prev, next } = _get_side_timeline(timeline, ytBId);
+        if( prev !== null && _is_adjust(prev, startTime) ){
+            let _prev_ytb = await db_module.getYTBun(timeline, prev.ytBId);
+
+            logger.info( db_module.logYTBUpdateTime(_prev_ytb, _prev_ytb.startTime, startTime) );
+            _prev_ytb.endTime = startTime;
+        }
+
+        if( next !== null && _is_adjust(next, endTime) ){
+            let _next_ytb = await db_module.getYTBun(timeline, next.ytBId);
+
+            logger.info( db_module.logYTBUpdateTime(_next_ytb, endTime, _next_ytb.endTime) );
+            _next_ytb.startTime = endTime;
+        }
         
         logger.info( db_module.logYTBUpdateTime(ytb, startTime, endTime) );
         ytb.startTime = startTime;

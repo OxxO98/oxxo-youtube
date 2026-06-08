@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 //Hook
 import { useAxiosPost } from 'shared/hooks/useAxios';
@@ -13,7 +13,7 @@ export function usePostTimeline(
 ){
     //Redux
     const { startTime, endTime } = useAppSelector((state) => state.reactPlayer)
-
+    
     const { response, setParams } = useAxiosPost<null, REQ_POST_BUN>('/db/bun', true, null);
 
     const insertBun = ( value : string) => {
@@ -31,8 +31,10 @@ export function usePostTimeline(
     useEffect( () => {
         let res = response;
         if(res !== null){
-            cancelEdit();
-            refetchTimeline();
+            if(res.message === 'success'){
+                cancelEdit();
+                refetchTimeline();
+            }
         }
     }, [response, cancelEdit, refetchTimeline])
 

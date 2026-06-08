@@ -8,6 +8,7 @@ import { useAppSelector } from 'shared/store';
 
 export function useUpdateTimelineTime(
     videoId : string,
+    duration : number,
     refetchTimeline : () => void,
     cancelEdit : () => void
 ){
@@ -19,6 +20,9 @@ export function useUpdateTimelineTime(
     const updateYTBunTime = ( editYtbId : string | null ) => {
         if(editYtbId === null) return;
         if(startTime === null || endTime === null ) return;
+        if(endTime <= startTime) return;
+        if(0 > startTime || startTime > duration) return;
+        if(0 > endTime || endTime > duration) return;
 
         setParams({
             videoId : videoId,
@@ -30,8 +34,10 @@ export function useUpdateTimelineTime(
     useEffect( () => {
         let res = response;
         if(res !== null){
-            cancelEdit();
-            refetchTimeline();
+            if(res.message === 'success'){
+                cancelEdit();
+                refetchTimeline();
+            }
         }
     }, [response, cancelEdit, refetchTimeline])
 

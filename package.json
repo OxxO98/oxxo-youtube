@@ -1,6 +1,6 @@
 {
   "name": "oxxo_youtube",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "private": true,
   "proxy": "http://localhost:3000",
   "main": "electron/main.cjs",

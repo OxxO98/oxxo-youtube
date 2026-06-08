@@ -229,7 +229,7 @@ const AudioWaveComp = ({ videoTime, gotoTime, autoStop, playing, handlePausePlay
                 <div>
                     {
                         range !== null &&
-                        <Slider range={{ draggableTrack: true }} defaultValue={[0, filteredData.length-1]} value={range} min={0} max={filteredData.length-1} onChange={changeRange}/>
+                        <Slider range={{ draggableTrack: true }} defaultValue={[0, filteredData.length-1]} value={range} tooltip={{ open : false }} min={0} max={filteredData.length-1} onChange={changeRange}/>
                     }
                 </div>
             </div>

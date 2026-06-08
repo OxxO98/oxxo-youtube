@@ -14,28 +14,45 @@ const assetPath = process.env.APP_ASSET_ROOT ?? path.join(__dirname, '../Asset')
 
 async function checkIntegrity(req, res){
     await db_connection(req, res, async(db) => {
+        let errors = [];
         
         db.data.hukumu.map( (hu) => {
             let jaBun = db.data.jaBuns.find( (ja) => ja.jaBId == hu.jaBId );
             let hyoukiObj = db.data.hyouki.find( (hy) => hu.hyId == hy.hyId );
             if( hyoukiObj === undefined ){
+                error.push({ 
+                    type : 'HUKUMU',
+                    log : `무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 HYID ${hu.hyId}를 찾을 수 없음`
+                })
                 logger.error(`무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 HYID ${hu.hyId}를 찾을 수 없음`)
                 return;
             }
             let _hyouki = hyoukiObj.hyouki;
             let _substring = jaBun.jaText.substring( hu.startOffset, hu.endOffset );
             if( _substring != _hyouki ){
+                error.push({ 
+                    type : 'HUKUMU',
+                    log : `무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 ${_hyouki} ${_substring} 불일치`
+                })
                 logger.error(`무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 ${_hyouki} ${_substring} 불일치`)
             }
 
             if( hu.iId != null ){
                 let imi = db.data.imi.find( (v) => v.iId == hu.iId );
                 if( imi == undefined ){
+                    error.push({ 
+                        type : 'HUKUMU',
+                        log : `무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 IID ${hu.iId}를 찾을 수 없음`
+                    })
                     logger.error(`무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 IID ${hu.iId}를 찾을 수 없음`)
                 }
             }
             let tango = db.data.tango.find( (v) => v.tId == hu.tId );
             if( tango == undefined ){
+                error.push({ 
+                    type : 'TANGO',
+                    log : `무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 TID ${hu.tId}를 찾을 수 없음`
+                })
                 logger.error(`무결성 오류 : ${hu.jaBId} ${hu.startOffset} ${hu.endOffset}에서 TID ${hu.tId}를 찾을 수 없음`)
             }
         })
@@ -45,14 +62,26 @@ async function checkIntegrity(req, res){
             let _ruby = hy.textData.map( (t) => t.ruby == null ? t.data : t.ruby ).join('');
 
             if(_hyouki != hy.hyouki){
+                error.push({ 
+                    type : 'HYOUKI',
+                    log : `무결성 오류 : ${hy.hyId} 에서 TextData : ${_hyouki}와 ${hy.hyouki} 불일치`
+                })
                 logger.error(`무결성 오류 : ${hy.hyId} 에서 TextData : ${_hyouki}와 ${hy.hyouki} 불일치`)
             }
             if(_ruby != hy.yomi){
+                error.push({ 
+                    type : 'HYOUKI',
+                    log : `무결성 오류 : ${hy.hyId} 에서 TextData : ${_ruby}와 ${hy.yomi} 불일치`
+                })
                 logger.error(`무결성 오류 : ${hy.hyId} 에서 TextData : ${_ruby}와 ${hy.yomi} 불일치`)
             }
 
             //undefined가 있었던 적이 있음
             if( hy.tId === undefined ){
+                error.push({ 
+                    type : 'HYOUKI',
+                    log : `무결성 오류 : ${hy.hyId} 에서 tId 없음`
+                })
                 logger.error(`무결성 오류 : ${hy.hyId} 에서 tId 없음`)
             }
         })
@@ -62,6 +91,10 @@ async function checkIntegrity(req, res){
             let kanji = db.data.kanji.find( (k) => km.kId == k.kId );
 
             if( _hyouki.includes(kanji.jaText) != true ){
+                error.push({ 
+                    type : 'KOMU',
+                    log : `무결성 오류 : ${km.hyId} ${km.kId} 에서 ${_hyouki} ${kanji.jaText} 를 포함하지 않음`
+                })
                 logger.error(`무결성 오류 : ${km.hyId} ${km.kId} 에서 ${_hyouki} ${kanji.jaText} 를 포함하지 않음`)
             }
         })
@@ -100,20 +133,36 @@ async function checkIntegrity(req, res){
             timeline.map( (tl) => {
                 let jaBun = db.data.jaBuns.find( (v) => v.jaBId == tl.jaBId);
                 if( jaBun == undefined ){
+                    error.push({ 
+                        type : 'VIDEO/JABUN',
+                        log : `무결성 오류 : ${tl.ytBId}에서 ${tl.jaBId}를 찾을 수 없음`
+                    })
                     logger.error(`무결성 오류 : ${tl.ytBId}에서 ${tl.jaBId}를 찾을 수 없음`);
                 }
                 else{
                     if( jaBun.ytBId != tl.ytBId ){
+                        error.push({ 
+                            type : 'VIDEO/JABUN',
+                            log : `무결성 오류 : TIMELINE YTB의 ${tl.ytBId}와 JABUN의 ${jaBun.ytBId}불일치`
+                        })
                         logger.error(`무결성 오류 : TIMELINE YTB의 ${tl.ytBId}와 JABUN의 ${jaBun.ytBId}불일치`);
                     }
                 }
                 if(tl.koBId != null){
                     let koBun = db.data.koBuns.find( (v) => v.koBId == tl.koBId );
                     if( koBun == undefined ){
+                        error.push({ 
+                            type : 'VIDEO/KOBUN',
+                            log : `무결성 오류 : ${tl.ytBId}에서 ${tl.koBId}를 찾을 수 없음`
+                        })
                         logger.error(`무결성 오류 : ${tl.ytBId}에서 ${tl.koBId}를 찾을 수 없음`);
                     }
                     else{
                         if( koBun.ytBId != tl.ytBId ){
+                            error.push({ 
+                                type : 'VIDEO/KOBUN',
+                                log : `무결성 오류 : TIMELINE YTB의 ${tl.ytBId}와 KOBUN의 ${koBun.ytBId}불일치`
+                            })
                             logger.error(`무결성 오류 : TIMELINE YTB의 ${tl.ytBId}와 KOBUN의 ${koBun.ytBId}불일치`);
                         }
                     }
@@ -126,11 +175,19 @@ async function checkIntegrity(req, res){
 
         db.data.jaBuns.map( (v) => {
             if( _ytBIds.includes( v.ytBId ) == false ){
+                error.push({ 
+                    type : 'JABUN',
+                    log : `timeline에 존재하지 않는 JABUN ${v.jaBId} YTBID(${v.ytBId})`
+                })
                 logger.error(`timeline에 존재하지 않는 JABUN ${v.jaBId} YTBID(${v.ytBId})`);
             }
         })
         db.data.koBuns.map( (v) => {
             if( _ytBIds.includes( v.ytBId ) == false ){
+                error.push({ 
+                    type : 'KOBUN',
+                    log : `timeline에 존재하지 않는 KOBUN ${v.koBId} YTBID(${v.ytBId})`
+                })
                 logger.error(`timeline에 존재하지 않는 KOBUN ${v.koBId} YTBID(${v.ytBId})`);
             }
         })
@@ -140,11 +197,19 @@ async function checkIntegrity(req, res){
 
         db.data.hyouki.map( (v) => {
             if( _hyIds.includes(v.hyId) == false ){
+                error.push({ 
+                    type : 'HYOUKI',
+                    log : `HUKUMU에 존재하지 않는 표기 ${v.hyId}`
+                })
                 logger.error(`HUKUMU에 존재하지 않는 표기 ${v.hyId}`);
             }
         })
         db.data.tango.map( (v) => {
             if( _tIds.includes(v.tId) == false ){
+                error.push({ 
+                    type : 'TANGO',
+                    log : `HUKUMU에 존재하지 않는 단어 ${v.tId}`
+                })
                 logger.error(`HUKUMU에 존재하지 않는 단어 ${v.tId}`);
             }
         })
@@ -152,15 +217,31 @@ async function checkIntegrity(req, res){
         let _hy_hyIds = db.data.hyouki.map( (v) => v.hyId );
         db.data.komu.map( (v) => {
             if( _hy_hyIds.includes(v.hyId) == false ){
+                error.push({ 
+                    type : 'KOMU',
+                    log : `표기에 존재하지 않는 KOMU ${v.hyId} ${v.kId}`
+                })
                 logger.error(`표기에 존재하지 않는 KOMU ${v.hyId} ${v.kId}`);
             }
         })
         let _km_kIds = db.data.komu.map( (v) => v.kId );
         db.data.kanji.map( (v) => {
             if( _km_kIds.includes(v.kId) == false ){
+                error.push({ 
+                    type : 'KANJI',
+                    log : `KOMU에 존재하지 않는 한자 ${v.kId}`
+                })
                 logger.error(`KOMU에 존재하지 않는 한자 ${v.kId}`);
             }
         })
+
+        if( errors.length > 0 ){
+            res.send({
+                data : errors,
+                message : 'error'
+            })
+            return
+        }
         
         let _today = new Date();
         let _originalFilePath = path.join(assetPath, '/db/db.json');
@@ -186,7 +267,7 @@ async function checkIntegrity(req, res){
             }
         }
 
-        await db.write();
+        // await db.write();
 
         res.send({
             data : {},
