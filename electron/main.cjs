@@ -99,7 +99,7 @@ function createWindow() {
     console.error('did-fail-load', { errorCode, errorDescription, validatedURL });
   });
 
-  // win.webContents.openDevTools({ mode: 'detach' });
+  win.webContents.openDevTools({ mode: 'detach' });
 
   return win;
 }
@@ -137,14 +137,16 @@ app.whenReady().then(async () => {
 
   console.timeLog('startup', 'whenReady');
 
+  const appRoot = path.join(__dirname, '..');
   const assetRoot = path.join(app.getPath('userData'), 'Asset');
 
   backendProcess = utilityProcess.fork(
-    path.join(__dirname, '..', 'server', 'server.js'),
+    path.join(appRoot, 'server', 'dist', 'server.js'),
     [],
     { 
       env: {
         ...process.env,
+        APP_ROOT: appRoot,
         APP_ASSET_ROOT: assetRoot,
       },
       stdio: 'pipe' 
@@ -211,7 +213,7 @@ app.whenReady().then(async () => {
 
   let win = createWindow();
 
-  // server/server.js가 CRA build까지 서빙하는 경우
+  // server/dist/server.js serves the CRA build.
   win.loadURL('http://localhost:5000');
 });
 

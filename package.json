@@ -1,6 +1,6 @@
 {
   "name": "oxxo_youtube",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "private": true,
   "proxy": "http://localhost:3000",
   "main": "electron/main.cjs",
@@ -49,7 +49,8 @@
     "zod": "^3.25.76"
   },
   "scripts": {
-    "server": "tsc ./server/Router/core/db_module.ts && nodemon ./server/server.js",
+    "server": "nodemon --watch server --ext ts,json --ignore server/Asset --exec \"tsx --tsconfig tsconfig.server.json server/server.ts\"",
+    "server:build": "tsc -p tsconfig.server.build.json",
     "client": "react-scripts start",
     "start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
     "serve": "concurrently --kill-others-on-fail \"npm run server\" \"serve -s build\" \"start http://localhost:3000\"",
@@ -57,9 +58,9 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "postinstall": "patch-package",
-    "electron": "electron .",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "electron": "npm run server:build && electron .",
+    "package": "npm run server:build && electron-forge package",
+    "make": "npm run server:build && electron-forge make"
   },
   "eslintConfig": {
     "extends": [
@@ -101,8 +102,13 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/body-parser": "^1.19.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.25",
     "@types/file-saver": "^2.0.7",
+    "@types/fluent-ffmpeg": "^2.1.28",
     "@types/jest": "^27.5.2",
+    "@types/lodash": "^4.17.24",
     "@types/node": "^16.18.126",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -113,6 +119,7 @@
     "jest": "^27.5.1",
     "react-scripts": "^5.0.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.22.4",
     "typescript": "^4.9.5"
   }
 }

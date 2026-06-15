@@ -15,7 +15,7 @@ function useReactPlayerHook(
     //State
     const FRAMERATE = 30;
     
-    const initialState : ReactPlayerState = {
+    const createInitialState = useCallback( ( videoId: string ) : ReactPlayerState => ({
         src : `https://www.youtube.com/watch?v=${videoId}`,
         pip : false,
         playing : false,
@@ -28,15 +28,16 @@ function useReactPlayerHook(
         duration : 0,
         loop : false,
         seeking: false,
-    }
+    }), []);
 
-    const [state, setState] = useState<ReactPlayerState>(initialState);
+    const [state, setState] = useState<ReactPlayerState>( () => createInitialState(videoId) );
+    const [isReady, setIsReady] = useState<boolean>(false);
 
     //Handle
-    const setPlayerRef = useCallback( (player: HTMLVideoElement) => {
-        if(!player) return;
+    const setPlayerRef = useCallback( ( player : HTMLVideoElement | null ) => {
         playerRef.current = player;
-    }, []);
+        if( player !== null ) setIsReady(true);
+    }, [videoId]);
 
     const _updateTime = () => {
         const player = playerRef.current;
@@ -91,17 +92,21 @@ function useReactPlayerHook(
     const handleSeek = useCallback( ( time : number ) => {
         const player = playerRef.current;
 
+        if(!isReady || !player ) return;
+
         _updateTime();
 
-        if (player) {
-            player.currentTime = time;
-        }
-    }, []);
+        player.currentTime = time;
+    }, [isReady]);
 
     const playerHandles = {
-        handlePausePlay, handlePlay, handlePause, handleTimeUpdate, handleDurationChange, handleSeek
+        handlePausePlay, handlePlay, handlePause, handleTimeUpdate, handleDurationChange, handleSeek, isReady
     }
-    
+
+    useEffect( () => {
+        setState( createInitialState(videoId) )
+    }, [videoId, createInitialState]);
+
     useEffect(() => {
         const intervalId = setInterval( () => { handleTimeUpdate() }, 1000/30);
 

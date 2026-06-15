@@ -6,7 +6,7 @@ import { AudioWaveComp } from 'widgets/audio-wave/index';
 
 interface VideoCompProps {
     playerRef : React.RefObject<HTMLVideoElement | null>;
-    setPlayerRef : ( player : HTMLVideoElement ) => void;
+    setPlayerRef : ( player : HTMLVideoElement | null ) => void;
     state : ReactPlayerState;
     playerHandles : PlayerHandles;
     videoPlayerHandles : VideoPlayerHandles;
@@ -32,6 +32,7 @@ const VideoComp = ({ playerRef, setPlayerRef, state, playerHandles, videoPlayerH
     return (
         <div>
             <ReactPlayer
+                key={src}
                 ref={setPlayerRef}
                 style={{ width: '100%', height: 'auto', aspectRatio: '16/9' }}
                 src={src}

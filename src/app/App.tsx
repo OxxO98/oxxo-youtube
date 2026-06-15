@@ -1,6 +1,5 @@
 
 import './App.scss';
-import { useState, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { HotkeysProvider } from 'react-hotkeys-hook';
@@ -44,11 +43,6 @@ const themeObj = {
 }
 
 export const App = () => {
-    const [version, setVersion] = useState('');
-
-    useEffect(() => {
-        window.desktopAPI?.getVersion().then(setVersion);
-    }, []);
 
     return (
         <div className="App">
