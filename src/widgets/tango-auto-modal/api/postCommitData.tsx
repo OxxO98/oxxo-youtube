@@ -5,7 +5,17 @@ import type { auto_db_moreTId } from '../type';
 
 import { useAxiosPost } from 'shared/hooks/useAxios';
 
-export const useAutoCommit = ( videoId : string, refetchTangoList : () => void, refetchTimeline : () => void ) => {
+//Redux
+import { useAppDispatch, timelineActions } from 'shared/store';
+const { requestTimelineRefetch } = timelineActions;
+
+export const useAutoCommit = ( 
+    videoId : string, 
+    refetchTangoList : () => void 
+) => {
+    
+    const dispatch = useAppDispatch();
+    
     const commitData = useRef<ObjKey>(null);
     const index = useRef<number>(0);
     const moreTIdList = useRef<(auto_db_moreTId[])[]>([]);
@@ -20,8 +30,9 @@ export const useAutoCommit = ( videoId : string, refetchTangoList : () => void, 
     useEffect( () => {
         let res = response;
         if( res !== null ){
+            dispatch( requestTimelineRefetch() );
+
             refetchTangoList();
-            refetchTimeline();
         }
     }, [response])
 

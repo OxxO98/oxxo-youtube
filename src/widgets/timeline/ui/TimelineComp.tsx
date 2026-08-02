@@ -1,9 +1,7 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback, CSSProperties } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback, CSSProperties, useContext } from 'react';
 import VirtualList, { ListRef } from 'rc-virtual-list';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useLocation } from 'react-router-dom';
-
-import type { timelineHandles } from 'shared/hooks/useTimeline'
 
 //entities
 import { TimelineBun } from 'entities/TimelineBun/index'
@@ -18,6 +16,9 @@ import { useActive } from '../lib/useActive';
 //Redux
 import { useAppSelector, useAppDispatch, reactPlayerActions } from 'shared/store';
 
+//Context
+import { VideoContext } from 'shared/contexts/VideoContext';
+
 //CSS@antD
 import { Flex, Spin, theme } from 'antd';
 const { useToken } = theme; 
@@ -28,7 +29,6 @@ const { setStartTime, setEndTime } = reactPlayerActions;
 interface TimelineCompProps {
     state : ReactPlayerState;
     bIdRef : React.RefObject<BIdRef>;
-    timelineHandles : timelineHandles;
     refetchHandles : RefetchHandles;
     videoPlayerHandles : VideoPlayerHandles;
 }
@@ -40,8 +40,11 @@ const TimelineBunStyle : CSSProperties = {
     padding : "16px",
 }
 
-const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPlayerHandles } : TimelineCompProps) => {
+const TimelineComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles } : TimelineCompProps) => {
     
+    //Context
+    const { translationDirection } = useContext(VideoContext);
+
     //State
     const [editYtbId, setEditYtbId] = useState<string | null>(null);
 
@@ -58,7 +61,7 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
     const { playedSeconds } = state;
 
     //Redux
-    const { bunIds } = useAppSelector( (state) => state.timeline );
+    const { bunIds, timelineLoading } = useAppSelector( (state) => state.timeline );
 
     const dispatch = useAppDispatch();
 
@@ -105,7 +108,12 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
         if( currentBunId === null || bunIds === null ){ return }
         dispatch( setStartTime(bunIds[currentBunId].startTime) );
         dispatch( setEndTime(bunIds[currentBunId].endTime) );
-        setInputText(bunIds[currentBunId].jaText);
+        if( translationDirection === 'ja-ko' ){
+            setInputText(bunIds[currentBunId].jaText ?? '');
+        }
+        else{
+            setInputText(bunIds[currentBunId].koText ?? '');
+        }
         selectEditYtBId(bunIds[currentBunId].ytBId);
         if( bunIds[currentBunId].startTime > state.playedSeconds || state.playedSeconds > bunIds[currentBunId].endTime ){
             gotoTime(bunIds[currentBunId].startTime, false);
@@ -165,14 +173,14 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
             <Flex vertical style={{ height : '100%' }}>
                 <TimelineControlComp 
                     value={value} setInputText={setInputText} 
-                    bunIds={bunIds} refetchTimeline={timelineHandles.refetch} 
+                    bunIds={bunIds}
                     currentBunId={currentBunId} editYtbId={editYtbId} selectEditYtBId={selectEditYtBId} 
                     state={state} videoPlayerHandles={videoPlayerHandles} refetchHandles={refetchHandles}
                 />
                 <div style={{ width : "100%", height : "100%", overflow : "scroll", padding : "8px" }} ref={divBox}>
                     {
                         bunIds !== null ?
-                            <Spin spinning={timelineHandles.loading}>
+                            <Spin spinning={timelineLoading}>
                                 <VirtualList
                                     data={bunIds}
                                     height={divBoxHeight}
@@ -192,8 +200,8 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
                                             }
                                         >
                                             <TimelineBun 
-                                                key={timeline.ytBId} bId={timeline.jaBId} ytbId={timeline.ytBId}
-                                                jaText={timeline.jaText}
+                                                key={timeline.ytBId} jaBId={timeline.jaBId} ytBId={timeline.ytBId}
+                                                jaText={timeline.jaText} koText={timeline.koText}
                                                 startTimestamp={ timeline.startTime.toString() } endTimestamp={ timeline.endTime.toString() }
                                                 startTime={ timeline.startTime } endTime={ timeline.endTime }
                                                 state={state}
@@ -210,7 +218,7 @@ const TimelineComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPla
                                 </VirtualList>
                             </Spin>
                         :
-                        <MakeDrftComp refetch={timelineHandles.refetch} gotoTime={gotoTime} loading={timelineHandles.loading}/>
+                        <MakeDrftComp gotoTime={gotoTime}/>
                     }
                 </div>
             </Flex>

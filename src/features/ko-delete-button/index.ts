@@ -1,0 +1,1 @@
+export { useDeleteTranslate } from './api/useDeleteTranslate'

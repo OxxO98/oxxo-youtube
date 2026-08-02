@@ -25,7 +25,7 @@ export const SelectPromptModal = ({ setPrompt } : SelectPromptModalProps) => {
 
     //Hook
     const { response } = useAxiosGet<RES_GET_VIDEO, REQ_GET_VIDEO>('/db/video', false, { opt_disabled : 'false' });
-    const { response : resPrompt, loading, setParams } = useAxiosGet<any, any>('/db/auto/prompt', true, null);
+    const { response : resPrompt, loading, setParams } = useAxiosGet<RES_GET_PROMPT, REQ_GET_PROMPT>('/db/auto/prompt', true, null);
 
     //Handle
     const showModal = () => {

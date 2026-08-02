@@ -25,10 +25,13 @@ async function getHukumuList(req : RouterRequest, res : RouterResponse){
 
         //문장에서 hyouki가 있는 것을 모두 검색
         let timeline = await db_module.getTimeline(db, videoId);
-        let jaBuns = timeline.map( (v) => db.data.jaBuns.find( (ja) => ja.jaBId == v.jaBId  ) );
+        let jaBuns = timeline
+            .filter( (v) => v.jaBId !== null )
+            .map( (v) => db.data.jaBuns.find( (ja) => ja.jaBId == v.jaBId  ) );
+
+        let regexp = new RegExp(`${hyouki}`, 'g');
 
         let list : HukumuList[][] = _.map( jaBuns, (v) => {
-            let regexp = new RegExp(`${hyouki}`, 'g');
             let matched = v.jaText.matchAll(regexp);
             let all = [...matched]
 
@@ -42,7 +45,8 @@ async function getHukumuList(req : RouterRequest, res : RouterResponse){
                     }
                 })
             };
-        })
+        }).filter( (v) => v !== undefined );
+        
         let compactedList : HukumuList[] = ( _.compact(list).flat() ).filter( (v) => 
             !(db.data.hukumu
                 .find( (hu) => 

@@ -34,10 +34,9 @@ interface autoDBOption {
 
 interface TangoAutoModalProps {
     refetchTangoList : () => void;
-    refetchTimeline : () => void;
 }
 
-export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAutoModalProps) => {
+export const TangoAutoModal = ({ refetchTangoList } : TangoAutoModalProps) => {
     const { t } = useTranslation('TangoAutoModal');
 
     //Context
@@ -53,7 +52,7 @@ export const TangoAutoModal = ({ refetchTangoList, refetchTimeline } : TangoAuto
     const { bunIds } = useAppSelector( (state) => state.timeline );
 
     //Hook
-    const { commitData, index, handleAutoCommit, moreTIdList } = useAutoCommit(videoId, refetchTangoList, refetchTimeline);
+    const { commitData, index, handleAutoCommit, moreTIdList } = useAutoCommit(videoId, refetchTangoList);
 
     const { response, loading, setParams } = useAxiosGet<auto_db, REQ_GET_AUTO_DB>('/db/auto', true, null);
     

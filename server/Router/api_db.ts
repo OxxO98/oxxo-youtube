@@ -22,6 +22,8 @@ import { nanoid } from "nanoid";
 import path from 'path';
 import { assetPath } from './core/path_module.js';
 
+import { guessLanguage } from "./core/ytDlp_module.js";
+
 import _ from 'lodash'
 
 type HukumuHyouki = Hukumu & Hyouki
@@ -196,10 +198,11 @@ async function getVideo(req : RouterRequest, res : RouterResponse){
 
 async function postVideo(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async (db) => {
-        let { youtubeSrc, title } = req.body;
+        let { youtubeSrc, title, direction } = req.body;
         
         logger.info( db_module.logVideoInsert(title, youtubeSrc) );
-        db.data.videos.push({ title : title, src : youtubeSrc, timeline : [], tags : [], lastEditTime : Date.now() });
+        db.data.videos.push({ title : title, src : youtubeSrc, timeline : [], tags : [], lastEditTime : Date.now(), direction : direction });
+
         await db.write();
 
         res.send({
@@ -312,6 +315,40 @@ async function deleteVideo(req : RouterRequest, res : RouterResponse){
     })
 }
 
+async function getVideoInfo(req : RouterRequest, res : RouterResponse){
+    await db_connection( req, res, async(db) => {
+        let { videoId } = req.query;
+
+        let video = db.data.videos.find( (v) => v.src == videoId );
+
+        if( video == undefined ){
+            res.send({
+                data : {},
+                message : 'error'
+            })
+            return
+        }
+        
+        
+
+        res.send({
+            data : video,
+            message : 'success'
+        })
+    });
+}
+
+async function getVideoLang(req : RouterRequest, res : RouterResponse){
+    let { videoId } = req.query;
+
+    let lang = await guessLanguage(videoId);
+
+    res.send({
+        data : { lang : lang },
+        message : 'success'
+    })
+}
+
 async function searchVideo(req : RouterRequest, res : RouterResponse){
     await db_connection( req, res, async (db) => {
         let { keyword } = req.query;
@@ -352,12 +389,19 @@ async function getTimeline(req : RouterRequest, res : RouterResponse) {
 
         let video = db.data.videos.find( (video) => video.src == videoId);
 
+        if( video.direction === undefined ){
+            let lang = await guessLanguage(videoId);
+            video.direction = ( lang === 'ja' || lang === null ) ? 'ja-ko' : 'ko-ja'
+
+            await db.write();
+        }
+
         let timeline = video.timeline;
         
         if( !timeline ){ 
             res.send({
                 message : 'error',
-                data : []
+                data : {}
             }) 
             return;
         }
@@ -374,14 +418,20 @@ async function getTimeline(req : RouterRequest, res : RouterResponse) {
             if( joinText.length == 0){
                 res.send({
                     message : 'empty',
-                    data : []
+                    data : {
+                        timeline : [],
+                        direction : video.direction ?? 'ja-ko',
+                    }
                 })
                 return;
             }
 
             res.send({
                 message : 'success',
-                data : joinText
+                data : {
+                    timeline : joinText,
+                    direction : video.direction ?? 'ja-ko',
+                }
             });
         }
     })
@@ -400,22 +450,25 @@ async function transcriptToBuns(req : RouterRequest, res : RouterResponse){
         }
         const transcript = JSON.parse(json.toString()).transcription;
 
-        let timeline = db.data.videos.find( (video) => video.src == videoId ).timeline;
+        let video = db.data.videos.find( (video) => video.src == videoId );
+        let direction = video.direction ?? 'ja-ko'
+        let timeline = video.timeline;
 
         const SKIP_TEXT = ['♪', '(音楽)', '[音楽]', ''];
 
+        //legacy koText-->translate
         transcript.map( (v) => {
             let startTime = v.offsets.from/1000;
             let endTime = v.offsets.to/1000;
-            let jaText = v.text.trim();
 
             if( SKIP_TEXT.includes(v.text.trim()) == true ){ console.log('SKIP_TEXT', v.text); return; }
 
             let _YTBID = nanoid(10);
-            let _JABID = nanoid(10);
-            let _KOBID = v.koText !== undefined ? nanoid(10) : null;
+            let _JABID = direction === 'ja-ko' ? nanoid(10) : v.translate !== undefined ? nanoid(10) : null;
+            let _KOBID = direction === 'ja-ko' ? (v.translate !== undefined || v.koText !== undefined) ? nanoid(10) : null : nanoid(10);
 
-            logger.info( db_module.logYTBInsert(_YTBID, _JABID, startTime, endTime, _KOBID) );
+            logger.info( db_module.logYTBInsert(_YTBID, _JABID, _KOBID, startTime, endTime) );
+            // console.log( db_module.logYTBInsert(_YTBID, _JABID, _KOBID, startTime, endTime) );
             timeline.push({
                 "ytBId" : _YTBID,
                 "jaBId" : _JABID,
@@ -423,17 +476,22 @@ async function transcriptToBuns(req : RouterRequest, res : RouterResponse){
                 "startTime" : startTime,
                 "endTime" : endTime
             })
-            let jaBuns = db.data.jaBuns;
-            logger.info( db_module.logJaBunInsert(_JABID, jaText, _YTBID) );
-            jaBuns.push({
-                "jaBId" : _JABID,
-                "jaText" : jaText,
-                "ytBId" : _YTBID
-            })
-            if( v.koText !== undefined && _KOBID !== null ){
-                let koText = v.koText.trim();
+            if( _JABID !== null ){
+                let jaText = ( direction === 'ja-ko' ? v.text : v.translate ).trim()
+                let jaBuns = db.data.jaBuns;
+                logger.info( db_module.logJaBunInsert(_JABID, jaText, _YTBID) );
+                // console.log( db_module.logJaBunInsert(_JABID, jaText, _YTBID) );
+                jaBuns.push({
+                    "jaBId" : _JABID,
+                    "jaText" : jaText,
+                    "ytBId" : _YTBID
+                })
+            }
+            if( _KOBID !== null ){
+                let koText = ( direction === 'ja-ko' ? (v.translate ?? v.koText) : v.text ).trim();
                 let koBuns = db.data.koBuns;
                 logger.info( db_module.logKoBunInsert(_KOBID, koText, _YTBID) );
+                // console.log( db_module.logKoBunInsert(_KOBID, koText, _YTBID) );
                 koBuns.push({
                     "koBId" : _KOBID,
                     "koText" : koText,
@@ -451,7 +509,7 @@ async function transcriptToBuns(req : RouterRequest, res : RouterResponse){
     })
 }
 
-//AudioCaptionToBuns
+//AudioCaptionToBuns //not updated with direction
 async function captionToBuns(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId } = req.body;
@@ -473,7 +531,7 @@ async function captionToBuns(req : RouterRequest, res : RouterResponse){
             let _YTBID = nanoid(10);
             let _JABID = nanoid(10);       
 
-            logger.info( db_module.logYTBInsert(_YTBID, _JABID, startTime, endTime) );
+            logger.info( db_module.logYTBInsert(_YTBID, _JABID, null, startTime, endTime) );
             timeline.push({
                 "ytBId" : _YTBID,
                 "jaBId" : _JABID,
@@ -1244,6 +1302,9 @@ router.get('/video', getVideo);
 router.post('/video', postVideo);
 router.put('/video', editVideo);
 router.delete('/video', deleteVideo);
+
+router.get('/video/info', getVideoInfo);
+router.get('/video/lang', getVideoLang);
 
 router.get('/video/search', searchVideo);
 

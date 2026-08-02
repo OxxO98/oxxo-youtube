@@ -8,52 +8,7 @@ import logger from './core/logger.js';
 
 import { nanoid } from "nanoid";
 
-function extractEnglish(text : string){
-    if(typeof text !== 'string') return '';
-
-    let matched = text.match(/[A-Za-z]+(?:['-][A-Za-z]+)*/g);
-
-    return matched == null ? '' : matched.join(' ');
-}
-
-async function getTranslate(req : RouterRequest, res : RouterResponse){
-    await db_connection(req, res, async(db) => {
-        let { videoId, ytBId } = req.query;
-
-        let timeline = await db_module.getTimeline(db, videoId);
-
-        let ytb = await db_module.getYTBun(timeline, ytBId); 
-
-        let jaBun = await db_module.getJaBun(db, ytb.jaBId);
-        
-        let jaBunList = db.data.jaBuns
-            .filter( (v) => v.ytBId == ytb.ytBId )
-            .filter( (v) => v.jaBId != ytb.jaBId );
-
-        let ret = {
-            jaBun : jaBun,
-            koBun : null,
-            jaList : jaBunList,
-            koList : null
-        }
-
-        if(ytb.koBId != null){
-            let koBun = await db_module.getKoBun(db, ytb.koBId);
-            let koBunList = db.data.koBuns
-                .filter( (v) => v.ytBId == ytb.ytBId )
-                .filter( (v) => v.koBId != ytb.koBId );
-        
-            ret.koBun = koBun;
-            ret.koList = koBunList;
-        }
-
-        res.send({
-            data : ret
-        });
-    })
-}
-
-async function postTranslate(req : RouterRequest, res : RouterResponse){
+async function postKoText(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId, value } = req.body;
 
@@ -82,7 +37,7 @@ async function postTranslate(req : RouterRequest, res : RouterResponse){
     })
 }
 
-async function putTranslate(req : RouterRequest, res : RouterResponse){
+async function putKoText(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId, value } = req.body;
 
@@ -102,7 +57,7 @@ async function putTranslate(req : RouterRequest, res : RouterResponse){
     })
 }
 
-async function deleteTranslate(req : RouterRequest, res : RouterResponse){
+async function deleteKoText(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId, koBId } = req.query;
 
@@ -113,7 +68,7 @@ async function deleteTranslate(req : RouterRequest, res : RouterResponse){
         await db_module.deleteKoBun( db, koBId );
 
         let koBunList = db.data.koBuns
-            .filter( (v) => v.ytBId == ytb.ytBId );
+            .filter( (v) => v.ytBId == ytBId );
         if( koBunList.length == 0 ){
             logger.info( db_module.logYTBUpdateKoBId(ytb, null) );
             ytb.koBId = null;
@@ -132,7 +87,7 @@ async function deleteTranslate(req : RouterRequest, res : RouterResponse){
     })
 }
 
-async function getRepresentive(req : RouterRequest, res : RouterResponse){
+async function getRepresentiveKoText(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId } = req.query;
 
@@ -157,7 +112,7 @@ async function getRepresentive(req : RouterRequest, res : RouterResponse){
                     koBId : ytb.koBId,
                     jaBId : ytb.jaBId,
                     koText : koBun != null ? koBun.koText : '',
-                    jaText : jaBun.jaText
+                    jaText : jaBun != null ? jaBun.jaText : '',
                 }
             })
             return;
@@ -165,7 +120,7 @@ async function getRepresentive(req : RouterRequest, res : RouterResponse){
     })
 }
 
-async function setRepresentive(req : RouterRequest, res : RouterResponse){
+async function setRepresentiveKoText(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId, koBId } = req.body;
 
@@ -184,76 +139,11 @@ async function setRepresentive(req : RouterRequest, res : RouterResponse){
     })
 }
 
-async function getAutoTranslate(req : RouterRequest, res : RouterResponse) {
-    await db_connection(req, res, async (db) => {
-        let { videoId, jaText } = req.query;
+router.post('/', postKoText); // no cascading
+router.put('/', putKoText);
+router.delete('/', deleteKoText); //no cascading
 
-        let video = db.data.videos.find( (video) => video.src == videoId);
-
-        let timeline = video.timeline;
-        
-        if( !timeline ){ 
-            res.send({
-                message : 'error',
-                data : []
-            }) 
-            return;
-        }
-        else{
-            let jaBuns = db.data.jaBuns;
-            let koBuns = db.data.koBuns;
-            let joinText = timeline.map( (v) => {
-                return { ...v, 
-                    ...jaBuns.find( (ja) => ja.jaBId == v.jaBId ), 
-                    ...koBuns.find( (ko) => ko.koBId == v.koBId ) 
-                }
-            }).toSorted( (a, b) => a.startTime - b.startTime );
-
-            if( joinText.length == 0){
-                res.send({
-                    message : 'empty',
-                    data : ""
-                })
-                return;
-            }
-
-            let _find = joinText.find( (v) => v.jaText == jaText );
-
-            if( _find === undefined || _find?.koText === undefined ){
-                let en_text = extractEnglish(jaText);
-
-                if( en_text === '' ){
-                    res.send({
-                        message : 'empty',
-                        data : ""
-                    })
-                    return;
-                }
-                else{
-                    res.send({
-                        message : 'success',
-                        data : en_text
-                    })
-                    return;
-                }
-            }
-
-            res.send({
-                message : 'success',
-                data : _find.koText
-            });
-        }
-    })
-}
-
-router.get('/', getTranslate);
-router.post('/', postTranslate);
-router.put('/', putTranslate);
-router.delete('/', deleteTranslate);
-
-router.get('/representive', getRepresentive);
-router.put('/representive', setRepresentive);
-
-router.get('/auto', getAutoTranslate);
+router.get('/representive', getRepresentiveKoText);
+router.put('/representive', setRepresentiveKoText);
 
 export default router;

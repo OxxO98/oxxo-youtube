@@ -1,18 +1,16 @@
 import { useEffect } from 'react';
 
-//Redux
-import { useAppDispatch, reactPlayerActions } from 'shared/store';
-
 //Hook
 import { useAxiosPut } from 'shared/hooks/useAxios';
 
 //Redux
+import { useAppDispatch, timelineActions, reactPlayerActions } from 'shared/store';
+const { requestTimelineRefetch } = timelineActions;
 const { clear } = reactPlayerActions;
 
 export function useMerge(
     videoId : string,
     bunIds : RES_TIMELINE[] | null,
-    refetchTimeline : () => void,
     refetchHandles : RefetchHandles,
     cancelEdit : () => void
 ){
@@ -37,12 +35,13 @@ export function useMerge(
     useEffect( () => {
         let res = response;
         if(res !== null){
-            refetchTimeline();
+            dispatch( requestTimelineRefetch() );
+
             refetchHandles.refetchAll();
             cancelEdit();
             dispatch( clear() );
         }
-    }, [response, refetchTimeline, refetchHandles, cancelEdit])
+    }, [response, refetchHandles, cancelEdit])
 
     return { heigouBun }
 }

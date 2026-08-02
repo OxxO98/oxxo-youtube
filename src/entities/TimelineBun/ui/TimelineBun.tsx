@@ -1,8 +1,9 @@
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useContext } from 'react';
 import { useTranslation } from 'react-i18next'
 
 //entities
 import { Bun } from 'entities/Bun/index';
+import { KoText } from 'entities/KoText/index';
 
 //CSS@antd
 import { Button, Flex, Tooltip } from 'antd';
@@ -10,12 +11,14 @@ import { ConsoleSqlOutlined, FormOutlined, PlayCircleOutlined } from '@ant-desig
 
 //Redux
 import { useAppDispatch, reactPlayerActions } from 'shared/store';
+import { VideoContext } from 'shared/contexts/VideoContext';
 const { setStartTime, setEndTime } = reactPlayerActions;
 
 interface TimeLineBunProps {
-  bId : string;
-  ytbId : string;
-  jaText : string;
+  jaBId : string | null;
+  ytBId : string;
+  jaText? : string;
+  koText? : string;
   startTimestamp : string;
   endTimestamp : string;
   startTime : number;
@@ -30,18 +33,26 @@ interface TimeLineBunProps {
   setActive? : (bId : string) => void;
 }
 
-const TimelineBun = ({ bId, ytbId, jaText, startTimestamp, endTimestamp, startTime, endTime, state, setInputText, selectEditYtBId, setScratch, gotoTime, bIdRef, ...props} : TimeLineBunProps ) => {
+const TimelineBun = ({ jaBId, ytBId, jaText, koText, startTimestamp, endTimestamp, startTime, endTime, state, setInputText, selectEditYtBId, setScratch, gotoTime, bIdRef, ...props} : TimeLineBunProps ) => {
 
     //i18n
     const { t } = useTranslation('TimelineBun');
+
+    //context
+    const { translationDirection } = useContext(VideoContext);
 
     const dispatch = useAppDispatch();
 
     const modifyEditInput = () => {
         dispatch( setStartTime(startTime) );
         dispatch( setEndTime(endTime) );
-        setInputText(jaText);
-        selectEditYtBId(ytbId);
+        if( translationDirection === 'ja-ko' ){
+            setInputText(jaText ?? '');
+        }
+        else{
+            setInputText(koText ?? '');
+        }
+        selectEditYtBId(ytBId);
         if( startTime > state.playedSeconds || state.playedSeconds > endTime ){
             gotoTime(startTime, false);
         }
@@ -60,19 +71,25 @@ const TimelineBun = ({ bId, ytbId, jaText, startTimestamp, endTimestamp, startTi
     return(
         <Flex justify="space-between">
             {
-                props?.getActive ?
-                    props.getActive(bId) ?
-                        <div id="activeRange">
-                            <Bun key={bId} bId={bId} bIdRef={bIdRef}/>
-                        </div>
-                    :
-                        <div onMouseDown={() => props.setActive !== undefined ? props.setActive(bId) : undefined }>
-                            <Bun key={bId} bId={bId} bIdRef={bIdRef}/>
-                        </div>
+                translationDirection === 'ja-ko' ?
+                    jaBId !== null &&
+                    <>
+                    {
+                        props?.getActive ?
+                            props.getActive(jaBId) ?
+                                <div id="activeRange">
+                                    <Bun key={jaBId} bId={jaBId} bIdRef={bIdRef}/>
+                                </div>
+                            :
+                                <div onMouseDown={() => props.setActive !== undefined ? props.setActive(jaBId) : undefined }>
+                                    <Bun key={jaBId} bId={jaBId} bIdRef={bIdRef}/>
+                                </div>
+                        :
+                        <Bun key={jaBId} bId={jaBId} bIdRef={bIdRef}/>
+                    }
+                    </>
                 :
-                <div>
-                    <Bun key={bId} bId={bId} bIdRef={bIdRef}/>
-                </div>
+                <KoText data={koText}/>
             }
             <Flex gap={8}>
                 <Tooltip title={t('TOOLTIP.ENTER')}>

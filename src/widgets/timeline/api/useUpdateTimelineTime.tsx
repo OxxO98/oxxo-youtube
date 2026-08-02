@@ -4,17 +4,18 @@ import { useEffect } from 'react'
 import { useAxiosPut } from 'shared/hooks/useAxios';
 
 //Redux
-import { useAppSelector } from 'shared/store';
+import { useAppSelector, useAppDispatch, timelineActions } from 'shared/store';
+const { requestTimelineRefetch } = timelineActions;
 
 export function useUpdateTimelineTime(
     videoId : string,
     duration : number,
-    refetchTimeline : () => void,
     cancelEdit : () => void
 ){
     //Redux
     const { startTime, endTime } = useAppSelector((state) => state.reactPlayer)
-    
+    const dispatch = useAppDispatch();
+
     const { response, setParams } = useAxiosPut<null, REQ_PUT_BUN_TIME>('/db/bun/time', true, null);
 
     const updateYTBunTime = ( editYtbId : string | null ) => {
@@ -36,10 +37,10 @@ export function useUpdateTimelineTime(
         if(res !== null){
             if(res.message === 'success'){
                 cancelEdit();
-                refetchTimeline();
+                dispatch( requestTimelineRefetch() );
             }
         }
-    }, [response, cancelEdit, refetchTimeline])
+    }, [response, cancelEdit])
 
     return { updateYTBunTime }
 }

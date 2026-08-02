@@ -26,7 +26,8 @@ async function getKoBuns( db : db ) : Promise<koBun[]>{
 //Bun
 
 //JaBun
-async function getJaBun( db : db, jaBId : string ) : Promise<jaBun | null>{
+async function getJaBun( db : db, jaBId : string | null ) : Promise<jaBun | null>{
+    if(jaBId == null){ return null }
     let jaBun = db.data.jaBuns.find( (v) => v.jaBId == jaBId );
     if(!jaBun){ return null }
 
@@ -306,12 +307,16 @@ function logJaBunDeleteYtBId( ytBId : string ){
 }
 
 //YTB
-function logYTBInsert( ytBId : string, jaBId : string, startTime : number, endTime : number, koBId : string | null = null ){
+function logYTBInsert( ytBId : string, jaBId : string | null, koBId : string | null, startTime : number, endTime : number ){
     return `YTB 추가 YTB ${_logId(ytBId)} JABID ${_logId(jaBId)} KOBID ${_logId(koBId)} STARTTIME ${_logTime(startTime)} ENDTIME ${_logTime(endTime)}`
 }
 
 function logYTBUpdateKoBId( ytb : YTB, newKoBId : string | null ){
     return `YTB ${_logId(ytb.ytBId)} KOBID 수정 ${_logId(ytb.koBId)} --> ${_logId(newKoBId)}`
+}
+
+function logYTBUpdateJaBId( ytb : YTB, newJaBId : string | null ){
+    return `YTB ${_logId(ytb.ytBId)} JABID 수정 ${_logId(ytb.jaBId)} --> ${_logId(newJaBId)}`
 }
 
 function logYTBUpdateTime( ytb : YTB, newStartTime : number, newEndTime : number ){
@@ -448,6 +453,7 @@ export {
     logJaBunDeleteYtBId,
     logYTBInsert,
     logYTBUpdateKoBId,
+    logYTBUpdateJaBId,
     logYTBUpdateTime,
     logYTBDelete,
     logHukumuInsert,

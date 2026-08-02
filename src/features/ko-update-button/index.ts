@@ -1,0 +1,1 @@
+export { useUpdateTranslate } from './api/useUpdateTranslate'

@@ -1,6 +1,6 @@
 import { auto_db } from "../type";
 
-export function commitDataDTO( bunIds : RES_GET_TIMELINE, data : auto_db ){
+export function commitDataDTO( bunIds : RES_GET_TIMELINE["timeline"], data : auto_db ){
     return data.map( (v : any) => 
         v.reduce( (acc : any, cur : any) => { 
             return {...acc, [cur.id] : { 

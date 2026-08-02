@@ -9,7 +9,7 @@ export const useGetYomi = ( selection : string, hukumuCheckLoading : boolean, hu
     const [yomi, setYomi] = useState<string>("");
     const [autoBool, setAutoBool] = useState<boolean>(false);
 
-    const { response, setParams } = useAxiosGet<any, any>('/db/auto/yomi', true, null)
+    const { response, setParams } = useAxiosGet<RES_GET_AUTO_YOMI, REQ_GET_AUTO_YOMI>('/db/auto/yomi', true, null)
 
     useDebounceEffect( () => {
         if( hukumuData === null && hukumuCheckLoading == false ){

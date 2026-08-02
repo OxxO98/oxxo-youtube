@@ -4,9 +4,10 @@ import ReactPlayer from 'react-player';
 
 //api
 import { usePostVideo } from '../api/usePostVideo';
+import { useGetVideoLang } from '../api/useGetVideoLang';
 
 //CSS@AntD
-import { Button, Modal, Steps, theme, Input, Space, Form, Flex } from "antd";
+import { Button, Modal, Steps, theme, Input, Space, Form, Flex, Switch } from "antd";
 import { PlusSquareOutlined } from '@ant-design/icons'
 
 interface ModalNewVideoProps {
@@ -56,9 +57,11 @@ export const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
     //Hook
     const resetEdit = () => { setInputs({ youtubeSrc : '', title : '' }); setCurrent(0); }
     const { postVideo } = usePostVideo( refetch, setIsModalOpen, resetEdit );
+    const { lang, setLang, direction, loading : loadingLang, getVideoLang } = useGetVideoLang()
 
     //Handle
     const next = () => {
+        if( current === 0 ){ getVideoLang(inputs.youtubeSrc) }
         setCurrent(current + 1);
     };
 
@@ -80,6 +83,10 @@ export const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
             [e.target.name] : e.target.value,
         }));
     }
+
+    const handleSwitch = (checked: boolean) => {
+        setLang(checked ? 'ja' : 'ko')
+    };
 
     //Effect
     useEffect( () => {
@@ -124,7 +131,10 @@ export const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                                 autoComplete='off'
                             >
                                 <Form.Item label={t('LABEL.0')}>
-                                    <Input addonBefore="https://youtu.be/" size="middle" placeholder="large size" name='youtubeSrc' onChange={handleInputChange} value={inputs.youtubeSrc}/>
+                                    <Space>
+                                        https://youtu.be/
+                                        <Input size="middle" placeholder="large size" name='youtubeSrc' onChange={handleInputChange} value={inputs.youtubeSrc}/>
+                                    </Space>
                                 </Form.Item>
                             </Form>
                         </Space>
@@ -135,12 +145,15 @@ export const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                                 src={`https://youtu.be/${inputs.youtubeSrc}`}
                                 style={{ width: '60%', height: 'auto', aspectRatio: '16/9' }}
                             />
+                            
                             <Space align='baseline'>
                                 <Form>
                                     <Form.Item label={t('LABEL.1')}>
                                         <Input size="middle" placeholder="large size" name='title' onChange={handleInputChange} value={inputs.title}/>
                                     </Form.Item>
                                 </Form>
+                                <Switch loading={loadingLang} value={lang === 'ja'} checkedChildren='ja' unCheckedChildren='ko' onChange={handleSwitch} />
+                                {direction}
                             </Space>
                         </>
                     )}
@@ -153,7 +166,7 @@ export const NewVideoComp = ({ refetch } : ModalNewVideoProps ) => {
                             </Button>
                         )}
                         {current === steps.length - 1 && isTitle && (
-                            <Button type="primary" onClick={() => postVideo(inputs)}>
+                            <Button type="primary" onClick={() => postVideo({ ...inputs, direction : direction })}>
                                 {t('BUTTON.DONE')}
                             </Button>
                         )}

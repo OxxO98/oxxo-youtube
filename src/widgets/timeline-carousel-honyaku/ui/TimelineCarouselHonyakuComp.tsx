@@ -10,9 +10,11 @@ import { HonyakuRepresentive } from 'widgets/honyaku-representive/index';
 
 //entities
 import { Bun } from 'entities/Bun/index';
+import { KoText } from 'entities/KoText/index'
 
 //Redux
 import { useAppSelector, useAppDispatch, reactPlayerActions, selectionActions, timelineActions } from 'shared/store';
+import { VideoContext } from 'shared/contexts/VideoContext';
 const { setStartTime, setEndTime } = reactPlayerActions;
 const { setSelectedBun } = selectionActions;
 const { setCurrentBunId, setCurrentBunIdNext, setCurrentBunIdPrev } = timelineActions;
@@ -39,6 +41,9 @@ const TranslateBunStyle: CSSProperties = {
 }
 
 export const TimelineCarouselHonyakuComp = ({ state, bIdRef, videoPlayerHandles, deselect }: TimelineCarouselCompProps) => {
+
+    //context
+    const { translationDirection } = useContext(VideoContext);
 
     //State
     const { playedSeconds } = state;
@@ -171,8 +176,16 @@ export const TimelineCarouselHonyakuComp = ({ state, bIdRef, videoPlayerHandles,
                 {
                     bunIds !== null && bunIds.length !== 0 &&
                     <>
-                        <div className="jaText" id="activeRange" style={TimelineBunStyle}>
-                            <Bun key={bunIds[currentBunId].jaBId} bId={bunIds[currentBunId].jaBId} bIdRef={bIdRef} />
+                        <div style={TimelineBunStyle}>
+                        {
+                            translationDirection === 'ja-ko' ?
+                                bunIds[currentBunId].jaBId !== null &&
+                                <div className="jaText" id="activeRange">
+                                    <Bun key={bunIds[currentBunId].jaBId} bId={bunIds[currentBunId].jaBId} bIdRef={bIdRef} />
+                                </div>
+                            :
+                            <KoText data={bunIds[currentBunId].koText}/>
+                        }
                         </div>
                         <div style={TranslateBunStyle}>
                             {

@@ -174,7 +174,7 @@ async function _sliceAudioLocal( filePath, outFilePath, startTime, endTime, opti
     }    
 }
 
-async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime, prompt ){
+async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime, prompt, lang ){
 
     if(fs.existsSync(`${outFilePath}.json`) == true){
         console.log('exist.. skip');
@@ -206,7 +206,7 @@ async function _sliceAudioOpenAI( filePath, outFilePath, startTime, endTime, pro
         file: fs.createReadStream(outFilePath),
         model: "whisper-1",
         response_format : "verbose_json",
-        language : "ja",
+        language : lang,
         timestamp_granularities : ["segment"],
         prompt : prompt
     })
@@ -343,7 +343,7 @@ async function _reviseWithAi( videoPath, transcription ){
     return transcriptArr;
 }
 
-async function _translateWithAi( videoPath, transcription ){
+async function _translateWithAi( videoPath, transcription, lang ){
 
     let _revisePath = `${videoPath}_revise.json`;
 
@@ -351,13 +351,13 @@ async function _translateWithAi( videoPath, transcription ){
         let json_revise = await fs.readFileSync(_revisePath);
         let _transcription = JSON.parse(json_revise.toString()).transcription;
         
-        if( _transcription[0].koText !== undefined ){
+        if( _transcription[0].koText !== undefined || _transcription[0].translate !== undefined ){
             let revise_transcription = _transcription.map( (v) => {
                 return {
                     startTime : v.offsets.from/1000,
                     endTime : v.offsets.to/1000,
                     text : v.text,
-                    koText : v.koText
+                    translate : v.koText ?? v.translate ?? ''
                 }
             })
 
@@ -367,11 +367,12 @@ async function _translateWithAi( videoPath, transcription ){
 
     console.log('get translation...')
 
+    //legacy // id, text, koText
     const tcData = z.object({ 
         data : z.array( z.object({
             id : z.string(),
             text : z.string(),
-            koText: z.string()
+            translate : z.string()
         }) )
     });
     const client = new OpenAI();
@@ -395,7 +396,7 @@ async function _translateWithAi( videoPath, transcription ){
 
             규칙 :
             - ID는 절대 수정, 삭제, 추가하지 말 것
-            - koText에 각 줄을 한국어로 번역한 결과를 넣을 것
+            - translate에 각 줄을 ${lang === 'ja' ? '한국어' : '일본어'}로 번역한 결과를 넣을 것
 
             [보정 대상]
             ${transcriptionInput}
@@ -422,7 +423,7 @@ async function _translateWithAi( videoPath, transcription ){
     let translateArr = transcription.map( (v, i) => {
         return {
             ...v,
-            koText : output_arr[i]?.koText ?? ""
+            translate : output_arr[i]?.translate ?? ""
         }
     })
 
@@ -625,7 +626,7 @@ async function getTransciptLocal( videoId, option ){
     })
 }
 
-async function getTranscriptOpenAI( videoId, prompt ){
+async function getTranscriptOpenAI( videoId, prompt, lang ){
     
     let transcriptPath = path.join(assetPath, 'transcript');
 
@@ -659,7 +660,7 @@ async function getTranscriptOpenAI( videoId, prompt ){
         let _endTime = Math.min( i + _sliceSeconds, _duration );
     
         let outFilePath = path.join(transcriptPath, `${videoId}_${_startTime}_${_endTime}.wav`);
-        await _sliceAudioOpenAI( videoPath, outFilePath, _startTime, _endTime, prompt )
+        await _sliceAudioOpenAI( videoPath, outFilePath, _startTime, _endTime, prompt, lang )
         console.log(`${i/_sliceSeconds+1} / ${_indexs.length}.. end`);
     }
 
@@ -724,7 +725,7 @@ async function getTranscriptOpenAI( videoId, prompt ){
 }
 
 async function getTranscipt(req : RouterRequest, res : RouterResponse){
-    let { videoId, reviseText, reset, translate, prompt } = req.query;
+    let { videoId, reviseText, reset, translate, prompt, lang } = req.query;
 
     console.log("option", req.query)
     
@@ -734,7 +735,7 @@ async function getTranscipt(req : RouterRequest, res : RouterResponse){
 
     let _option = {
         reset : reset ?? 'false',
-        lang : 'ja',
+        lang : lang ?? 'ja',
         model : 'medium'
     }
 
@@ -744,14 +745,14 @@ async function getTranscipt(req : RouterRequest, res : RouterResponse){
 
     if( await _existApiKey() == true ){
 
-        let transcription = await getTranscriptOpenAI( videoId, prompt );
+        let transcription = await getTranscriptOpenAI( videoId, prompt, _option.lang );
 
         if( prompt !== 'true' ){
             transcription = await _reviseWithAi( videoPath, transcription );
         }
 
         if(transcription !== undefined && translate !== undefined && translate === 'true'){
-            transcription = await _translateWithAi( videoPath, transcription );
+            transcription = await _translateWithAi( videoPath, transcription, _option.lang );
         }
 
         res.send({

@@ -10,7 +10,7 @@ import { useAxiosGet } from 'shared/hooks/useAxios';
 import { TangoBun } from './TangoBun';
 
 interface TangoBunListProps {
-    hyId : hyId;
+    hyId : string;
 }
 
 export const TangoBunList = ({ hyId } : TangoBunListProps )=> {

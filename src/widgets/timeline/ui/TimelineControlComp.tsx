@@ -10,6 +10,9 @@ import { useTimeStamp } from 'shared/lib/useTimeStamp';
 import { useHandleKeyboard } from 'shared/hooks/useHandleKeyboard';
 import { useAxiosGet } from 'shared/hooks/useAxios';
 
+//features
+import { useUpdateTranslate } from 'features/ko-update-button/index';
+
 //widgets
 import { UpdateBunJaTextModalComp } from 'features/bun-update-modal/index';
 import { DeleteBunModalComp } from 'features/bun-delete-modal/index';
@@ -34,7 +37,6 @@ interface TimelineControlCompProps {
     value : string;
     setInputText : ( value : string) => void;
     bunIds : RES_TIMELINE[] | null;
-    refetchTimeline : () => void;
     currentBunId : number | null;
     editYtbId : string | null;
     selectEditYtBId : ( editYtbId : string | null ) => void;
@@ -47,7 +49,7 @@ const TimelineControlStyle : CSSProperties = {
     padding : '8px 8px'
 }
 
-export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeline, currentBunId, editYtbId, selectEditYtBId, state, videoPlayerHandles, refetchHandles } : TimelineControlCompProps ) => {
+export const TimelineControlComp = ({ value, setInputText, bunIds, currentBunId, editYtbId, selectEditYtBId, state, videoPlayerHandles, refetchHandles } : TimelineControlCompProps ) => {
 
     //i18n
     const { t } = useTranslation('TimelineControlComp');
@@ -55,7 +57,7 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
     const dispatch = useAppDispatch();
 
     //Context
-    const { videoId, frameRate } = useContext(VideoContext);
+    const { videoId, frameRate, translationDirection } = useContext(VideoContext);
 
     const inputRef = useRef<InputRef>(null);
 
@@ -73,9 +75,11 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
     //Hook
     const { timeToFrameStamp } = useTimeStamp();
 
-    const { insertBun } = usePostTimeline(videoId, refetchTimeline, cancelEdit);
-    const { updateYTBunTime } = useUpdateTimelineTime(videoId, duration, refetchTimeline, cancelEdit);
+    const { insertBun } = usePostTimeline(videoId, translationDirection, cancelEdit);
+    const { updateYTBunTime } = useUpdateTimelineTime(videoId, duration, cancelEdit);
     const { response : resTransRange, setParams : setParamsTransRange } = useAxiosGet<RES_GET_TRANSCRIPT_RANGE, REQ_GET_TRANSCRIPT_RANGE>('/ai/transcript/range', true, null);
+    
+    const { updateHonyaku } = useUpdateTranslate( cancelEdit );
 
     //Redux
     const { startTime, endTime, selectMarker } = useAppSelector((state) => state.reactPlayer)
@@ -284,8 +288,8 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
                 {
                     currentYTB !== null &&
                     <>
-                        <BunkatsuTimelineComp ytb={currentYTB} critTime={playedSeconds} refetchTimeline={refetchTimeline} refetchHandles={refetchHandles} cancelEdit={cancelEdit}/>
-                        <HeigouTimelineComp bunIds={bunIds} ytb={currentYTB} refetchTimeline={refetchTimeline} refetchHandles={refetchHandles} cancelEdit={cancelEdit}/>
+                        <BunkatsuTimelineComp ytb={currentYTB} critTime={playedSeconds} refetchHandles={refetchHandles} cancelEdit={cancelEdit}/>
+                        <HeigouTimelineComp bunIds={bunIds} ytb={currentYTB} refetchHandles={refetchHandles} cancelEdit={cancelEdit}/>
                         <Button onClick={getTranscriptRange}>{t('BUTTON.PART_TRANSCRIPT')}<AudioOutlined /></Button>
                     </>
                 }
@@ -310,11 +314,27 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, refetchTimeli
                         {
                             currentYTB !== null &&
                             <>
-                                {
-                                    currentYTB.jaText !== value && 
-                                    <UpdateBunJaTextModalComp ytb={currentYTB} defaultValue={value} refetchHandles={refetchHandles} refetchTimeline={refetchTimeline} cancelEdit={cancelEdit}/>
-                                }
-                                <DeleteBunModalComp ytb={currentYTB} refetchTimeline={refetchTimeline} cancelEdit={cancelEdit}/>
+                            {
+                                translationDirection === 'ja-ko' ?
+                                <>
+                                    {
+                                        currentYTB.jaText !== value && currentYTB.jaBId !== null && currentYTB.jaText !== undefined &&
+                                        <UpdateBunJaTextModalComp jaBId={currentYTB.jaBId} jaText={currentYTB.jaText} defaultValue={value} refetchHandles={refetchHandles} cancelEdit={cancelEdit}/>
+                                    }
+                                    {
+                                        currentYTB.jaBId !== null &&
+                                        <DeleteBunModalComp ytBId={currentYTB.ytBId} cancelEdit={cancelEdit}/>
+                                    }
+                                </>
+                                :
+                                <>
+                                    {
+                                        currentYTB.koText !== value &&
+                                        <Button onClick={() => { updateHonyaku(videoId, currentYTB.ytBId, value) }}>{t('BUTTON.MODIFY_TEXT')}</Button>
+                                    }
+                                    <DeleteBunModalComp ytBId={currentYTB.ytBId} cancelEdit={cancelEdit}/>
+                                </>
+                            }   
                             </>
                         }
                         <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>

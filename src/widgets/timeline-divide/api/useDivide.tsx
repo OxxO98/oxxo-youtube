@@ -3,14 +3,19 @@ import { useEffect } from 'react';
 //Hook
 import { useAxiosPut } from 'shared/hooks/useAxios';
 
+//Redux
+import { useAppDispatch, timelineActions } from 'shared/store';
+const { requestTimelineRefetch } = timelineActions;
+
 type inputs = { jaText : string, koText : string }
 
 export function useDivide(
     videoId : string,
-    refetchTimeline : () => void,
     refetchHandles : RefetchHandles,
     cancelEdit : () => void
 ){
+    const dispatch = useAppDispatch();
+
     const { response, setParams } = useAxiosPut<null, REQ_PUT_BUNKATSU>('/db/bun/bunkatsu', true, null);
 
     //Handle
@@ -36,11 +41,12 @@ export function useDivide(
     useEffect( () => {
         let res = response;
         if(res !== null){
-            refetchTimeline();
+            dispatch( requestTimelineRefetch() );
+
             refetchHandles.refetchAll();
             cancelEdit();
         }
-    }, [response, refetchTimeline, refetchHandles, cancelEdit])
+    }, [response, refetchHandles, cancelEdit])
 
     return { bunkatsuBun }
 }

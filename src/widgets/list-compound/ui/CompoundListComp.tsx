@@ -15,10 +15,9 @@ interface CompoundListCompProps {
     refetchOsusumeList : () => void;
     refetchTangoList : () => void;
     refetchHandles : RefetchHandles;
-    refetchTimeline : () => void;
 }
 
-const CompoundListComp = ({ hukumuList, osusumeList, tangoList, refetchHukumuList, refetchOsusumeList, refetchTangoList, refetchHandles, refetchTimeline } : CompoundListCompProps) => {
+const CompoundListComp = ({ hukumuList, osusumeList, tangoList, refetchHukumuList, refetchOsusumeList, refetchTangoList, refetchHandles } : CompoundListCompProps) => {
 
     //Redux
     const { hukumuData } = useAppSelector((state) => state.selection);
@@ -35,7 +34,7 @@ const CompoundListComp = ({ hukumuList, osusumeList, tangoList, refetchHukumuLis
                     </>
                     :
                     <>
-                        <TangoListComp tangoList={tangoList} refetchTangoList={refetchTangoList} refetchTimeline={refetchTimeline}/>
+                        <TangoListComp tangoList={tangoList} refetchTangoList={refetchTangoList}/>
                     </>
                 }
                 </>
@@ -48,7 +47,7 @@ const CompoundListComp = ({ hukumuList, osusumeList, tangoList, refetchHukumuLis
                     </>
                     :
                     <>
-                        <TangoListComp tangoList={tangoList} refetchTangoList={refetchTangoList} refetchTimeline={refetchTimeline}/>
+                        <TangoListComp tangoList={tangoList} refetchTangoList={refetchTangoList}/>
                     </>
                 }
                 </>

@@ -5,14 +5,19 @@ import { useAxiosPut } from 'shared/hooks/useAxios';
 import { useJaText } from 'shared/lib/useJaText';
 import { useHuri } from 'shared/lib/useHuri';
 
+//Redux
+import { useAppDispatch, timelineActions } from 'shared/store';
+const { requestTimelineRefetch } = timelineActions;
+
 export function useUpdateHukumuBun(
-    ytb : RES_TIMELINE,
+    jaBId : string,
     setIsModalOpen : ( isOpen : boolean ) => void,
-    refetchHandles : RefetchHandles,
-    refetchTimeline : () => void,
-    cancelEdit : () => void,
+    refetchHandles? : RefetchHandles,
+    cancelEdit? : () => void,
 ){
-    const { response, setParams } = useAxiosPut<null, REQ_PUT_HUKUMU_BUN>('/db/hukumu/bun', true, null );
+    const dispatch = useAppDispatch();
+
+    const { response, setParams } = useAxiosPut<null, REQ_PUT_HUKUMU_BUN>('/db/ja', true, null );
 
     const { convertObjKey, getHyoukiQuery, getYomiQuery } = useJaText()
     const { complexArr } = useHuri();
@@ -55,17 +60,18 @@ export function useUpdateHukumuBun(
         let modifiedObj = convertObjKey(_modifiedList);
         let deletedObj = convertObjKey(deletedList);
 
-        setParams({ jaBId : ytb.jaBId, jaText : newJaText, modifiedObj : modifiedObj, deletedObj : deletedObj })
+        setParams({ jaBId : jaBId, jaText : newJaText, modifiedObj : modifiedObj, deletedObj : deletedObj })
     }
 
     useEffect( () => {
         if( response !== null ){
-            refetchHandles.refetch(ytb.jaBId)
-            refetchTimeline();
-            cancelEdit();
+            dispatch( requestTimelineRefetch() );
+
+            if( refetchHandles !== undefined) refetchHandles.refetch(jaBId);
+            if( cancelEdit !== undefined ) cancelEdit();
             setIsModalOpen(false);
         }
-    }, [response, refetchTimeline, cancelEdit, refetchHandles, ytb.jaBId])
+    }, [response, cancelEdit, refetchHandles, jaBId])
 
     return { modifyBun }
 }

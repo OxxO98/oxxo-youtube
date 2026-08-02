@@ -77,7 +77,9 @@ const TimelineControlComp : Locale["TimelineControlComp"] = {
         PART_TRANSCRIPT : 'この部分を音声認識する',
         SAVE_NEW : '作成',
         CANCLE : '取り消し',
-        MODIFY_TIME : '時間修正'
+        MODIFY_TIME : '時間修正',
+        MODIFY_TEXT : '文章修正',
+        DELETE : '削除'
     },
     TOOLTIP : {
         SHIFT_ENTER : 'ショートカット : shift + enter',
@@ -399,7 +401,8 @@ const TimelineCarouselComp : Locale['TimelineCarouselComp'] = {
         CURR : '現在の時間に移動',
         NEXT : '次へ',
         MODIFY : '修正',
-        CANCLE : '取り消し'
+        CANCLE : '取り消し',
+        DELETE : '削除'
     },
     TOOLTIP : {
         ENTER : 'ショートカット : enter',

@@ -11,7 +11,7 @@ import { ComplexText } from 'entities/ComplexText/index';
 import { Card } from 'antd'
 
 interface TangochouRepresentiveProps {
-    tId : tId;
+    tId : string;
     hyouki : string;
     yomi : string;
     imi : string[];

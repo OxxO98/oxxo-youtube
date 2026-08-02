@@ -554,8 +554,6 @@ async function getYomi(req : RouterRequest, res : RouterResponse){
     
     let yomi = tokens.map( (v) => v.reading ).join('');
 
-    console.log(yomi);
-
     res.send({
         message : 'success',
         data : {

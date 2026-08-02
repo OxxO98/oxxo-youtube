@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useHotkeys } from 'react-hotkeys-hook';
 
 //Hook
-import { useAxiosGet, useAxiosPut } from 'shared/hooks/useAxios';
+import { useAxiosGet } from 'shared/hooks/useAxios';
 import { useJaText } from 'shared/lib/useJaText';
 import { useDebounceEffect } from 'shared/hooks/useDebounceEffect';
 
@@ -16,14 +16,14 @@ import { Input, Button, Flex, Modal, Card, Tooltip, InputRef } from 'antd';
 import { useUpdateHukumuBun } from '../api/useUpdateHukumuBun';
 
 interface UpdateBunJaTextModalCompProps {
-    ytb : RES_TIMELINE;
+    jaBId : string;
+    jaText : string;
     defaultValue : string; 
-    refetchHandles : RefetchHandles;
-    refetchTimeline : () => void;
-    cancelEdit : () => void;
+    refetchHandles? : RefetchHandles;
+    cancelEdit? : () => void;
 }
 
-export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, refetchTimeline, cancelEdit } : UpdateBunJaTextModalCompProps ) => {
+export const UpdateBunJaTextModalComp = ({ jaBId, jaText, defaultValue, refetchHandles, cancelEdit } : UpdateBunJaTextModalCompProps ) => {
 
     //i18n
     const { t } = useTranslation('UpdateBunJaTextModalComp');
@@ -45,7 +45,7 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
 
     const { response, setParams } = useAxiosGet<RES_GET_HUKUMU, REQ_GET_HUKUMU>('/db/hukumu', true, null);
 
-    const { modifyBun } = useUpdateHukumuBun( ytb, setIsModalOpen, refetchHandles, refetchTimeline, cancelEdit );
+    const { modifyBun } = useUpdateHukumuBun( jaBId, setIsModalOpen, refetchHandles, cancelEdit );
 
     //Handle
     const handleChange = (e : React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +59,7 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
     }
 
     const showModal = () => {
-        setParams({ jaBId : ytb.jaBId });
+        setParams({ jaBId : jaBId });
         setNewJaText(defaultValue);
         setIsModalOpen(true);
     };
@@ -75,7 +75,7 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
     const getList = useCallback( () => {
         if(hukumuData === null){ return }
 
-        let { trace } = traceHukumu(hukumuData, ytb.jaText, newJaText);
+        let { trace } = traceHukumu(hukumuData, jaText, newJaText);
 
         let searched = trace.filter( (v) => v.tag === 'searched' );
         let modified = trace.filter( (v) => v.tag === 'modified' );
@@ -84,7 +84,7 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
         setSearchedList(searched);
         setModifiedList(modified);
         setDeletedList(deleted);
-    }, [hukumuData, newJaText, traceHukumu, ytb.jaText]);
+    }, [hukumuData, newJaText, traceHukumu, jaText]);
 
 
     //HotKeys
@@ -144,7 +144,7 @@ export const UpdateBunJaTextModalComp = ({ ytb, defaultValue, refetchHandles, re
                 panelRef={ref}
                 destroyOnHidden={true}
             >
-                <Bun bId={ytb.jaBId!}/>
+                <Bun bId={jaBId}/>
                 <Input value={newJaText} onChange={handleChange} ref={inputRef} onFocus={handleFocus}/>
                 <div>{t('CONTENTS.0')}</div>
                 <Flex gap={16}>

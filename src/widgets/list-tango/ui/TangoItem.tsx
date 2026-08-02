@@ -35,7 +35,7 @@ const Tango = ({ tangoData } : TangoProps ) => {
         {
             tangoData &&
             <Card
-                style={{ width : '100%' }}
+                style={{ width : '100%', height : '100%' }}
                 actions={[
                     <Button onClick={() => handleToTango(tangoData.tId, videoId)}>{t('BUTTON.MOVE')}</Button>
                 ]}
@@ -48,7 +48,7 @@ const Tango = ({ tangoData } : TangoProps ) => {
                     description={
                         <>
                         {
-                            tangoData.imi && tangoData.imi.length !== 0 &&
+                            ( tangoData.imi && tangoData.imi.length !== 0 ) &&
                             <>{tangoData.imi.join(',')}</>
                         }
                         </>

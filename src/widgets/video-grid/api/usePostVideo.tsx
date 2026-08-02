@@ -10,7 +10,7 @@ export function usePostVideo(
 ){
     const { response, setParams } = useAxiosPost<null, REQ_POST_VIDEO>('/db/video', true, null);
 
-    const postVideo = ( inputs : { youtubeSrc : string, title : string } ) => {
+    const postVideo = ( inputs : { youtubeSrc : string, title : string, direction : TranslationDirection } ) => {
         if( inputs.title === '' || inputs.title === null || inputs.title === undefined ){ return }
         if( inputs.youtubeSrc === '' || inputs.youtubeSrc === null || inputs.youtubeSrc === undefined ){ return }
 

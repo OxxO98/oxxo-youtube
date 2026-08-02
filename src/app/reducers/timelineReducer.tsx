@@ -1,13 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 interface TimelineInitial {
-    bunIds : RES_GET_TIMELINE | null,
+    bunIds : RES_TIMELINE[] | null,
     currentBunId : number,
+    refetchKey : number,
+    timelineLoading : boolean,
 }
 
 const initialState : TimelineInitial = {
     bunIds : null,
     currentBunId : 0,
+    refetchKey : 0,
+    timelineLoading : true,
 }
 
 export const timelineSlice = createSlice({
@@ -26,9 +30,16 @@ export const timelineSlice = createSlice({
         setCurrentBunIdPrev : (state) => {
             state.currentBunId--;
         },
+        requestTimelineRefetch : (state) => {
+            state.refetchKey += 1;
+        },
+        setLoading : (state, action) => {
+            state.timelineLoading = action.payload;
+        },
         clear : (state) => {
             state.bunIds = null;
             state.currentBunId = 0;
+            state.refetchKey = 0;
         }
     }
 })

@@ -3,66 +3,12 @@ import type { RouterRequest, RouterResponse } from "../types/router_types.js";
 const router = express.Router();
 
 import fs from 'fs'
-import { Innertube, UniversalCache, Platform, Utils } from 'youtubei.js';
-
-import { spawn } from 'child_process';
+import { Innertube } from 'youtubei.js';
 
 import path from 'path';
 import { assetPath } from './core/path_module.js';
 
-function runYtDlpToFile(videoId : string, folderPath : string) {
-  return new Promise((resolve, reject) => {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
-    const outputPath = path.join(folderPath, `${videoId}.%(ext)s`);
-
-    const args = [
-      '--no-warnings',
-      '--no-playlist',
-      '-x',
-      '--audio-format', 'wav',
-      '-o', outputPath,
-      url
-    ];
-
-    const child = spawn('yt-dlp', args, {
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk.toString();
-    });
-
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-
-    child.on('error', (err) => {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-        reject(
-          new Error(
-            `yt-dlp 실행 파일을 찾을 수 없습니다. 설치 후 PATH를 잡거나 YT_DLP_PATH를 설정하세요.`
-          )
-        );
-        return;
-      }
-      reject(err);
-    });
-
-
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve({ stdout, stderr, outputPath });
-      } else {
-        reject(
-          new Error(`yt-dlp failed with code ${code}\n${stderr || stdout}`)
-        );
-      }
-    });
-  });
-}
+import { runYtDlpToFile } from "./core/ytDlp_module.js";
 
 async function getAudioStreamYoutubeJS (req : RouterRequest, res : RouterResponse) {
   let transcriptPath = path.join(assetPath, 'transcript');
@@ -76,51 +22,18 @@ async function getAudioStreamYoutubeJS (req : RouterRequest, res : RouterRespons
   }
 
   if( !fs.existsSync(videoPath) ){
-    Platform.shim.eval = async (data, env) => {
-      const properties = [];
 
-      if(env.n) {
-        properties.push(`n: exportedVars.nFunction("${env.n}")`)
-      }
+    await runYtDlpToFile( videoId, transcriptPath )
 
-      if (env.sig) {
-        properties.push(`sig: exportedVars.sigFunction("${env.sig}")`)
-      }
+    const readStream = fs.createReadStream(videoPath);
 
-      const code = `${data.output}\nreturn { ${properties.join(', ')} }`;
-
-      return new Function(code)();
+    for await(const chunk of readStream){
+      res.write(chunk);
     }
 
-    const innertube = await Innertube.create({ cache: new UniversalCache(false), generate_session_locally: true });
-
-    try {
-      const stream = await innertube.download(videoId);
-
-      const writeStream = fs.createWriteStream(videoPath);
-      
-      for await (const chunk of Utils.streamToIterable(stream)) {
-        writeStream.write(chunk);
-      }
-    }
-    catch(err){
-      console.log('catch error on youtubei.js change yt-dlp..')
-
-      await runYtDlpToFile( videoId, transcriptPath )
-    }
-    finally{
-      const readStream = fs.createReadStream(videoPath);
-
-      for await(const chunk of readStream){
-        res.write(chunk);
-      }
-
-      res.end();
-    }
-    
+    res.end();
   } 
   else{
-    
     const stream = fs.createReadStream(videoPath);
 
     for await(const chunk of stream){

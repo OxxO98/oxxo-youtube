@@ -7,7 +7,7 @@ import { VideoContext } from 'shared/contexts/VideoContext';
 import { useAxiosGet } from 'shared/hooks/useAxios';
 
 interface TangoBunProps {
-    ytBId : ytBId;
+    ytBId : string;
 }
 
 export const TangoBun = ({ ytBId } : TangoBunProps) => {
@@ -18,7 +18,7 @@ export const TangoBun = ({ ytBId } : TangoBunProps) => {
     const [ytBun, setYtBun] = useState<YTBun | null>(null);
 
     //Hook
-    const { response } = useAxiosGet<RES_GET_TRANSLATE_REP, REQ_GET_TRANSLATE_REP>('/db/translate/representive', false, { videoId : videoId, ytBId : ytBId } );
+    const { response } = useAxiosGet<RES_GET_TRANSLATE_REP, REQ_GET_TRANSLATE_REP>('/db/ko/representive', false, { videoId : videoId, ytBId : ytBId } );
 
     //Effect
     useEffect( () => {

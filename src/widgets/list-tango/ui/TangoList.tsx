@@ -17,7 +17,6 @@ import { Spin } from 'antd'
 interface TangoListCompProps {
     tangoList : TangoList[] | null;
     refetchTangoList : () => void;
-    refetchTimeline : () => void;
 }
 
 const ListItemStyle : CSSProperties = {
@@ -29,7 +28,7 @@ const ListItemStyle : CSSProperties = {
     boxSizing: 'border-box',
 }
 
-export const TangoListComp = ({ tangoList, refetchTangoList, refetchTimeline } : TangoListCompProps ) => {
+export const TangoListComp = ({ tangoList, refetchTangoList } : TangoListCompProps ) => {
 
     //Redux
     const { hukumuCheckLoading } = useAppSelector((state) => state.selection);
@@ -38,7 +37,7 @@ export const TangoListComp = ({ tangoList, refetchTangoList, refetchTimeline } :
         <>
         {
             ( tangoList === null || tangoList.length == 0 ) ?
-            <TangoAutoModal refetchTangoList={refetchTangoList} refetchTimeline={refetchTimeline}/>
+            <TangoAutoModal refetchTangoList={refetchTangoList}/>
             :
             <>
                 <Spin spinning={hukumuCheckLoading}>
@@ -46,7 +45,7 @@ export const TangoListComp = ({ tangoList, refetchTangoList, refetchTimeline } :
                     tangoList !== null &&
                     <VirtualList
                         data={tangoList}
-                        itemHeight={160}
+                        itemHeight={200}
                         itemKey="tId"
                     >
                     {

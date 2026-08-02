@@ -19,6 +19,7 @@ function useTranscript(){
         if( _option?.reset !== undefined ){ option.reset = _option.reset }
         if( _option?.translate !== undefined ){ option.translate = _option.translate }
         if( _option?.prompt !== undefined ){ option.prompt = _option.prompt }
+        if( _option?.lang !== undefined ){ option.lang = _option.lang }
 
         if( loading === true ){ return }
 

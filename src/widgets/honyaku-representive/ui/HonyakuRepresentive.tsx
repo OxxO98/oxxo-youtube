@@ -8,6 +8,10 @@ import { VideoContext } from 'shared/contexts/VideoContext';
 //Hook
 import { useAxiosGet } from 'shared/hooks/useAxios';
 
+//Entities
+import { Bun } from 'entities/Bun'
+import { KoText } from 'entities/KoText';
+
 //model
 import { useYTBun } from '../model/useYTBun';
 
@@ -15,8 +19,8 @@ import { useYTBun } from '../model/useYTBun';
 import { Button, Flex, Tooltip } from 'antd'
 
 interface HonyakuRepresentiveProps {
-    ytBId : ytBId;
-    handleSelect : (jaBId : jaBId) => void;
+    ytBId : string;
+    handleSelect : (bId : string) => void;
     bIdRef : RefObject<BIdRef>;
 }
 
@@ -26,16 +30,27 @@ export const HonyakuRepresentive = ({ ytBId, handleSelect, bIdRef } : HonyakuRep
     const { t } = useTranslation('HonyakuRepresentive');
     
     //Context
-    const { videoId } = useContext(VideoContext);
+    const { videoId, translationDirection } = useContext(VideoContext);
 
     //Hook
-    const { response, loading, setParams, fetch } = useAxiosGet<RES_GET_TRANSLATE_REP, REQ_GET_TRANSLATE_REP>('/db/translate/representive', true, null);
+    const { response, loading, setParams, fetch } = useAxiosGet<RES_GET_TRANSLATE_REP, REQ_GET_TRANSLATE_REP>('/db/ko/representive', true, null);
     
     //model
     const { ytBun } = useYTBun(response, fetch, bIdRef)
 
+    const handleSelectId = ( ytBun : YTBun | null ) => {
+        if( ytBun === null ) return;
+
+        if( translationDirection === 'ja-ko'){
+            if( ytBun.jaBId !== null ) handleSelect(ytBun.jaBId);
+        }
+        else{
+            if( ytBun.koBId !== null ) handleSelect(ytBun.koBId);
+        }
+    }
+
     //Hotkeys
-    useHotkeys('enter', () => handleSelect(ytBun?.jaBId!) )
+    useHotkeys('enter', () => handleSelectId(ytBun) )
 
     useEffect( () => {
         setParams({ videoId : videoId, ytBId : ytBId });
@@ -45,13 +60,28 @@ export const HonyakuRepresentive = ({ ytBId, handleSelect, bIdRef } : HonyakuRep
         <div>
             {
                 ytBun !== null ?
-                <span>{ytBun.koText}</span>
+                    translationDirection === 'ja-ko' ?
+                        <>
+                        {
+                            ytBun.koBId &&
+                            <KoText data={ytBun.koText}/>
+                        }
+                        </>
+                    :
+                        <>
+                        {
+                            ytBun.jaBId &&
+                            <div className="jaText" id="activeRange">
+                                <Bun key={ytBun.jaBId} bId={ytBun.jaBId} bIdRef={bIdRef} />
+                            </div>
+                        }
+                        </>
                 :
                 <span>{loading ? "　" : t('MESSAGE.EMPTY')}</span>
             }
             <Flex justify='right'>
                 <Tooltip title={t('TOOLTIP.ENTER')}>
-                    <Button onClick={() => handleSelect(ytBun?.jaBId!)}>{t('BUTTON.MODIFY')}</Button>
+                    <Button onClick={() => handleSelectId(ytBun)}>{t('BUTTON.MODIFY')}</Button>
                 </Tooltip>
             </Flex>
         </div>

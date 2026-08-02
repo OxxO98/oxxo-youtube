@@ -18,12 +18,11 @@ import { useDeleteHukumuBun } from '../api/useDeleteHukumuBun';
 import { Button, Flex, Modal, Card } from 'antd';
 
 interface DeleteBunModalCompProps {
-    ytb : RES_TIMELINE;
-    refetchTimeline : () => void;
-    cancelEdit : () => void;
+    ytBId : string;
+    cancelEdit? : () => void;
 }
 
-export const DeleteBunModalComp = ({ ytb, refetchTimeline, cancelEdit } : DeleteBunModalCompProps ) => {
+export const DeleteBunModalComp = ({ ytBId, cancelEdit } : DeleteBunModalCompProps ) => {
 
     //i18n
     const { t } = useTranslation('DeleteBunModalComp');
@@ -36,13 +35,13 @@ export const DeleteBunModalComp = ({ ytb, refetchTimeline, cancelEdit } : Delete
     const [hukumuData, setHukumuData] = useState<HukumuData[] | null>(null);
 
     //Hook
-    const { response, setParams } = useAxiosGet<RES_GET_HUKUMU, REQ_GET_HUKUMU>('/db/hukumu', true, null);
+    const { response, setParams } = useAxiosGet<RES_GET_BUN_HUKUMU, REQ_GET_BUN_HUKUMU>('/db/bun/hukumu', true, null);
 
-    const { deleteBun } = useDeleteHukumuBun( videoId, ytb, refetchTimeline, cancelEdit );
+    const { deleteBun } = useDeleteHukumuBun( videoId, ytBId, cancelEdit );
 
     //Handle
     const showModal = () => {
-        setParams({ jaBId : ytb.jaBId });
+        setParams({ ytBId : ytBId });
         setIsModalOpen(true);
     };
 

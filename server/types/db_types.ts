@@ -28,11 +28,12 @@ export interface Video {
     tags?: string[];
     disabled?: boolean;
     lastEditTime?: number;
+    direction? : 'ja-ko' | 'ko-ja';
 }
 
 export interface YTB {
     ytBId : string;
-    jaBId : string;
+    jaBId : string | null;
     koBId : string | null;
     startTime : number;
     endTime : number;
@@ -59,7 +60,7 @@ export interface TextData {
 
 export interface Hyouki {
     hyId : string;
-    textData : Array<TextData>;
+    textData : TextData[];
     yomi : string;
     hyouki : string;
     tId : string;
@@ -103,7 +104,7 @@ export interface HukumuData {
     iId : string | null;
     tId : string;
     //Hyouki
-    textData : Array<TextData>;
+    textData : TextData[];
     yomi : string;
     hyouki : string;
 }

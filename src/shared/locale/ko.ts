@@ -76,7 +76,9 @@ const TimelineControlComp : Locale["TimelineControlComp"] = {
         PART_TRANSCRIPT : '부분 음성인식',
         SAVE_NEW : '작성',
         CANCLE : '취소',
-        MODIFY_TIME : '시간 수정'
+        MODIFY_TIME : '시간 수정',
+        MODIFY_TEXT : '문장 수정',
+        DELETE : '삭제'
     },
     TOOLTIP : {
         SHIFT_ENTER : '단축키 : shift + enter'
@@ -398,7 +400,8 @@ const TimelineCarouselComp : Locale['TimelineCarouselComp'] = {
         CURR : '현재 시간 이동',
         NEXT : '다음',
         MODIFY : '수정',
-        CANCLE : '취소'
+        CANCLE : '취소',
+        DELETE : '삭제'
     },
     TOOLTIP : {
         ENTER : '단축키 : enter',

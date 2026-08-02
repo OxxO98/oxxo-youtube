@@ -12,7 +12,7 @@ import { ComplexText } from 'entities/ComplexText/index';
 import { useDivide } from '../api/useDivide';
 
 //Redux
-import { useAppSelector, useAppDispatch, reactPlayerActions } from 'shared/store';
+import { useAppDispatch, reactPlayerActions } from 'shared/store';
 
 //CSS@antD
 import { Input, Button, Flex, Modal, Card, Tooltip } from 'antd';
@@ -25,12 +25,11 @@ const { clear } = reactPlayerActions;
 interface BunkatsuTimelineCompProps {
     ytb : RES_TIMELINE;
     critTime : number;
-    refetchTimeline : () => void;
     refetchHandles : RefetchHandles;
     cancelEdit : () => void;
 }
 
-export const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHandles, cancelEdit } : BunkatsuTimelineCompProps ) => {
+export const BunkatsuTimelineComp = ({ ytb, critTime, refetchHandles, cancelEdit } : BunkatsuTimelineCompProps ) => {
 
     //i18n
     const { t } = useTranslation('BunkatsuTimelineComp');
@@ -52,7 +51,7 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHa
     //Hook
     const { response : resHukumu, setParams : setParamsHukumu } = useAxiosGet<RES_GET_HUKUMU, REQ_GET_HUKUMU>('/db/hukumu', true, null);
 
-    const { bunkatsuBun } = useDivide( videoId, refetchTimeline, refetchHandles, cancelEdit );
+    const { bunkatsuBun } = useDivide( videoId, refetchHandles, cancelEdit );
 
     //Handle
     const handleInputChange = (e : React.ChangeEvent<HTMLInputElement>) => {
@@ -63,7 +62,9 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHa
     }
     const showModal = () => {
         setIsModalOpen(true);
-        setParamsHukumu({ jaBId : ytb.jaBId });
+        if( ytb.jaBId !== null ){
+            setParamsHukumu({ jaBId : ytb.jaBId });
+        }
     };
 
     const handleCancel = () => {
@@ -96,7 +97,7 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchTimeline, refetchHa
 
     useEffect( () => {
         setInputs({
-            jaText : ytb.jaText,
+            jaText : ytb.jaText ?? '/',
             koText : ytb.koText ?? '/'
         })
     }, [ytb])

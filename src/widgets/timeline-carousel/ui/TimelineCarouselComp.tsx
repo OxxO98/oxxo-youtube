@@ -1,18 +1,21 @@
-import React, { useEffect, useState, useRef, useMemo, CSSProperties, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, CSSProperties, useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHotkeys } from 'react-hotkeys-hook';
+
+//Context
+import { VideoContext } from 'shared/contexts/VideoContext';
 
 //Hook
 import { useHandleKeyboard } from 'shared/hooks/useHandleKeyboard';
 
-import type { timelineHandles } from 'shared/hooks/useTimeline'
-
-//widgets
+//features
 import { DeleteBunModalComp } from 'features/bun-delete-modal/index'
 import { UpdateBunJaTextModalComp } from 'features/bun-update-modal/index';
+import { useUpdateTranslate } from 'features/ko-update-button/index';
 
 //entities
 import { Bun } from 'entities/Bun/index';
+import { KoText } from 'entities/KoText';
 
 //Redux
 import { useAppSelector, useAppDispatch, reactPlayerActions, timelineActions } from 'shared/store';
@@ -28,7 +31,6 @@ const { setCurrentBunId, setCurrentBunIdNext, setCurrentBunIdPrev } = timelineAc
 interface TimelineCarouselCompProps {
     state: ReactPlayerState;
     bIdRef: React.RefObject<BIdRef>;
-    timelineHandles : timelineHandles;
     refetchHandles: RefetchHandles;
     videoPlayerHandles: VideoPlayerHandles;
     deselect: () => void;
@@ -44,9 +46,12 @@ const TimelineBunStyle: CSSProperties = {
     alignContent: 'center'
 }
 
-export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHandles, videoPlayerHandles, deselect }: TimelineCarouselCompProps) => {
-
+export const TimelineCarouselComp = ({ state, bIdRef, refetchHandles, videoPlayerHandles, deselect }: TimelineCarouselCompProps) => {
+    //i18n
     const { t } = useTranslation('TimelineCarouselComp');
+
+    //context
+    const { videoId, translationDirection } = useContext(VideoContext);
 
     //Ref
     const inputRef = useRef<InputRef>(null);
@@ -133,7 +138,12 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
         if ( currentBunId == null || bunIds === null) { return }
 
         setEditYtbId(bunIds[currentBunId].ytBId);
-        setValue(bunIds[currentBunId].jaText);
+        if( translationDirection === 'ja-ko' ){
+            setValue(bunIds[currentBunId].jaText ?? '');
+        }
+        else{
+            setValue(bunIds[currentBunId].koText ?? '');
+        }
     }, [bunIds, currentBunId])
 
     //Handle @timeline
@@ -181,6 +191,9 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
         }
     }, [playedSeconds, bunIds, getCurrentTimeLine])
 
+    //Hook
+    const { updateHonyaku } = useUpdateTranslate( cancelEdit );
+
     //Effect
     useEffect(() => {
         moveCurrentTimeLine();
@@ -220,11 +233,39 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
                     {
                         bunIds !== null && bunIds.length !== 0 && currentBunId !== null &&
                         <>
+                            <div style={{ marginBottom : '8px' }}>
+                            {
+                                translationDirection === 'ja-ko' ?
+                                    <>
+                                    {
+                                        bunIds[currentBunId].koBId &&
+                                        <KoText data={bunIds[currentBunId].koText}/>
+                                    }
+                                    </>
+                                :
+                                    <>
+                                    {
+                                        bunIds[currentBunId].jaBId && 
+                                        <div className="jaText" id="activeRange">
+                                            <Bun key={bunIds[currentBunId].jaBId} bId={bunIds[currentBunId].jaBId} bIdRef={bIdRef} />
+                                        </div>  
+                                    }
+                                    </>
+                            }
+                            </div>
                             {
                                 editYtbId === null ?
                                     <>
-                                        <div className="jaText" id="activeRange" style={TimelineBunStyle}>
-                                            <Bun key={bunIds[currentBunId].jaBId} bId={bunIds[currentBunId].jaBId} bIdRef={bIdRef} />
+                                        <div style={TimelineBunStyle}>
+                                        {
+                                            translationDirection === 'ja-ko' ?
+                                                bunIds[currentBunId].jaBId !== null &&
+                                                <div className="jaText" id="activeRange">
+                                                    <Bun key={bunIds[currentBunId].jaBId} bId={bunIds[currentBunId].jaBId} bIdRef={bIdRef} />
+                                                </div>
+                                            :
+                                                <KoText data={bunIds[currentBunId].koText}/>
+                                        }
                                         </div>
                                         <Flex justify='flex-end' align='center' gap={8} style={{ padding: '8px' }}>
                                             <Tooltip title={t('TOOLTIP.ENTER')}>
@@ -237,10 +278,15 @@ export const TimelineCarouselComp = ({ state, bIdRef, timelineHandles, refetchHa
                                         <Input type="text" value={value} onChange={handleChange} style={{ ...TimelineBunStyle, marginLeft: 'auto', width: 'calc(100% - 16px)' }} ref={inputRef} onFocus={handleFocus} />
                                         <Flex justify='flex-end' align='center' gap={8} style={{ padding: '8px' }}>
                                             {
-                                                bunIds[currentBunId].jaText !== value &&
-                                                <UpdateBunJaTextModalComp ytb={bunIds[currentBunId]} defaultValue={value} refetchHandles={refetchHandles} refetchTimeline={timelineHandles.refetch} cancelEdit={cancelEdit} />
+                                                translationDirection === 'ja-ko' ?
+                                                    bunIds[currentBunId].jaBId !== null &&  bunIds[currentBunId].jaText !== value && 
+                                                    <UpdateBunJaTextModalComp jaBId={bunIds[currentBunId].jaBId} jaText={bunIds[currentBunId].jaText} defaultValue={value} refetchHandles={refetchHandles} cancelEdit={cancelEdit} />
+                                                :
+                                                    bunIds[currentBunId].koText !== value &&
+                                                    <Button onClick={() => { updateHonyaku(videoId, bunIds[currentBunId].ytBId, value) }}>{t('BUTTON.MODIFY')}</Button>
+
                                             }
-                                            <DeleteBunModalComp ytb={bunIds[currentBunId]} refetchTimeline={timelineHandles.refetch} cancelEdit={cancelEdit} />
+                                            <DeleteBunModalComp ytBId={bunIds[currentBunId].ytBId} cancelEdit={cancelEdit} />
                                             <Tooltip title={t('TOOLTIP.SHIFT_ENTER')}>
                                                 <Button type="primary" onClick={cancelEdit}>{t('BUTTON.CANCLE')}</Button>
                                             </Tooltip>

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 
 //CSS@Antd
-import { Input } from 'antd'
-const { TextArea } = Input;
+import { Input, InputRef } from 'antd'
+const { TextArea } = Input; 
 
 interface HonaykuInputProps {
     value : string;
@@ -12,7 +12,7 @@ interface HonaykuInputProps {
 export const HonaykuInput = ({ value, handleChange } : HonaykuInputProps ) => {
     
     //Ref
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const textareaRef = useRef<InputRef>(null);
 
     //Handle
     const handleFocus = (e : React.FocusEvent<HTMLTextAreaElement>) => {

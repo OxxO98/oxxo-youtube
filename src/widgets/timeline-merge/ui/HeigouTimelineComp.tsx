@@ -13,12 +13,11 @@ import { VideoContext } from 'shared/contexts/VideoContext';
 interface HeigouTimelineCompProps {
     bunIds : RES_TIMELINE[] | null;
     ytb : RES_TIMELINE;
-    refetchTimeline : () => void;
     refetchHandles : RefetchHandles;
     cancelEdit : () => void;
 }
 
-export const HeigouTimelineComp = ({ bunIds, ytb, refetchTimeline, refetchHandles, cancelEdit } : HeigouTimelineCompProps ) => {
+export const HeigouTimelineComp = ({ bunIds, ytb, refetchHandles, cancelEdit } : HeigouTimelineCompProps ) => {
 
     //i18n
     const { t } = useTranslation('HeigouTimelineComp');
@@ -27,7 +26,7 @@ export const HeigouTimelineComp = ({ bunIds, ytb, refetchTimeline, refetchHandle
     const { videoId } = useContext(VideoContext);
 
     //Hook
-    const { heigouBun } = useMerge( videoId, bunIds, refetchTimeline, refetchHandles, cancelEdit );
+    const { heigouBun } = useMerge( videoId, bunIds, refetchHandles, cancelEdit );
 
     //State
     const [isModalOpen, setIsModalOpen] = useState(false);

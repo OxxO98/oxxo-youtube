@@ -5,10 +5,13 @@ const router = express.Router();
 import db_connection from './core/db_connection.js';
 import * as db_module from "./core/db_module.js";
 import logger from "./core/logger.js";
+import * as db_cascade from "./core/db_cascading_module.js";
+
+import _ from 'lodash'
 
 import { nanoid } from "nanoid";
 
-import type { YTB } from '../types/db_types.js'
+import type { YTB, HukumuData } from '../types/db_types.js'
 
 function _is_available(timeline : YTB[], startTime : number, endTime : number, excludeYtBId : string | null = null){
     let incomingContainsExisting = timeline
@@ -63,6 +66,7 @@ function _get_side_timeline(timeline : YTB[], ytBId : string){
     }
 }
 
+//YTB->JA with Hukumu
 async function getBun(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { bId } = req.query;
@@ -70,7 +74,10 @@ async function getBun(req : RouterRequest, res : RouterResponse){
         let jaBun = await db_module.getJaBun(db, bId);
 
         if( jaBun == undefined ){
-            res.send(null);
+            res.send({
+                message : 'error',
+                data : {}
+            });
             return;
         }
         
@@ -85,12 +92,10 @@ async function getBun(req : RouterRequest, res : RouterResponse){
     })
 }
 
+//YTB
 async function postBun(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
-        let { videoId, jaText, startTime, endTime } = req.body;
-
-        let _YTBID = nanoid(10);
-        let _JABID = nanoid(10);
+        let { videoId, translationDirection, value, startTime, endTime } = req.body;
 
         let timeline = await db_module.getTimeline(db, videoId);
 
@@ -131,22 +136,49 @@ async function postBun(req : RouterRequest, res : RouterResponse){
             _next_ytb.startTime = endTime;
         }
 
+        let _YTBID = nanoid(10);
 
-        logger.info( db_module.logYTBInsert(_YTBID, _JABID, startTime, endTime) );
-        timeline.push({
-            "ytBId" : _YTBID,
-            "jaBId" : _JABID,
-            "koBId" : null,
-            "startTime" : startTime,
-            "endTime" : endTime
-        })
-        let jaBuns = await db_module.getJaBuns(db);
-        logger.info( db_module.logJaBunInsert(_JABID, jaText, _YTBID) );
-        jaBuns.push({
-            "jaBId" : _JABID,
-            "jaText" : jaText,
-            "ytBId" : _YTBID
-        })
+        if( translationDirection === 'ja-ko' ){
+            let _JABID = nanoid(10);
+
+            logger.info( db_module.logYTBInsert(_YTBID, _JABID, null, startTime, endTime) );
+            timeline.push({
+                ytBId : _YTBID,
+                jaBId : _JABID,
+                koBId : null,
+                startTime : startTime,
+                endTime : endTime
+            })
+
+            let jaBuns = await db_module.getJaBuns(db);
+            logger.info( db_module.logJaBunInsert(_JABID, value, _YTBID) );
+            jaBuns.push({
+                jaBId : _JABID,
+                jaText : value,
+                ytBId : _YTBID
+            })
+        }
+        else{
+            let _KOBID = nanoid(10);
+
+            logger.info( db_module.logYTBInsert(_YTBID, null, _KOBID, startTime, endTime) );
+            timeline.push({
+                ytBId : _YTBID,
+                jaBId : null,
+                koBId : _KOBID,
+                startTime : startTime,
+                endTime : endTime
+            })
+
+            let koBuns = await db_module.getKoBuns(db);
+            logger.info( db_module.logKoBunInsert(_KOBID, value, _YTBID) );
+            koBuns.push({
+                koBId : _KOBID,
+                koText : value,
+                ytBId : _YTBID
+            })
+        }
+        
         await db.write();
 
         res.send({
@@ -160,12 +192,17 @@ async function deleteBun(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId } = req.query;
 
-        let timeline = await db_module.getTimeline(db, videoId);
-        
-        let { jaBId } = await db_module.getYTBun(timeline, ytBId);
+        let jaBunList = db.data.jaBuns
+            .filter( (v) => v.ytBId == ytBId );
 
-        logger.info( db_module.logJaBunDelete(jaBId) );
-        await db_module.deleteJaBun(db, jaBId);
+        for( let jaBun of jaBunList ){
+            await db_cascade.delete_hukumu_in_ja(db, jaBun.jaBId);
+        }
+
+        logger.info( db_module.logJaBunDeleteYtBId(ytBId) );
+        db.data.jaBuns = db.data.jaBuns.filter( (v) => v.ytBId != ytBId );
+        logger.info( db_module.logKoBunDeleteYtBId(ytBId) );
+        db.data.koBuns = db.data.koBuns.filter( (v) => v.ytBId != ytBId );
         logger.info( db_module.logYTBDelete(ytBId) );
         await db_module.deleteYTBun(db, videoId, ytBId);
 
@@ -175,9 +212,10 @@ async function deleteBun(req : RouterRequest, res : RouterResponse){
             message : 'success',
             data : {}
         });
-    });
+    })
 }
 
+//YTB
 async function updateTime(req : RouterRequest, res : RouterResponse) {
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId, startTime, endTime } = req.body;
@@ -221,27 +259,7 @@ async function updateTime(req : RouterRequest, res : RouterResponse) {
     });
 }
 
-async function updateJaText(req : RouterRequest, res : RouterResponse){
-    await db_connection(req, res, async(db) => {
-        let { videoId, ytBId, jaText } = req.body;
-
-        let timeline = await db_module.getTimeline(db, videoId);
-        
-        let { jaBId } = await db_module.getYTBun(timeline, ytBId);
-
-        let jaBun = await db_module.getJaBun(db, jaBId);
-        
-        logger.info( db_module.logJaBunUpdateJaText(jaBun, jaText) );
-        jaBun.jaText = jaText;
-        await db.write();
-
-        res.send({
-            message : 'success',
-            data : {}
-        });
-    });
-}
-
+//YTB->both but ja first
 async function bunkatsuJaText(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId, critTime, critJaText, critKoText } = req.body;
@@ -288,7 +306,7 @@ async function bunkatsuJaText(req : RouterRequest, res : RouterResponse){
         let _JABID = nanoid(10);
         let _KOBID = _isKoText ? nanoid(10) : null;
 
-        logger.info( db_module.logYTBInsert(_YTBID, _JABID, _critTime, _endTime, _KOBID) );
+        logger.info( db_module.logYTBInsert(_YTBID, _JABID, _KOBID, _critTime, _endTime) );
         timeline.push({
             "ytBId" : _YTBID,
             "jaBId" : _JABID,
@@ -340,6 +358,7 @@ async function bunkatsuJaText(req : RouterRequest, res : RouterResponse){
     })
 }
 
+//YTB->both but ja first
 async function heigouJaTextNext(req : RouterRequest, res : RouterResponse){
     await db_connection(req, res, async(db) => {
         let { videoId, ytBId, nextYtBId } = req.body;
@@ -439,14 +458,182 @@ async function heigouJaTextNext(req : RouterRequest, res : RouterResponse){
     })
 }
 
-router.get('/', getBun);
-router.post('/', postBun);
-router.delete('/', deleteBun);
+async function getTranslate(req : RouterRequest, res : RouterResponse){
+    await db_connection(req, res, async(db) => {
+        let { videoId, ytBId } = req.query;
+
+        let timeline = await db_module.getTimeline(db, videoId);
+
+        let ytb = await db_module.getYTBun(timeline, ytBId); 
+
+        let ret = {
+            jaBun : null,
+            koBun : null,
+            jaList : null,
+            koList : null
+        }
+
+        if(ytb.jaBId != null){
+            let jaBun = await db_module.getJaBun(db, ytb.jaBId);
+        
+            let jaBunList = db.data.jaBuns
+                .filter( (v) => v.ytBId == ytb.ytBId )
+                .filter( (v) => v.jaBId != ytb.jaBId );
+
+            ret.jaBun = jaBun;
+            ret.jaList = jaBunList;
+        }
+        
+        if(ytb.koBId != null){
+            let koBun = await db_module.getKoBun(db, ytb.koBId);
+            let koBunList = db.data.koBuns
+                .filter( (v) => v.ytBId == ytb.ytBId )
+                .filter( (v) => v.koBId != ytb.koBId );
+        
+            ret.koBun = koBun;
+            ret.koList = koBunList;
+        }
+
+        res.send({
+            data : ret
+        });
+    })
+}
+
+function extractEnglish(text : string){
+    if(typeof text !== 'string') return '';
+
+    let matched = text.match(/[A-Za-z]+(?:['-][A-Za-z]+)*/g);
+
+    return matched == null ? '' : matched.join(' ');
+}
+
+async function getAutoTranslate(req : RouterRequest, res : RouterResponse) {
+    await db_connection(req, res, async (db) => {
+        let { videoId, value, translationDirection } = req.query;
+
+        let video = db.data.videos.find( (video) => video.src == videoId);
+
+        let timeline = video.timeline;
+        
+        if( !timeline ){ 
+            res.send({
+                message : 'error',
+                data : []
+            }) 
+            return;
+        }
+        else{
+            let jaBuns = db.data.jaBuns;
+            let koBuns = db.data.koBuns;
+            let joinText = timeline.map( (v) => {
+                return { ...v, 
+                    ...jaBuns.find( (ja) => ja.jaBId == v.jaBId ), 
+                    ...koBuns.find( (ko) => ko.koBId == v.koBId ) 
+                }
+            }).toSorted( (a, b) => a.startTime - b.startTime );
+
+            if( joinText.length == 0){
+                res.send({
+                    message : 'empty',
+                    data : ""
+                })
+                return;
+            }
+
+            if( translationDirection === 'ja-ko' ){
+                let _find = joinText.find( (v) => v.jaText == value );
+
+                if( _find === undefined || _find?.koText === undefined ){
+                    let en_text = extractEnglish(value);
+
+                    if( en_text === '' ){
+                        res.send({
+                            message : 'empty',
+                            data : ""
+                        })
+                        return;
+                    }
+                    else{
+                        res.send({
+                            message : 'success',
+                            data : en_text
+                        })
+                        return;
+                    }
+                }
+
+                res.send({
+                    message : 'success',
+                    data : _find.koText
+                });
+                return;
+            }
+            else{
+                let _find = joinText.find( (v) => v.koText == value );
+
+                if( _find === undefined || _find?.jaText === undefined ){
+                    let en_text = extractEnglish(value);
+
+                    if( en_text === '' ){
+                        res.send({
+                            message : 'empty',
+                            data : ""
+                        })
+                        return;
+                    }
+                    else{
+                        res.send({
+                            message : 'success',
+                            data : en_text
+                        })
+                        return;
+                    }
+                }
+
+                res.send({
+                    message : 'success',
+                    data : _find.jaText
+                });
+                return;
+            }
+        }
+    })
+}
+async function getYTBHukumus(req : RouterRequest, res : RouterResponse) {
+    await db_connection(req, res, async (db) => {
+        let { ytBId } = req.query;
+
+        let jaBunList = db.data.jaBuns
+            .filter( (v) => v.ytBId == ytBId );
+
+        let hukumuArr : HukumuData[] = [];
+        for( let jaBun of jaBunList ){
+            let _hukumus = await db_module.getHukumu( db, jaBun.jaBId );
+            hukumuArr.push(..._hukumus);
+        }
+
+        hukumuArr = _.uniqBy(hukumuArr, 'hyId');
+
+        res.send({
+            data : hukumuArr,
+            message : 'success'
+        })
+    })
+}
+
+router.get('/', getBun); //ja with hukumu (BUN)
+router.post('/', postBun); //(YTB)
+router.delete('/', deleteBun); // cascading (YTB)
 
 router.put('/time', updateTime);
-router.put('/jaText', updateJaText);
 
 router.put('/bunkatsu', bunkatsuJaText);
 router.put('/heigou', heigouJaTextNext);
+
+router.get('/translate', getTranslate); //both nullable
+router.get('/translate/auto', getAutoTranslate);
+
+router.get('/hukumu', getYTBHukumus);
 
 export default router;

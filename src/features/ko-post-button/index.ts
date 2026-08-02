@@ -1,0 +1,1 @@
+export { usePostTranslate } from './api/usePostTranslate'

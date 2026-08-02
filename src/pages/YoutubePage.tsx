@@ -44,6 +44,7 @@ import { FilteredDataContext } from 'shared/contexts/FilteredDataContext';
 //CSS@Antd
 import { Splitter } from 'antd';
 import { useEffect } from "react";
+import { useAxiosGet } from "shared/hooks/useAxios";
 
 const { clear : clearReactPlayer } = reactPlayerActions;
 const { clear : clearTimeline } = timelineActions;
@@ -57,8 +58,7 @@ const SplitterStyle = {
 const YoutubePage = () => {
     //State
     const { videoId : VIDEO_ID } = useParams();
-
-    //Hook
+    
     const { frameRate, state, playerRef, setPlayerRef, playerHandles } = useReactPlayerHook(VIDEO_ID!);
     const { audioData, audioLoaded, audioError, filteredData } = useAudioDecode(VIDEO_ID!, frameRate);
     
@@ -67,7 +67,7 @@ const YoutubePage = () => {
 
     const { videoPlayerHandles } = useVideoPlayHook( playing, handlePausePlay, state, handleSeek, filteredData );
     
-    const { timelineHandles } = useTimeline(VIDEO_ID!);
+    const { translationDirection } = useTimeline(VIDEO_ID!);
     
     const { deselect } = useHandleSelection( document, "activeRange" );
     useHukumu(deselect);
@@ -85,12 +85,14 @@ const YoutubePage = () => {
         dispatch( clearTimeline() )
         dispatch( clearSelection() )
     }, [])
-    
+
     return(
         <>
+        {
+            VIDEO_ID !== undefined && 
             <AudioContext.Provider value={{audioData : audioData, audioLoaded : audioLoaded, audioError : audioError}}>
                 <FilteredDataContext.Provider value={filteredData}>
-                    <VideoContext.Provider value={{ videoId : VIDEO_ID!, frameRate : frameRate }}>
+                    <VideoContext.Provider value={{ videoId : VIDEO_ID!, frameRate : frameRate, translationDirection : translationDirection }}>
                         <LayoutCompYoutube>
                             <Splitter style={{ height: '100%', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
                                 <Splitter.Panel style={{ overflow : 'hidden' }} defaultSize="50%" min="30%" max="50%">                            
@@ -98,7 +100,7 @@ const YoutubePage = () => {
                                         <Route path="/*" element={<VideoComp playerRef={playerRef} setPlayerRef={setPlayerRef} state={state} playerHandles={playerHandles} videoPlayerHandles={videoPlayerHandles}/>}/>
                                     </Routes>
                                     <Routes>
-                                        <Route path="/timeline" element={<TimelineCarouselComp state={state} bIdRef={bIdRef} timelineHandles={timelineHandles} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles} deselect={deselect}/>}/>
+                                        <Route path="/timeline" element={<TimelineCarouselComp state={state} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles} deselect={deselect}/>}/>
                                         <Route path="/honyaku" element={<TimelineCarouselHonyakuComp state={state} bIdRef={bIdRef} videoPlayerHandles={videoPlayerHandles} deselect={deselect}/>}/>
                                         <Route path="/tangochou/*" element={<TimelineCarouselHonyakuComp state={state} bIdRef={bIdRef} videoPlayerHandles={videoPlayerHandles} deselect={deselect}/>}/>
                                     </Routes>
@@ -106,7 +108,7 @@ const YoutubePage = () => {
                                 <Splitter.Panel>
                                     <Routes>
                                         <Route path="/" element={
-                                            <TimelineComp state={state} bIdRef={bIdRef} timelineHandles={timelineHandles} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles}/>
+                                            <TimelineComp state={state} bIdRef={bIdRef} refetchHandles={refetchHandles} videoPlayerHandles={videoPlayerHandles}/>
                                         }/>
                                         <Route path="/timeline" element={
                                             <Splitter orientation="vertical" style={SplitterStyle}>
@@ -120,7 +122,6 @@ const YoutubePage = () => {
                                                                 hukumuList={hukumuList} osusumeList={osusumeList} tangoList={tangoList}
                                                                 refetchHukumuList={refetchHukumuList} refetchOsusumeList={refetchOsusumeList} refetchTangoList={refetchTangoList}
                                                                 refetchHandles={refetchHandles}
-                                                                refetchTimeline={timelineHandles.refetch}
                                                             />
                                                         </Splitter.Panel>
                                                         <Splitter.Panel  collapsible defaultSize="50%" min="30%">
@@ -153,6 +154,7 @@ const YoutubePage = () => {
                     </VideoContext.Provider>
                 </FilteredDataContext.Provider>
             </AudioContext.Provider>
+        }
         </>
         
     )
