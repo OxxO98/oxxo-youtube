@@ -5,10 +5,16 @@ import { useHotkeys } from 'react-hotkeys-hook';
 //api
 import { useMerge } from '../api/useMerge';
 
+//Redux
+import { useAppDispatch, reactPlayerActions } from 'shared/store';
+
 //CSS@antD
 import { Button, Flex, Modal, Card, Tooltip } from 'antd';
 import { MergeCellsOutlined } from '@ant-design/icons'
 import { VideoContext } from 'shared/contexts/VideoContext';
+
+//Redux
+const { clear } = reactPlayerActions;
 
 interface HeigouTimelineCompProps {
     bunIds : RES_TIMELINE[] | null;
@@ -24,6 +30,8 @@ export const HeigouTimelineComp = ({ bunIds, ytb, refetchHandles, cancelEdit } :
 
     //Context
     const { videoId } = useContext(VideoContext);
+    
+    const dispatch = useAppDispatch();
 
     //Hook
     const { heigouBun } = useMerge( videoId, bunIds, refetchHandles, cancelEdit );
@@ -42,6 +50,7 @@ export const HeigouTimelineComp = ({ bunIds, ytb, refetchHandles, cancelEdit } :
     const handleOk = () => {
         heigouBun( ytb );
         setIsModalOpen(false);
+        dispatch( clear() );
     };
 
     //HotKeys
@@ -49,7 +58,7 @@ export const HeigouTimelineComp = ({ bunIds, ytb, refetchHandles, cancelEdit } :
 
     let _isOk = _index !== null && bunIds !== null && _index !== bunIds.length-1;
     
-    useHotkeys('ctrl+e', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen, preventDefault : true }, [isModalOpen] )
+    useHotkeys('ctrl+e', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen, preventDefault : true, useKey: false }, [isModalOpen] )
     
     const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : isModalOpen && _isOk }, [isModalOpen, _isOk] )
     useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )

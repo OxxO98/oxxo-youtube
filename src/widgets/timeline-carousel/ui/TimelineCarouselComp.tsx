@@ -72,8 +72,8 @@ export const TimelineCarouselComp = ({ state, bIdRef, refetchHandles, videoPlaye
     const dispatch = useAppDispatch();
 
     const customKeyboard = [
-        { key: 'ArrowRight', action: () => { nextTimeLine() } },
-        { key: 'ArrowLeft', action: () => { prevTimeLine() } }
+        { code: 'ArrowRight', action: () => { nextTimeLine() } },
+        { code: 'ArrowLeft', action: () => { prevTimeLine() } }
     ]
     const filteredKeyboard = {
         pauseYT: keyboard.pauseYT,

@@ -93,10 +93,10 @@ export const LayoutCompYoutube = ({ children } : LayoutCompProps ) => {
     };
 
     //Hotkeys
-    useHotkeys('ctrl+1', () => navigate(routes[1].path) );
-    useHotkeys('ctrl+2', () => navigate(routes[2].path) );
-    useHotkeys('ctrl+3', () => navigate(routes[3].path) );
-    useHotkeys('ctrl+4', () => navigate(routes[4].path) );
+    useHotkeys('ctrl+1', () => navigate(routes[1].path), { useKey: false } );
+    useHotkeys('ctrl+2', () => navigate(routes[2].path), { useKey: false } );
+    useHotkeys('ctrl+3', () => navigate(routes[3].path), { useKey: false } );
+    useHotkeys('ctrl+4', () => navigate(routes[4].path), { useKey: false } );
 
     return(
         <Layout style={{ height : '100vh' }}>

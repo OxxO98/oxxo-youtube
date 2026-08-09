@@ -3,6 +3,8 @@ const { app, nativeTheme, BrowserWindow, utilityProcess } = require('electron');
 const path = require('path');
 const http = require('http');
 
+const logger = require("./consoleLogger.cjs");
+
 let backendProcess;
 
 function waitForServer(url, timeout = 500000) {
@@ -99,7 +101,38 @@ function createWindow() {
     console.error('did-fail-load', { errorCode, errorDescription, validatedURL });
   });
 
-  win.webContents.openDevTools({ mode: 'detach' });
+  // win.webContents.openDevTools({ mode: 'detach' });
+
+  win.webContents.on(
+    "console-message",
+    (_event, details) => {
+      const metadata = {
+        webContentsId: win.webContents.id,
+        level: details.level,
+        message: details.message,
+        lineNumber: details.lineNumber,
+        sourceId: details.sourceId,
+      };
+
+      switch (details.level) {
+        case "error":
+          logger.error("renderer_console", metadata);
+          win.webContents.openDevTools({ mode: 'detach' });
+          break;
+
+        case "warning":
+          logger.warn("renderer_console", metadata);
+          break;
+
+        case "debug":
+          logger.debug("renderer_console", metadata);
+          break;
+
+        default:
+          logger.info("renderer_console", metadata);
+      }
+    },
+  );
 
   return win;
 }

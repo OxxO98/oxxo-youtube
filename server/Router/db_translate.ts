@@ -94,29 +94,20 @@ async function getRepresentiveKoText(req : RouterRequest, res : RouterResponse){
         let timeline = await db_module.getTimeline(db, videoId);
         let ytb = await db_module.getYTBun(timeline, ytBId);
         
-        if(ytb == null || ytb?.koBId == null){
-            res.send({
-                message : 'empty',
-                data : {}
-            });
-            return;
-        }
-        else{
-            let koBun = await db_module.getKoBun(db, ytb.koBId);
-            let jaBun = await db_module.getJaBun(db, ytb.jaBId);
+        let koBun = ytb.koBId !== null ? await db_module.getKoBun(db, ytb.koBId) : null;
+        let jaBun = ytb.jaBId !== null ? await db_module.getJaBun(db, ytb.jaBId) : null;
 
-            res.send({
-                message : 'success',
-                data : {
-                    ytBId : ytBId,
-                    koBId : ytb.koBId,
-                    jaBId : ytb.jaBId,
-                    koText : koBun != null ? koBun.koText : '',
-                    jaText : jaBun != null ? jaBun.jaText : '',
-                }
-            })
-            return;
-        }
+        res.send({
+            message : 'success',
+            data : {
+                ytBId : ytBId,
+                koBId : ytb.koBId,
+                jaBId : ytb.jaBId,
+                koText : koBun != null ? koBun.koText : '',
+                jaText : jaBun != null ? jaBun.jaText : '',
+            }
+        })
+        return;
     })
 }
 
@@ -143,7 +134,7 @@ router.post('/', postKoText); // no cascading
 router.put('/', putKoText);
 router.delete('/', deleteKoText); //no cascading
 
-router.get('/representive', getRepresentiveKoText);
+// router.get('/representive', getRepresentiveKoText); //deprecated
 router.put('/representive', setRepresentiveKoText);
 
 export default router;

@@ -23,7 +23,7 @@ const FRAME_RULER_WHITE = '#ffffffbb'
 const TIMELINE_LINE_COLOR = ['#BF4040', '#414CBF', '#41BF65', '#BFA441'];
 const TIMELINE_COLOR = TIMELINE_LINE_COLOR.map( (v) => `${v}22`);
 
-interface TimelineWithIndex extends RES_TIMELINE {
+type TimelineWithIndex = RES_TIMELINE & {
     i : number
 } 
 
@@ -279,7 +279,7 @@ export function useCanvas(
         }
 
         stopDraw();
-    }, [filteredData, canvasWidth, frameRate, range, videoTime, startTime, endTime, markerTime, selectMarker, floorFrame, frameTime, getFrame])
+    }, [filteredData, canvasWidth, frameRate, range, videoTime, startTime, endTime, markerTime, selectMarker, floorFrame, frameTime, getFrame, bunIds])
 
     const stopDraw = () => {
         cancelAnimationFrame(refId.current);

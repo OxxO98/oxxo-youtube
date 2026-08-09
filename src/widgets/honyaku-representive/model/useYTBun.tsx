@@ -1,7 +1,8 @@
 import { useEffect, useState, RefObject } from 'react';
 
 export function useYTBun( 
-    response : ApiResponse<RES_GET_TRANSLATE_REP> | null,
+    ytBId : string,
+    response : ApiResponse<RES_GET_TRANSLATE> | null,
     fetch : () => Promise<void>,
     bIdRef : RefObject<BIdRef>
 ){
@@ -16,13 +17,19 @@ export function useYTBun(
                 setYtBun(null);
             }
             else{
-                setYtBun(res.data);
+                setYtBun({
+                    ytBId : ytBId,
+                    jaBId : res.data.jaBun?.jaBId ?? null,
+                    jaText : res.data.jaBun?.jaText ?? '',
+                    koBId : res.data.koBun?.koBId ?? null,
+                    koText : res.data.koBun?.koText ?? ''
+                });
         
-                if( bIdRef !== null && res.data !== null){
-                    bIdRef.current['bId'+res.data.jaBId] = {
-                        ...bIdRef.current['bId'+res.data.jaBId],
+                if( bIdRef !== null && res.data !== null && res.data.jaBun !== null ){
+                    bIdRef.current['bId'+res.data.jaBun.jaBId] = {
+                        ...bIdRef.current['bId'+res.data.jaBun.jaBId],
                         fetchTL : fetch,
-                        koText : res.data.koText
+                        koText : res.data.koBun?.koText ?? ''
                     };
                 }
             }

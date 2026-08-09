@@ -150,6 +150,7 @@ declare global {
         },
         TOOLTIP : {
             SHIFT_ENTER : string;
+            CTRL_T : string;
         }
     }
 

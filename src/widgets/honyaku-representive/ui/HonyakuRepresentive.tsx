@@ -33,10 +33,10 @@ export const HonyakuRepresentive = ({ ytBId, handleSelect, bIdRef } : HonyakuRep
     const { videoId, translationDirection } = useContext(VideoContext);
 
     //Hook
-    const { response, loading, setParams, fetch } = useAxiosGet<RES_GET_TRANSLATE_REP, REQ_GET_TRANSLATE_REP>('/db/ko/representive', true, null);
-    
+    const { response, loading, setParams, fetch } = useAxiosGet<RES_GET_TRANSLATE, REQ_GET_TRANSLATE>('/db/bun/translate', true, null);
+
     //model
-    const { ytBun } = useYTBun(response, fetch, bIdRef)
+    const { ytBun } = useYTBun(ytBId, response, fetch, bIdRef)
 
     const handleSelectId = ( ytBun : YTBun | null ) => {
         if( ytBun === null ) return;

@@ -85,9 +85,9 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, currentBunId,
     const { startTime, endTime, selectMarker } = useAppSelector((state) => state.reactPlayer)
     
     const customKeyboard = [
-        { key : 'ArrowRight', action : () => { nextTimeLine( )} },
-        { key : 'ArrowLeft', action : () => { prevTimeLine() } },
-        { key : 'q', action : () => { autoMarker() } },
+        { code : 'ArrowRight',  action : () => { nextTimeLine( )} },
+        { code : 'ArrowLeft', action : () => { prevTimeLine() } },
+        { code : 'KeyQ', action : () => { autoMarker() } },
     ]
     const { handleKeyboard } = useHandleKeyboard({ ...keyboard, custom : customKeyboard });
     
@@ -256,6 +256,8 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, currentBunId,
     useHotkeys('shift+enter', () => { cancelEdit(); inputRef.current?.blur() }, { enableOnFormTags : true } )
     useHotkeys('esc', () => { inputRef.current?.blur(); }, { enableOnFormTags : true } );
     useHotkeys('tab', () => { inputRef.current?.focus(); }, { enableOnFormTags : false } );
+
+    useHotkeys('ctrl+t, ctrl+r', () => { updateYTBunTime(editYtbId) }, { enableOnFormTags : true, useKey : false } );
     
     //Effect
     useEffect( () => {
@@ -309,7 +311,9 @@ export const TimelineControlComp = ({ value, setInputText, bunIds, currentBunId,
                         <Input type="text" value={value} onChange={handleChange} ref={inputRef} onFocus={handleFocus}/>
                         {
                             currentYTB !== null && ( startTime !== null && endTime !== null ) && ( currentYTB.startTime !== startTime || currentYTB.endTime !== endTime ) &&
-                            <Button onClick={ () => updateYTBunTime(editYtbId) }>{t('BUTTON.MODIFY_TIME')}</Button>
+                            <Tooltip title={t('TOOLTIP.CTRL_T')}>
+                                <Button onClick={ () => updateYTBunTime(editYtbId) }>{t('BUTTON.MODIFY_TIME')}</Button>
+                            </Tooltip>
                         }
                         {
                             currentYTB !== null &&

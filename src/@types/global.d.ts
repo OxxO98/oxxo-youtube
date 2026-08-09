@@ -309,7 +309,7 @@ declare global {
         markerStop?: () => void;
         loop?: () => void;
         nextMarkerPlay?: () => void;
-        custom?: { key: string; action: () => void; }[]
+        custom?: { code: string; action: () => void; }[]
     }
 
     export interface VideoPlayerHandles {

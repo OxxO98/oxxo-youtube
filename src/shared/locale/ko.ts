@@ -81,7 +81,8 @@ const TimelineControlComp : Locale["TimelineControlComp"] = {
         DELETE : '삭제'
     },
     TOOLTIP : {
-        SHIFT_ENTER : '단축키 : shift + enter'
+        SHIFT_ENTER : '단축키 : shift + enter',
+        CTRL_T : '단축키 : ctrl + t, ctrl + r'
     }
 }
 

@@ -83,6 +83,7 @@ const TimelineControlComp : Locale["TimelineControlComp"] = {
     },
     TOOLTIP : {
         SHIFT_ENTER : 'ショートカット : shift + enter',
+        CTRL_T : 'ショートカット : ctrl + t, ctrl + r'
     }
 }
 

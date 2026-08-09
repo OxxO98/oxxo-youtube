@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useTranslation } from 'react-i18next'
 import { useHotkeys } from 'react-hotkeys-hook';
 
@@ -15,7 +15,7 @@ import { useDivide } from '../api/useDivide';
 import { useAppDispatch, reactPlayerActions } from 'shared/store';
 
 //CSS@antD
-import { Input, Button, Flex, Modal, Card, Tooltip } from 'antd';
+import { Input, Button, Flex, Modal, Card, Tooltip, InputRef } from 'antd';
 import { SplitCellsOutlined } from '@ant-design/icons'
 import { VideoContext } from 'shared/contexts/VideoContext';
 
@@ -36,6 +36,8 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchHandles, cancelEdit
 
     //Context
     const { videoId } = useContext(VideoContext);
+    
+    const inputRef = useRef<InputRef>(null);
 
     const dispatch = useAppDispatch();
 
@@ -82,10 +84,13 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchHandles, cancelEdit
     const _splitedKoText = inputs.koText.split('/');
     const _isOk = _splitedJaText.length === 2 && _splitedKoText.length === 2 && hukumuDatas !== null && hukumuDatas.filter( (v) => v.startOffset < _splitedJaText[0].length && _splitedJaText[0].length < v.endOffset ).length === 0;
 
-    useHotkeys('ctrl+shift+e, ctrl+q', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen, preventDefault : true }, [isModalOpen] )
+    useHotkeys('ctrl+shift+e, ctrl+q', () => showModal(), { enableOnFormTags : true, enabled : !isModalOpen, preventDefault : true, useKey: false }, [isModalOpen] )
     
     const ref = useHotkeys<HTMLDivElement>('ctrl+enter', () => handleOk(), { enableOnFormTags : true, enabled : isModalOpen && _isOk }, [isModalOpen, _isOk] )
-    useHotkeys('shift+enter', () => handleCancel(), { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
+    useHotkeys('shift+enter', () => { handleCancel(); inputRef.current?.blur() }, { enableOnFormTags : true, enabled : isModalOpen }, [isModalOpen] )
+
+    useHotkeys('esc', () => { inputRef.current?.blur(); }, { enableOnFormTags : true } );
+    useHotkeys('tab', () => { inputRef.current?.focus(); }, { enableOnFormTags : false } );
 
     //Effect
     useEffect( () => {
@@ -126,7 +131,7 @@ export const BunkatsuTimelineComp = ({ ytb, critTime, refetchHandles, cancelEdit
                 destroyOnHidden={true}
             >
                 <div>{t('CONTENTS.0')}</div>
-                <Input value={inputs.jaText} name='jaText' onChange={handleInputChange}/>
+                <Input value={inputs.jaText} name='jaText' onChange={handleInputChange} ref={inputRef}/>
                 <Input value={inputs.koText} name='koText' onChange={handleInputChange}/>
                 {
                     _isOk &&

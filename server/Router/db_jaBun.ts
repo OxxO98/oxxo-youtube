@@ -270,7 +270,7 @@ router.post('/', postJaText); // no cascading
 router.put('/', updateJaText);
 router.delete('/', deleteJaText); // no cascading
 
-router.get('/representive', getRepresentiveJaText)
+// router.get('/representive', getRepresentiveJaText) //deprecated
 router.put('/representive', setRepresentiveJaText)
 
 export default router;
