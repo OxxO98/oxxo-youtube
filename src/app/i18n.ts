@@ -15,11 +15,14 @@ export const resources = {
     }
 }
 
-i18n.use(initReactI18next).init({
-    lng : localStorage.getItem('language') || 'ko',
-    resources,
-    defaultNS,
-    fallbackLng : 'ko'
-})
+const initializeI18n = (language: SupportedLanguage) => {
+    return i18n.use(initReactI18next).init({
+        lng : language,
+        resources,
+        defaultNS,
+        fallbackLng : 'ko'
+    });
+}
 
 export default i18n;
+export { initializeI18n };

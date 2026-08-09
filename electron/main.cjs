@@ -1,11 +1,15 @@
 // main.js
-const { app, nativeTheme, BrowserWindow, utilityProcess } = require('electron');
+const { app, nativeTheme, BrowserWindow, utilityProcess, ipcMain } = require('electron');
 const path = require('path');
 const http = require('http');
 
 const logger = require("./consoleLogger.cjs");
+const { AudioDuckerProcess } = require('./audioDucker.cjs');
+const { DEFAULT_SETTINGS, loadInitialSettings } = require('./settingsStore.cjs');
 
 let backendProcess;
+let audioDucker;
+let initialSettings = DEFAULT_SETTINGS;
 
 function waitForServer(url, timeout = 500000) {
   return new Promise((resolve, reject) => {
@@ -86,6 +90,7 @@ function createWindow() {
     backgroundColor: '#111111',
     webPreferences: {
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   });
 
@@ -170,6 +175,14 @@ app.whenReady().then(async () => {
 
   console.timeLog('startup', 'whenReady');
 
+  initialSettings = await loadInitialSettings();
+  process.env.APP_LANGUAGE = initialSettings.general.language;
+
+  audioDucker = new AudioDuckerProcess({
+    enabled: initialSettings.audioDucking.enabled,
+    duckLevel: initialSettings.audioDucking.duckLevel,
+  });
+
   const appRoot = path.join(__dirname, '..');
   const assetRoot = path.join(app.getPath('userData'), 'Asset');
 
@@ -181,6 +194,7 @@ app.whenReady().then(async () => {
         ...process.env,
         APP_ROOT: appRoot,
         APP_ASSET_ROOT: assetRoot,
+        APP_LANGUAGE: initialSettings.general.language,
       },
       stdio: 'pipe' 
     }
@@ -250,7 +264,16 @@ app.whenReady().then(async () => {
   win.loadURL('http://localhost:5000');
 });
 
+ipcMain.on('audio-ducking:set-active', (_event, active) => {
+  audioDucker?.setActive(active);
+});
+
+ipcMain.handle('settings:get-initial', () => {
+  return initialSettings;
+});
+
 app.on('will-quit', () => {
+  audioDucker?.stop();
   if (backendProcess) {
     backendProcess.kill();
   }

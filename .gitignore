@@ -35,6 +35,8 @@ README_legacy-jpn.md
 guideline.md
 
 #AudioDucker Test
-/native
+/native/AudioDucker/bin/
+/native/AudioDucker/obj/
+/native/AudioDucker/publish/
 
 #run

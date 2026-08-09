@@ -3,15 +3,24 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './app/App';
 import reportWebVitals from './reportWebVitals';
-import './app/i18n';
+import { initializeI18n } from './app/i18n';
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const bootstrap = async () => {
+  const settings = await window.settingsAPI?.getInitialSettings();
+  const language = settings?.general.language ?? 'ko';
 
-reportWebVitals();
+  await initializeI18n(language);
+
+  const root = ReactDOM.createRoot(
+    document.getElementById('root') as HTMLElement
+  );
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+
+  reportWebVitals();
+};
+
+void bootstrap();

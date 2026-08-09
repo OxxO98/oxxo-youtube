@@ -1,6 +1,6 @@
 {
   "name": "oxxo_youtube",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "private": true,
   "proxy": "http://localhost:3000",
   "main": "electron/main.cjs",
@@ -14,6 +14,7 @@
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^11.0.2",
     "es-hangul": "^2.3.8",
     "express": "^5.1.0",
     "file-saver": "^2.0.5",
@@ -51,6 +52,7 @@
   "scripts": {
     "server": "nodemon --watch server --ext ts,json --ignore server/Asset --exec \"tsx --tsconfig tsconfig.server.json server/server.ts\"",
     "server:build": "tsc -p tsconfig.server.build.json",
+    "native:publish": "dotnet publish native/AudioDucker/AudioDucker.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o native/AudioDucker/publish",
     "client": "react-scripts start",
     "start": "concurrently --kill-others-on-fail \"npm run server\" \"npm run client\"",
     "serve": "concurrently --kill-others-on-fail \"npm run server\" \"serve -s build\" \"start http://localhost:3000\"",
@@ -59,8 +61,8 @@
     "eject": "react-scripts eject",
     "postinstall": "patch-package",
     "electron": "npm run server:build && electron .",
-    "package": "npm run server:build && electron-forge package",
-    "make": "npm run server:build && electron-forge make"
+    "package": "npm run server:build && npm run native:publish && electron-forge package",
+    "make": "npm run server:build && npm run native:publish && electron-forge make"
   },
   "eslintConfig": {
     "extends": [

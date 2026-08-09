@@ -1,6 +1,27 @@
 export { };
 
 declare global {
+    type SupportedLanguage = 'ko' | 'ja';
+
+    interface InitialSettings {
+        general: {
+            language: SupportedLanguage;
+        };
+        audioDucking: {
+            enabled: boolean;
+            duckLevel: number;
+        };
+    }
+
+    interface Window {
+        audioDuckingAPI?: {
+            setActive: (active: boolean) => void;
+        };
+        settingsAPI?: {
+            getInitialSettings: () => Promise<InitialSettings>;
+        };
+    }
+
     export type TranslationDirection = 'ja-ko' | 'ko-ja'
 
     export interface UnicodeContext {

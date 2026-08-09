@@ -13,3 +13,11 @@ contextBridge.exposeInMainWorld('loadingAPI', {
     };
   },
 });
+
+contextBridge.exposeInMainWorld('audioDuckingAPI', {
+  setActive: (active) => ipcRenderer.send('audio-ducking:set-active', Boolean(active)),
+});
+
+contextBridge.exposeInMainWorld('settingsAPI', {
+  getInitialSettings: () => ipcRenderer.invoke('settings:get-initial'),
+});

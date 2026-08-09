@@ -62,7 +62,7 @@ const YoutubePage = () => {
     const { frameRate, state, playerRef, setPlayerRef, playerHandles } = useReactPlayerHook(VIDEO_ID!);
     const { audioData, audioLoaded, audioError, filteredData } = useAudioDecode(VIDEO_ID!, frameRate);
     
-    const { playing } = state;
+    const { playing, muted, volume } = state;
     const { handlePausePlay, handleSeek } = playerHandles;
 
     const { videoPlayerHandles } = useVideoPlayHook( playing, handlePausePlay, state, handleSeek, filteredData );
@@ -85,6 +85,15 @@ const YoutubePage = () => {
         dispatch( clearTimeline() )
         dispatch( clearSelection() )
     }, [])
+
+    useEffect(() => {
+        const isAudible = playing && !muted && volume > 0;
+        window.audioDuckingAPI?.setActive(isAudible);
+
+        return () => {
+            window.audioDuckingAPI?.setActive(false);
+        };
+    }, [playing, muted, volume]);
 
     return(
         <>

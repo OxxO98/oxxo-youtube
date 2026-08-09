@@ -5,6 +5,7 @@ module.exports = {
   packagerConfig: {
     asar: true,
     icon : './public/favicon.ico',
+    extraResource: ['./native/AudioDucker/publish'],
     ignore: [
       /node_modules[\\/]nodejs-whisper[\\/]cpp[\\/]whisper\.cpp[\\/]models([\\/].*)?$/,
       /server[\\/]Asset[\\/]Logs([\\/].*)?$/,
